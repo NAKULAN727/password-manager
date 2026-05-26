@@ -17,13 +17,13 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const baseStyle = "relative inline-flex items-center justify-center px-6 py-3 rounded-xl font-medium tracking-wide transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 focus:ring-offset-[#090D16] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden active:scale-95 text-sm select-none";
+  const baseStyle = "relative inline-flex items-center justify-center px-6 py-3 rounded-xl font-medium tracking-wide transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 focus:ring-offset-[#090D16] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden active:scale-97 text-sm select-none hover:-translate-y-0.5 active:translate-y-0";
   
   const variants = {
-    primary: "bg-[#1E293B] hover:bg-[#253248] text-white border border-[#D4AF37]/35 hover:border-[#D4AF37]/70 shadow-[0_0_20px_rgba(212,175,55,0.06)] hover:shadow-[0_0_30px_rgba(212,175,55,0.22)]",
-    secondary: "bg-white/5 hover:bg-white/10 text-white backdrop-blur-md border border-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]",
-    outline: "bg-transparent border-2 border-[#D4AF37]/35 hover:border-[#D4AF37] text-[#D4AF37] hover:text-white hover:bg-[#D4AF37]/10 shadow-[inset_0_0_12px_rgba(212,175,55,0.05)] hover:shadow-[inset_0_0_20px_rgba(212,175,55,0.15)]",
-    danger: "bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)]"
+    primary: "bg-[#090D16] hover:bg-[#0F172A] text-[#F8F3E7] border border-[#D4AF37]/45 hover:border-[#D4AF37]/90 shadow-[0_0_15px_rgba(212,175,55,0.1)] hover:shadow-[0_0_25px_rgba(212,175,55,0.28)]",
+    secondary: "bg-white/[0.03] hover:bg-white/[0.07] text-[#F8F3E7] backdrop-blur-md border border-white/5 hover:border-white/15",
+    outline: "bg-transparent border border-[#D4AF37]/30 hover:border-[#D4AF37] text-[#D4AF37] hover:text-white hover:bg-[#D4AF37]/10 shadow-[inset_0_0_10px_rgba(212,175,55,0.03)] hover:shadow-[0_0_15px_rgba(212,175,55,0.15)]",
+    danger: "bg-red-950/20 border border-red-500/30 text-red-400 hover:bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.1)] hover:shadow-[0_0_25px_rgba(239,68,68,0.25)]"
   };
 
   return (

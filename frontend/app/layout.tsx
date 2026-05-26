@@ -3,6 +3,7 @@ import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
 import { SessionInitializer } from "../components/auth/SessionInitializer";
 import { HydrationSafe } from "../components/ui/HydrationSafe";
+import { AmbientBackground } from "../components/ui/AmbientBackground";
 
 // Configure Outfit Google Font for headlines and primary text
 const outfit = Outfit({
@@ -71,10 +72,11 @@ export default function RootLayout({
         />
       </head>
       <body 
-        className="min-h-full flex flex-col bg-[#0B0B0F] text-slate-100 font-sans selection:bg-purple-500/30 selection:text-white"
+        className="min-h-full flex flex-col bg-[#090D16] text-slate-100 font-sans selection:bg-[#D4AF37]/20 selection:text-white"
         suppressHydrationWarning
       >
         <SessionInitializer />
+        <AmbientBackground />
         <HydrationSafe>
           {children}
         </HydrationSafe>
