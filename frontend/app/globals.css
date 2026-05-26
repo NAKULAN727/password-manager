@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --color-obsidian-bg: #0B0B0F;
+  --color-obsidian-card: rgba(11, 11, 15, 0.6);
+  --color-primary-purple: #7F00FF;
+  --color-primary-pink: #E100FF;
+  --color-accent-cyan: #00F2FE;
+
+  /* High fidelity premium micro-animations */
+  --animate-fade-in: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-pulse-glow: pulse-glow 3s infinite ease-in-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 0.08;
+      filter: blur(80px) saturate(1.2);
+    }
+    50% {
+      opacity: 0.18;
+      filter: blur(60px) saturate(1.5);
+    }
+  }
+}
+
+:root {
+  --background: #0B0B0F;
+  --foreground: #F8FAFC;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* High-fidelity custom glowing backdrops */
+.neon-glow-purple {
+  background: radial-gradient(circle, rgba(127,0,255,0.15) 0%, rgba(0,0,0,0) 70%);
+}
+
+.neon-glow-cyan {
+  background: radial-gradient(circle, rgba(0,242,254,0.08) 0%, rgba(0,0,0,0) 70%);
+}
+
+/* Custom premium ambient glowing borders for input controls */
+.glow-input {
+  transition: all 0.3s ease;
+}
+.glow-input:focus {
+  border-color: rgba(127, 0, 255, 0.5);
+  box-shadow: 0 0 20px rgba(127, 0, 255, 0.15), inset 0 0 8px rgba(127, 0, 255, 0.05);
+}
+
+/* Custom premium scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0B0F;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(127, 0, 255, 0.15);
+  border-radius: 9999px;
+  border: 2px solid #0B0B0F;
+  transition: background 0.3s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(127, 0, 255, 0.35);
+}
