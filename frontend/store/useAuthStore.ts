@@ -1,51 +1,73 @@
 import { create } from 'zustand';
+import { api } from '../lib/api/client';
 
 interface AuthState {
   address: string | null;
-  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  setSession: (address: string, token: string) => void;
-  clearSession: () => void;
+  setSession: (address: string) => void;
+  clearSession: () => Promise<void>;
   setError: (error: string | null) => void;
   setLoading: (isLoading: boolean) => void;
-  initializeSession: () => void;
+  initializeSession: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   // Initialize state to null to guarantee exact matching with Server-Rendered HTML
   address: null,
-  token: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
 
-  // Loads local storage keys safely strictly after client hydration has completed
-  initializeSession: () => {
-    if (typeof window !== 'undefined') {
-      const address = localStorage.getItem('zk_wallet_address');
-      const token = localStorage.getItem('zk_auth_token');
-      if (address && token) {
-        set({ address: address.toLowerCase(), token, isAuthenticated: true, error: null });
+  /**
+   * Queries the backend session endpoint to verify if secure cookies are active.
+   * Restores user profile dynamically and securely post-mount without localStorage.
+   */
+  initializeSession: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const data = await api.get('/auth/profile');
+      if (data && data.user && data.user.address) {
+        set({ 
+          address: data.user.address.toLowerCase(), 
+          isAuthenticated: true, 
+          error: null 
+        });
+      } else {
+        set({ address: null, isAuthenticated: false });
       }
+    } catch (err: any) {
+      // Session is not active or expired - keep clean signed-out state
+      set({ address: null, isAuthenticated: false });
+    } finally {
+      set({ isLoading: false });
     }
   },
 
-  setSession: (address: string, token: string) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('zk_wallet_address', address.toLowerCase());
-      localStorage.setItem('zk_auth_token', token);
-    }
-    set({ address: address.toLowerCase(), token, isAuthenticated: true, error: null });
+  /**
+   * Establishes secure local session context. 
+   * Cookies are automatically handled at the browser layer during verification.
+   */
+  setSession: (address: string) => {
+    set({ 
+      address: address.toLowerCase(), 
+      isAuthenticated: true, 
+      error: null 
+    });
   },
 
-  clearSession: () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('zk_wallet_address');
-      localStorage.removeItem('zk_auth_token');
+  /**
+   * Dispatches logout to invalidate cookies and clears in-memory context.
+   */
+  clearSession: async () => {
+    try {
+      await api.post('/auth/logout', {});
+    } catch (err) {
+      console.warn('Backend session termination failed:', err);
+    } finally {
+      set({ address: null, isAuthenticated: false, error: null });
     }
-    set({ address: null, token: null, isAuthenticated: false, error: null });
   },
 
   setError: (error) => set({ error }),

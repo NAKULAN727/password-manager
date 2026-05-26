@@ -30,7 +30,7 @@ export async function deriveVaultKey(
   masterPassword: string,
   walletAddress: string,
   derivationSignature: string
-): Promise<CryptoKey> {
+): Promise<{ kVault: CryptoKey; kIntegrity: CryptoKey }> {
   const enc = new TextEncoder();
 
   // --- Step 1: PBKDF2 intermediate key derivation (K1) ---
@@ -85,7 +85,71 @@ export async function deriveVaultKey(
     ['encrypt', 'decrypt']
   );
 
-  return kVault;
+  // --- Step 4: HKDF final HMAC integrity key derivation (kIntegrity) ---
+  const kIntegrity = await window.crypto.subtle.deriveKey(
+    {
+      name: 'HKDF',
+      hash: 'SHA-256',
+      salt: sWallet,
+      info: enc.encode('vaultx-integrity-key-v1'),
+    },
+    hkdfIkm,
+    { name: 'HMAC', hash: 'SHA-256', length: 256 },
+    false, // extractable: false -> Securely isolated key in memory
+    ['sign', 'verify']
+  );
+
+  return { kVault, kIntegrity };
+}
+
+/**
+ * Computes an HMAC-SHA256 checksum of an entry's data components to assert vault integrity.
+ */
+export async function computeEntryHMAC(
+  ciphertext: string,
+  iv: string,
+  tag: string,
+  label: string,
+  username: string,
+  kIntegrity: CryptoKey
+): Promise<string> {
+  const enc = new TextEncoder();
+  const payloadString = [ciphertext, iv, tag, label, username].join('|');
+  const signatureBuffer = await window.crypto.subtle.sign(
+    'HMAC',
+    kIntegrity,
+    enc.encode(payloadString)
+  );
+  return bufferToBase64(signatureBuffer);
+}
+
+/**
+ * Verifies the HMAC-SHA256 checksum of an entry's data components to detect server-side tampering.
+ */
+export async function verifyEntryHMAC(
+  ciphertext: string,
+  iv: string,
+  tag: string,
+  label: string,
+  username: string,
+  checksum: string,
+  kIntegrity: CryptoKey
+): Promise<boolean> {
+  const enc = new TextEncoder();
+  const payloadString = [ciphertext, iv, tag, label, username].join('|');
+  try {
+    const signatureBytes = base64ToBuffer(checksum);
+    const isValid = await window.crypto.subtle.verify(
+      'HMAC',
+      kIntegrity,
+      signatureBytes as any,
+      enc.encode(payloadString)
+    );
+    return isValid;
+  } catch (err) {
+    console.error('Integrity checksum verification failed:', err);
+    return false;
+  }
 }
 
 export interface EncryptedPayload {

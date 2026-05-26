@@ -40,7 +40,7 @@ export default function DashboardPage() {
   const router = useRouter();
   
   // Auth Store Session states
-  const { address, token, isAuthenticated, clearSession } = useAuthStore();
+  const { address, isAuthenticated, clearSession } = useAuthStore();
   
   // Vault Store Cryptographic states
   const { 
@@ -63,7 +63,6 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<any>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiLoading, setApiLoading] = useState(true);
-  const [showTokens, setShowTokens] = useState(false);
 
   // Authentication Route Guardian
   useEffect(() => {
@@ -311,9 +310,9 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
-                  <span className="text-[10px] text-white/30 uppercase tracking-wider block mb-0.5">express JWT signature</span>
+                  <span className="text-[10px] text-white/30 uppercase tracking-wider block mb-0.5">express JWT handshake</span>
                   {apiLoading ? (
-                    <span className="text-slate-400 animate-pulse">Checking JWT...</span>
+                    <span className="text-slate-400 animate-pulse">Verifying...</span>
                   ) : apiError ? (
                     <span className="text-red-400 flex items-center gap-1">{apiError}</span>
                   ) : (
@@ -322,17 +321,12 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-[10px] text-white/30 uppercase tracking-wider">Active Token String</span>
-                    <button
-                      onClick={() => setShowTokens(!showTokens)}
-                      className="text-[10px] text-purple-400 hover:text-purple-300 font-medium"
-                    >
-                      {showTokens ? 'Hide' : 'Reveal'}
-                    </button>
-                  </div>
-                  <span className="font-mono text-[9px] break-all bg-white/[0.01] border border-white/5 rounded-lg p-2 block text-white/40 max-h-20 overflow-y-auto">
-                    {showTokens ? token : `${token?.slice(0, 20)}... [SECRET SESSION JWT]`}
+                  <span className="text-[10px] text-white/30 uppercase tracking-wider block mb-0.5">JWT Session Storage</span>
+                  <span className="font-mono text-[10px] text-purple-300 bg-purple-950/15 border border-purple-500/10 rounded-xl px-2 py-1.5 block select-none mt-1">
+                    🔒 HttpOnly Secure Cookie
+                  </span>
+                  <span className="text-[9px] text-white/30 mt-1 block select-none leading-relaxed">
+                    Access tokens are hidden from JavaScript context to completely prevent token harvesting and XSS theft.
                   </span>
                 </div>
               </div>

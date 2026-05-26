@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useVaultStore, EncryptedVaultEntry } from '../../store/useVaultStore';
-import { decryptEntry } from '../../lib/crypto/vault';
+import { decryptEntry, verifyEntryHMAC } from '../../lib/crypto/vault';
 import { 
   Eye, 
   EyeOff, 
@@ -12,7 +12,8 @@ import {
   Trash2, 
   Calendar,
   Lock,
-  Unlock
+  Unlock,
+  AlertTriangle
 } from 'lucide-react';
 
 interface VaultTableProps {
@@ -21,16 +22,16 @@ interface VaultTableProps {
 }
 
 export function VaultTable({ entries, onEditClick }: VaultTableProps) {
-  const { kVault, deleteEntry } = useVaultStore();
+  const { kVault, kIntegrity, deleteEntry, integrityViolations, setIntegrityViolation } = useVaultStore();
   
   // Local decrypted cache
   const [decryptedCache, setDecryptedCache] = useState<Record<string, string>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [decryptingId, setDecryptingId] = useState<string | null>(null);
 
-  // Handles local on-the-fly browser GCM decryption
+  // Handles local on-the-fly browser GCM decryption and HMAC validation
   const handleToggleDecrypt = async (entry: EncryptedVaultEntry) => {
-    if (!kVault) return;
+    if (!kVault || !kIntegrity) return;
 
     if (decryptedCache[entry.id]) {
       const updated = { ...decryptedCache };
@@ -41,6 +42,25 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
 
     try {
       setDecryptingId(entry.id);
+
+      // Verify HMAC-SHA256 checksum before executing local GCM decryption
+      if (entry.checksum) {
+        const isValid = await verifyEntryHMAC(
+          entry.ciphertext,
+          entry.iv,
+          entry.tag,
+          entry.label,
+          entry.username,
+          entry.checksum,
+          kIntegrity
+        );
+        if (!isValid) {
+          setIntegrityViolation(entry.id, true);
+          alert('SECURITY WARNING: Vault entry integrity violation detected! This secret has been modified or corrupted on the server. Decryption aborted to protect your security.');
+          return;
+        }
+      }
+
       const plaintext = await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault);
       setDecryptedCache(prev => ({ ...prev, [entry.id]: plaintext }));
     } catch (err) {
@@ -53,21 +73,44 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
 
   // Secure clipboard copier - overwrites clipboard with empty string after 15 seconds
   const handleCopyPassword = async (entry: EncryptedVaultEntry) => {
-    if (!kVault) return;
+    if (!kVault || !kIntegrity) return;
+
+    // Block copy on tampered entries
+    if (integrityViolations[entry.id]) {
+      alert('Action blocked: Cannot copy a tampered vault entry.');
+      return;
+    }
 
     try {
-      // 1. Decrypt locally on the fly
+      // Verify HMAC-SHA256 checksum before copy
+      if (entry.checksum) {
+        const isValid = await verifyEntryHMAC(
+          entry.ciphertext,
+          entry.iv,
+          entry.tag,
+          entry.label,
+          entry.username,
+          entry.checksum,
+          kIntegrity
+        );
+        if (!isValid) {
+          setIntegrityViolation(entry.id, true);
+          alert('SECURITY WARNING: Vault entry integrity violation detected! Copy action aborted.');
+          return;
+        }
+      }
+
+      // Decrypt locally on the fly
       const plaintext = decryptedCache[entry.id] || 
                         await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault);
 
-      // 2. Write plaintext to clipboard
+      // Write plaintext to clipboard
       await navigator.clipboard.writeText(plaintext);
       setCopiedId(entry.id);
 
-      // 3. Register a 15-second clear timer
+      // Register a 15-second clear timer
       setTimeout(async () => {
         try {
-          // Clean clipboard to prevent leaks
           await navigator.clipboard.writeText('');
         } catch (e) {}
         setCopiedId(null);
@@ -80,10 +123,33 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
   };
 
   const handleEdit = async (entry: EncryptedVaultEntry) => {
-    if (!kVault) return;
+    if (!kVault || !kIntegrity) return;
+
+    // Block edit on tampered entries
+    if (integrityViolations[entry.id]) {
+      alert('Action blocked: Cannot edit a tampered vault entry.');
+      return;
+    }
 
     try {
-      // Decrypt plaintext password so the edit modal can pre-fill it!
+      // Verify HMAC-SHA256 checksum before pre-filling
+      if (entry.checksum) {
+        const isValid = await verifyEntryHMAC(
+          entry.ciphertext,
+          entry.iv,
+          entry.tag,
+          entry.label,
+          entry.username,
+          entry.checksum,
+          kIntegrity
+        );
+        if (!isValid) {
+          setIntegrityViolation(entry.id, true);
+          alert('SECURITY WARNING: Vault entry integrity violation detected! Edit action aborted.');
+          return;
+        }
+      }
+
       const decryptedPassword = decryptedCache[entry.id] || 
                                 await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault);
       
@@ -119,12 +185,13 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
             const isCopied = copiedId === entry.id;
             const isDecrypting = decryptingId === entry.id;
             const decryptedVal = decryptedCache[entry.id];
+            const isTampered = !!integrityViolations[entry.id];
 
             return (
-              <tr key={entry.id} className="group/row hover:bg-white/[0.01] transition-colors">
+              <tr key={entry.id} className={`group/row hover:bg-white/[0.01] transition-colors ${isTampered ? 'bg-red-500/[0.02] hover:bg-red-500/[0.04]' : ''}`}>
                 {/* Service Column */}
                 <td className="py-4 pr-3 font-semibold text-white flex items-center gap-2.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,242,254,0.6)]" />
+                  <span className={`h-1.5 w-1.5 rounded-full ${isTampered ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-cyan-400 shadow-[0_0_8px_rgba(0,242,254,0.6)]'}`} />
                   {entry.label}
                 </td>
                 
@@ -135,7 +202,12 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
                 
                 {/* Decrypted Password Column */}
                 <td className="py-4 px-3 font-mono text-xs">
-                  {isDecrypted ? (
+                  {isTampered ? (
+                    <span className="text-red-400 font-bold px-2.5 py-1 rounded bg-red-950/20 border border-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.15)] flex items-center gap-1.5 max-w-fit select-none animate-pulse">
+                      <AlertTriangle size={12} className="text-red-400" />
+                      TAMPER DETECTED
+                    </span>
+                  ) : isDecrypted ? (
                     <span className="text-purple-300 font-semibold px-2 py-1 rounded bg-purple-950/10 border border-purple-500/10 shadow-[0_0_12px_rgba(168,85,247,0.05)] selection:bg-purple-500/30 selection:text-white select-all">
                       {decryptedVal}
                     </span>
@@ -161,13 +233,15 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
                     {/* Decrypt Toggle Button */}
                     <button
                       onClick={() => handleToggleDecrypt(entry)}
-                      disabled={isDecrypting}
+                      disabled={isDecrypting || isTampered}
                       className={`text-xs font-semibold flex items-center gap-1.5 transition-colors select-none ${
-                        isDecrypted 
-                          ? 'text-purple-400 hover:text-purple-300' 
-                          : 'text-cyan-400 hover:text-cyan-300'
+                        isTampered
+                          ? 'text-red-500/35 cursor-not-allowed'
+                          : isDecrypted 
+                            ? 'text-purple-400 hover:text-purple-300' 
+                            : 'text-cyan-400 hover:text-cyan-300'
                       }`}
-                      title={isDecrypted ? 'Hide secret' : 'Decrypt locally in browser'}
+                      title={isTampered ? 'Tampered credentials locked' : isDecrypted ? 'Hide secret' : 'Decrypt locally in browser'}
                     >
                       {isDecrypted ? <EyeOff size={13} /> : <Eye size={13} />}
                       {isDecrypting ? '...' : isDecrypted ? 'Hide' : 'Decrypt'}
@@ -176,10 +250,15 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
                     {/* Secure Copy Button */}
                     <button
                       onClick={() => handleCopyPassword(entry)}
+                      disabled={isTampered}
                       className={`transition-all duration-200 p-1.5 hover:bg-white/5 rounded-lg flex items-center justify-center gap-1 text-xs font-medium ${
-                        isCopied ? 'text-emerald-400' : 'text-white/35 hover:text-white'
+                        isTampered
+                          ? 'text-white/10 cursor-not-allowed hover:bg-transparent'
+                          : isCopied 
+                            ? 'text-emerald-400' 
+                            : 'text-white/35 hover:text-white'
                       }`}
-                      title={isCopied ? 'Copied! Clears in 15s.' : 'Copy decrypted to clipboard'}
+                      title={isTampered ? 'Copy blocked: Tampered' : isCopied ? 'Copied! Clears in 15s.' : 'Copy decrypted to clipboard'}
                     >
                       {isCopied ? <Check size={13} /> : <Copy size={13} />}
                       {isCopied && <span className="text-[10px]">15s</span>}
@@ -188,8 +267,13 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
                     {/* Edit Button */}
                     <button
                       onClick={() => handleEdit(entry)}
-                      className="text-white/35 hover:text-cyan-400 transition-colors p-1.5 hover:bg-white/5 rounded-lg"
-                      title="Edit secret"
+                      disabled={isTampered}
+                      className={`transition-colors p-1.5 rounded-lg ${
+                        isTampered
+                          ? 'text-white/10 cursor-not-allowed'
+                          : 'text-white/35 hover:text-cyan-400 hover:bg-white/5'
+                      }`}
+                      title={isTampered ? 'Edit blocked: Tampered' : 'Edit secret'}
                     >
                       <Edit3 size={13} />
                     </button>

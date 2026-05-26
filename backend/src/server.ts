@@ -26,9 +26,67 @@ app.use(cors({
 // Body Parsing Middleware
 app.use(express.json());
 
+// Memory store for IP-based rate limiting
+interface RateLimitRecord {
+  count: number;
+  resetAt: number;
+}
+const rateLimiterCache = new Map<string, RateLimitRecord>();
+
+/**
+ * Robust, zero-dependency in-memory rate limiting middleware.
+ * Binds requests to source IP, preventing brute-force and resource exhaustion.
+ */
+function rateLimiter(maxRequests: number, windowMs: number) {
+  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    const now = Date.now();
+
+    if (!rateLimiterCache.has(ip)) {
+      rateLimiterCache.set(ip, {
+        count: 1,
+        resetAt: now + windowMs
+      });
+      return next();
+    }
+
+    const record = rateLimiterCache.get(ip)!;
+
+    // Reset window if elapsed
+    if (now > record.resetAt) {
+      record.count = 1;
+      record.resetAt = now + windowMs;
+      return next();
+    }
+
+    record.count++;
+    if (record.count > maxRequests) {
+      console.warn(`[RateLimit] Blocked request from IP: ${ip} (Limit: ${maxRequests} req/window)`);
+      return res.status(429).json({
+        error: 'Too many requests. API rate limit exceeded. Please try again later.'
+      });
+    }
+
+    next();
+  };
+}
+
+// Garbage collection to clean up old rate limiter records and prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of rateLimiterCache.entries()) {
+    if (now > record.resetAt) {
+      rateLimiterCache.delete(ip);
+    }
+  }
+}, 5 * 60 * 1000); // GC every 5 minutes
+
+// Apply Rate Limiter: Max 100 requests per 15 minutes window
+const apiLimiter = rateLimiter(100, 15 * 60 * 1000);
+
 // Routes Bindings
-app.use('/api/auth', authRoutes);
-app.use('/api/vault', vaultRoutes);
+app.use('/api/auth', apiLimiter, authRoutes);
+app.use('/api/vault', apiLimiter, vaultRoutes);
 
 // Health Check Endpoint
 app.get('/health', (req, res) => {

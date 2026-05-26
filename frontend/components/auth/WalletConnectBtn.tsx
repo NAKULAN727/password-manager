@@ -87,8 +87,8 @@ export function WalletConnectBtn() {
         signature
       });
 
-      // 7. Save credentials and active JWT token globally
-      setSession(authData.user.address, authData.token);
+      // 7. Save credentials and active wallet address globally (Token is stored securely in cookies)
+      setSession(authData.user.address);
 
       // 8. Redirect authenticated user to Dashboard
       router.push('/dashboard');

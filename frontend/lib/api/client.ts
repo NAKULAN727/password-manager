@@ -7,23 +7,19 @@ interface RequestOptions extends RequestInit {
 }
 
 /**
- * Custom lightweight API wrapper with integrated authentication interception.
+ * Custom lightweight API wrapper with credentials integration for HttpOnly cookies.
  */
 async function request(path: string, options: RequestOptions = {}) {
   const url = `${BASE_URL}${path}`;
 
-  // Get active session token directly from the Zustand store
-  const { token, clearSession } = useAuthStore.getState();
+  const { clearSession } = useAuthStore.getState();
 
   const headers = new Headers(options.headers || {});
   headers.set('Content-Type', 'application/json');
-  
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  }
 
   const response = await fetch(url, {
     ...options,
+    credentials: 'include', // CRITICAL! Enforces cross-origin attachment of secure HttpOnly cookies
     headers,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
@@ -36,7 +32,7 @@ async function request(path: string, options: RequestOptions = {}) {
   }
 
   if (!response.ok) {
-    // If the backend rejects the session (expired JWT or tampered token), purge frontend state
+    // If the backend rejects the session (expired cookie or tampered token), purge frontend state
     if (response.status === 401 || response.status === 403) {
       clearSession();
     }
@@ -48,7 +44,7 @@ async function request(path: string, options: RequestOptions = {}) {
 
 export const api = {
   get: (path: string) => request(path, { method: 'GET' }),
-  post: (path: string, body: any) => request(path, { method: 'POST', body }),
+  post: (path: string, body?: any) => request(path, { method: 'POST', body }),
   delete: (path: string) => request(path, { method: 'DELETE' }),
   put: (path: string, body: any) => request(path, { method: 'PUT', body }),
 };

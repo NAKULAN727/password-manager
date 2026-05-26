@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { ethers } from 'ethers';
+import crypto from 'crypto';
 import { generateNonce, parseSiweMessage, verifySignature } from '../utils/crypto';
 
 // In-memory cache to manage pending SIWE nonces securely
@@ -12,12 +13,38 @@ interface NonceSession {
 // Key is lowercase ethereum address, value is the session nonce metadata
 const nonceStore = new Map<string, NonceSession>();
 
+// In-memory cache to manage secure refresh tokens
+interface RefreshSession {
+  address: string;
+  expiresAt: number;
+}
+const refreshTokenStore = new Map<string, RefreshSession>();
+
+// Helper to parse specific cookie values from the Raw Cookie Header string
+function parseCookie(cookieString: string | undefined, name: string): string | null {
+  if (!cookieString) return null;
+  const pairs = cookieString.split(';');
+  for (let pair of pairs) {
+    const splitIndex = pair.indexOf('=');
+    if (splitIndex === -1) continue;
+    const key = pair.substring(0, splitIndex).trim();
+    const value = pair.substring(splitIndex + 1).trim();
+    if (key === name) return decodeURIComponent(value);
+  }
+  return null;
+}
+
 // Periodic garbage collection to clear expired nonces and prevent memory exhaustion
 setInterval(() => {
   const now = Date.now();
   for (const [address, session] of nonceStore.entries()) {
     if (session.expiresAt < now) {
       nonceStore.delete(address);
+    }
+  }
+  for (const [token, session] of refreshTokenStore.entries()) {
+    if (session.expiresAt < now) {
+      refreshTokenStore.delete(token);
     }
   }
 }, 60 * 1000); // Run cleanup every 60 seconds
@@ -105,16 +132,37 @@ export async function verifySiwe(req: Request, res: Response) {
     // 7. Atomic Invalidation (Strict single-use policy to protect against replay attacks)
     nonceStore.delete(cleanAddress);
 
-    // 8. Generate short-lived JWT session
+    // 8. Generate short-lived JWT accessToken session (15 minutes)
     const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_key';
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { address: cleanAddress },
       jwtSecret,
-      { expiresIn: '1h' } // Short-lived (1 hour) session
+      { expiresIn: '15m' }
     );
 
+    // 9. Generate high-entropy Refresh Token (7 days)
+    const refreshToken = crypto.randomBytes(32).toString('hex');
+    const refreshExpiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+    refreshTokenStore.set(refreshToken, { address: cleanAddress, expiresAt: refreshExpiresAt });
+
+    // 10. Set cookies on response
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000 // 15 minutes
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
     return res.status(200).json({
-      token,
       user: {
         address: cleanAddress
       }
@@ -126,11 +174,99 @@ export async function verifySiwe(req: Request, res: Response) {
 }
 
 /**
+ * Refresh access token session using the refresh token cookie.
+ * POST /api/auth/refresh
+ */
+export async function refreshSession(req: Request, res: Response) {
+  try {
+    const cookies = req.headers.cookie;
+    const token = parseCookie(cookies, 'refreshToken');
+
+    if (!token) {
+      return res.status(401).json({ error: 'Refresh token is missing. Please log in again.' });
+    }
+
+    const session = refreshTokenStore.get(token);
+    if (!session) {
+      return res.status(401).json({ error: 'Invalid or expired refresh token. Please log in again.' });
+    }
+
+    if (Date.now() > session.expiresAt) {
+      refreshTokenStore.delete(token);
+      return res.status(401).json({ error: 'Refresh token has expired. Please log in again.' });
+    }
+
+    // Refresh access token
+    const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_key';
+    const newAccessToken = jwt.sign(
+      { address: session.address },
+      jwtSecret,
+      { expiresIn: '15m' }
+    );
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000
+    });
+
+    return res.status(200).json({
+      user: {
+        address: session.address
+      }
+    });
+  } catch (error) {
+    console.error('Error in refreshSession:', error);
+    return res.status(500).json({ error: 'Internal server error during session refresh.' });
+  }
+}
+
+/**
+ * Terminate secure session and invalidate cookies.
+ * POST /api/auth/logout
+ */
+export async function logoutSession(req: Request, res: Response) {
+  try {
+    const cookies = req.headers.cookie;
+    const token = parseCookie(cookies, 'refreshToken');
+
+    if (token) {
+      refreshTokenStore.delete(token);
+    }
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    res.cookie('accessToken', '', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 0,
+      expires: new Date(0)
+    });
+
+    res.cookie('refreshToken', '', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 0,
+      expires: new Date(0)
+    });
+
+    return res.status(200).json({ status: 'success', message: 'Logged out successfully.' });
+  } catch (error) {
+    console.error('Error in logoutSession:', error);
+    return res.status(500).json({ error: 'Internal server error during logout.' });
+  }
+}
+
+/**
  * Endpoint for testing token status and returning profile info.
  * GET /api/auth/profile
  */
 export async function getProfile(req: Request, res: Response) {
-  // The address is added by the authenticateToken middleware to req.user
   const user = (req as any).user;
   if (!user) {
     return res.status(401).json({ error: 'Unauthorized.' });

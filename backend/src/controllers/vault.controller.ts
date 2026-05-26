@@ -8,6 +8,7 @@ export interface VaultEntry {
   iv: string;         // Base64
   ciphertext: string; // Base64
   tag: string;        // Base64
+  checksum?: string;  // Base64 HMAC
   createdAt: string;
   updatedAt: string;
 }
@@ -26,7 +27,7 @@ export async function addVaultEntry(req: Request, res: Response) {
       return res.status(401).json({ error: 'Unauthorized: Session missing user context.' });
     }
 
-    const { label, username, ciphertext, iv, tag } = req.body;
+    const { label, username, ciphertext, iv, tag, checksum } = req.body;
 
     if (!label || !ciphertext || !iv || !tag) {
       return res.status(400).json({ error: 'Missing required vault schema parameters (label, ciphertext, iv, and tag are required).' });
@@ -42,6 +43,7 @@ export async function addVaultEntry(req: Request, res: Response) {
       iv,
       ciphertext,
       tag,
+      checksum: checksum ? String(checksum) : undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -135,7 +137,7 @@ export async function updateVaultEntry(req: Request, res: Response) {
     }
 
     const { id } = req.params;
-    const { label, username, ciphertext, iv, tag } = req.body;
+    const { label, username, ciphertext, iv, tag, checksum } = req.body;
 
     if (!id) {
       return res.status(400).json({ error: 'Vault entry ID parameter is required.' });
@@ -162,6 +164,7 @@ export async function updateVaultEntry(req: Request, res: Response) {
       iv,
       ciphertext,
       tag,
+      checksum: checksum ? String(checksum) : undefined,
       updatedAt: new Date().toISOString()
     };
 
