@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../../store/useAuthStore';
 import { WalletConnectBtn } from '../../components/auth/WalletConnectBtn';
 import { Card } from '../../components/ui/Card';
-import { Shield, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -82,9 +83,16 @@ export default function LoginPage() {
           <motion.div 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="mb-4 rounded-2xl bg-gradient-to-tr from-amber-600 to-[#D4AF37] p-3 shadow-[0_0_20px_rgba(212,175,55,0.25)] border border-[#D4AF37]/35 cursor-default"
+            className="mb-4 cursor-default"
           >
-            <Shield className="h-7 w-7 text-white" />
+            <Image
+              src="/letter-logo.png"
+              alt="Sphynx Logo"
+              width={72}
+              height={72}
+              className="object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.35)]"
+              priority
+            />
           </motion.div>
           
           <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent font-mono">

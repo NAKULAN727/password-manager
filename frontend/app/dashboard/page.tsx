@@ -189,8 +189,15 @@ export default function DashboardPage() {
 
         <div className="w-full max-w-md animate-fade-in z-10">
           <div className="mb-8 flex flex-col items-center text-center">
-            <div className="mb-4 rounded-2xl bg-gradient-to-tr from-amber-600 to-[#D4AF37] p-3.5 shadow-[0_0_25px_rgba(212,175,55,0.25)] border border-[#D4AF37]/35">
-              <Lock className="h-7 w-7 text-white" />
+            <div className="mb-4 cursor-default">
+              <Image
+                src="/letter-logo.png"
+                alt="Sphynx Logo"
+                width={72}
+                height={72}
+                className="object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.35)]"
+                priority
+              />
             </div>
             <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">
               Sanctuary Gateway
@@ -292,13 +299,21 @@ export default function DashboardPage() {
       {/* Unlocked Header */}
       <header className="border-b border-white/5 bg-[#090D16]/60 backdrop-blur-xl sticky top-0 z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
-          <div className="flex items-center">
+          <div className="flex items-center gap-0">
+            <Image
+              src="/letter-logo.png"
+              alt="Sphynx Logomark"
+              width={32}
+              height={32}
+              className="object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.25)] transition-transform duration-300 hover:scale-105"
+              priority
+            />
             <Image
               src="/logo-password.png"
               alt="Sphynx Logo"
               width={160}
               height={64}
-              className="object-contain drop-shadow-[0_0_12px_rgba(212,175,55,0.35)]"
+              className="object-contain drop-shadow-[0_0_12px_rgba(212,175,55,0.35)] -ml-3"
               priority
             />
           </div>
