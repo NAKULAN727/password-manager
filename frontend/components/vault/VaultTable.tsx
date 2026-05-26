@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useVaultStore, EncryptedVaultEntry } from '../../store/useVaultStore';
 import { decryptEntry, verifyEntryHMAC } from '../../lib/crypto/vault';
+import { DecryptedPassword } from './DecryptedPassword';
 import { 
   Eye, 
   EyeOff, 
@@ -22,11 +23,18 @@ interface VaultTableProps {
 }
 
 export function VaultTable({ entries, onEditClick }: VaultTableProps) {
-  const { kVault, kIntegrity, deleteEntry, integrityViolations, setIntegrityViolation } = useVaultStore();
+  const { 
+    kVault, 
+    kIntegrity, 
+    deleteEntry, 
+    integrityViolations, 
+    setIntegrityViolation,
+    activeClipboardTimer,
+    setActiveClipboardTimer 
+  } = useVaultStore();
   
   // Local decrypted cache
   const [decryptedCache, setDecryptedCache] = useState<Record<string, string>>({});
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [decryptingId, setDecryptingId] = useState<string | null>(null);
 
   // Handles local on-the-fly browser GCM decryption and HMAC validation
@@ -56,7 +64,6 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
         );
         if (!isValid) {
           setIntegrityViolation(entry.id, true);
-          alert('SECURITY WARNING: Vault entry integrity violation detected! This secret has been modified or corrupted on the server. Decryption aborted to protect your security.');
           return;
         }
       }
@@ -65,7 +72,6 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
       setDecryptedCache(prev => ({ ...prev, [entry.id]: plaintext }));
     } catch (err) {
       console.error('Local decryption failed:', err);
-      alert('Decryption failed: signature salt mismatch or corrupted payload.');
     } finally {
       setDecryptingId(null);
     }
@@ -77,7 +83,6 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
 
     // Block copy on tampered entries
     if (integrityViolations[entry.id]) {
-      alert('Action blocked: Cannot copy a tampered vault entry.');
       return;
     }
 
@@ -95,7 +100,6 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
         );
         if (!isValid) {
           setIntegrityViolation(entry.id, true);
-          alert('SECURITY WARNING: Vault entry integrity violation detected! Copy action aborted.');
           return;
         }
       }
@@ -106,19 +110,28 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
 
       // Write plaintext to clipboard
       await navigator.clipboard.writeText(plaintext);
-      setCopiedId(entry.id);
+      
+      // Update global store active clipboard timer
+      setActiveClipboardTimer({
+        entryId: entry.id,
+        label: entry.label,
+        duration: 15000
+      });
 
       // Register a 15-second clear timer
       setTimeout(async () => {
         try {
-          await navigator.clipboard.writeText('');
+          const currentTimer = useVaultStore.getState().activeClipboardTimer;
+          // Protects against newer copy overlaps
+          if (currentTimer?.entryId === entry.id) {
+            await navigator.clipboard.writeText('');
+            setActiveClipboardTimer(null);
+          }
         } catch (e) {}
-        setCopiedId(null);
       }, 15000);
 
     } catch (err) {
       console.error('Copy/Decrypt failed:', err);
-      alert('Failed to copy: could not decrypt credentials.');
     }
   };
 
@@ -127,7 +140,6 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
 
     // Block edit on tampered entries
     if (integrityViolations[entry.id]) {
-      alert('Action blocked: Cannot edit a tampered vault entry.');
       return;
     }
 
@@ -145,7 +157,6 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
         );
         if (!isValid) {
           setIntegrityViolation(entry.id, true);
-          alert('SECURITY WARNING: Vault entry integrity violation detected! Edit action aborted.');
           return;
         }
       }
@@ -182,16 +193,17 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
         <tbody className="divide-y divide-white/5">
           {entries.map((entry) => {
             const isDecrypted = !!decryptedCache[entry.id];
-            const isCopied = copiedId === entry.id;
+            const isCopied = activeClipboardTimer?.entryId === entry.id;
             const isDecrypting = decryptingId === entry.id;
             const decryptedVal = decryptedCache[entry.id];
             const isTampered = !!integrityViolations[entry.id];
 
             return (
               <tr key={entry.id} className={`group/row hover:bg-white/[0.01] transition-colors ${isTampered ? 'bg-red-500/[0.02] hover:bg-red-500/[0.04]' : ''}`}>
+                
                 {/* Service Column */}
                 <td className="py-4 pr-3 font-semibold text-white flex items-center gap-2.5">
-                  <span className={`h-1.5 w-1.5 rounded-full ${isTampered ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-cyan-400 shadow-[0_0_8px_rgba(0,242,254,0.6)]'}`} />
+                  <span className={`h-1.5 w-1.5 rounded-full ${isTampered ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse' : 'bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.6)]'}`} />
                   {entry.label}
                 </td>
                 
@@ -201,29 +213,30 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
                 </td>
                 
                 {/* Decrypted Password Column */}
-                <td className="py-4 px-3 font-mono text-xs">
+                <td className="py-4 px-3">
                   {isTampered ? (
-                    <span className="text-red-400 font-bold px-2.5 py-1 rounded bg-red-950/20 border border-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.15)] flex items-center gap-1.5 max-w-fit select-none animate-pulse">
+                    <span className="text-red-400 font-bold font-mono text-xs px-2.5 py-1 rounded bg-red-950/20 border border-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.15)] flex items-center gap-1.5 max-w-fit select-none animate-pulse">
                       <AlertTriangle size={12} className="text-red-400" />
                       TAMPER DETECTED
                     </span>
-                  ) : isDecrypted ? (
-                    <span className="text-purple-300 font-semibold px-2 py-1 rounded bg-purple-950/10 border border-purple-500/10 shadow-[0_0_12px_rgba(168,85,247,0.05)] selection:bg-purple-500/30 selection:text-white select-all">
-                      {decryptedVal}
-                    </span>
                   ) : (
-                    <span className="text-white/20 select-none tracking-widest font-sans">••••••••••••</span>
+                    <DecryptedPassword 
+                      password={decryptedVal} 
+                      isDecrypted={isDecrypted} 
+                    />
                   )}
                 </td>
 
                 {/* Updated At Column */}
-                <td className="py-4 px-3 text-xs text-white/30 flex items-center gap-1.5 mt-1.5">
-                  <Calendar size={12} />
-                  {new Date(entry.updatedAt).toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                  })}
+                <td className="py-4 px-3 text-xs text-white/30">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar size={12} />
+                    {new Date(entry.updatedAt).toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </div>
                 </td>
                 
                 {/* Actions Column */}
@@ -234,12 +247,12 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
                     <button
                       onClick={() => handleToggleDecrypt(entry)}
                       disabled={isDecrypting || isTampered}
-                      className={`text-xs font-semibold flex items-center gap-1.5 transition-colors select-none ${
+                      className={`text-xs font-bold flex items-center gap-1.5 transition-colors select-none ${
                         isTampered
                           ? 'text-red-500/35 cursor-not-allowed'
                           : isDecrypted 
-                            ? 'text-purple-400 hover:text-purple-300' 
-                            : 'text-cyan-400 hover:text-cyan-300'
+                            ? 'text-amber-500 hover:text-amber-400' 
+                            : 'text-[#D4AF37] hover:text-[#e5c158]'
                       }`}
                       title={isTampered ? 'Tampered credentials locked' : isDecrypted ? 'Hide secret' : 'Decrypt locally in browser'}
                     >
@@ -251,11 +264,11 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
                     <button
                       onClick={() => handleCopyPassword(entry)}
                       disabled={isTampered}
-                      className={`transition-all duration-200 p-1.5 hover:bg-white/5 rounded-lg flex items-center justify-center gap-1 text-xs font-medium ${
+                      className={`transition-all duration-200 p-1.5 hover:bg-white/5 rounded-lg flex items-center justify-center gap-1 text-xs font-semibold ${
                         isTampered
                           ? 'text-white/10 cursor-not-allowed hover:bg-transparent'
                           : isCopied 
-                            ? 'text-emerald-400' 
+                            ? 'text-emerald-400 font-bold' 
                             : 'text-white/35 hover:text-white'
                       }`}
                       title={isTampered ? 'Copy blocked: Tampered' : isCopied ? 'Copied! Clears in 15s.' : 'Copy decrypted to clipboard'}
@@ -271,7 +284,7 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
                       className={`transition-colors p-1.5 rounded-lg ${
                         isTampered
                           ? 'text-white/10 cursor-not-allowed'
-                          : 'text-white/35 hover:text-cyan-400 hover:bg-white/5'
+                          : 'text-white/35 hover:text-[#D4AF37] hover:bg-white/5'
                       }`}
                       title={isTampered ? 'Edit blocked: Tampered' : 'Edit secret'}
                     >

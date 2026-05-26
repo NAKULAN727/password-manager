@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useVaultStore, EncryptedVaultEntry } from '../../store/useVaultStore';
 import { decryptEntry, verifyEntryHMAC } from '../../lib/crypto/vault';
 import { Card } from '../ui/Card';
+import { DecryptedPassword } from './DecryptedPassword';
 import { 
   Eye, 
   EyeOff, 
@@ -25,13 +26,21 @@ interface VaultCardProps {
 }
 
 export function VaultCard({ entry, onEditClick }: VaultCardProps) {
-  const { kVault, kIntegrity, deleteEntry, integrityViolations, setIntegrityViolation } = useVaultStore();
+  const { 
+    kVault, 
+    kIntegrity, 
+    deleteEntry, 
+    integrityViolations, 
+    setIntegrityViolation,
+    activeClipboardTimer,
+    setActiveClipboardTimer 
+  } = useVaultStore();
 
   const [decryptedText, setDecryptedText] = useState<string | null>(null);
-  const [isCopied, setIsCopied] = useState(false);
   const [isDecrypting, setIsDecrypting] = useState(false);
 
   const isTampered = !!integrityViolations[entry.id];
+  const isCopied = activeClipboardTimer?.entryId === entry.id;
 
   const handleToggleDecrypt = async () => {
     if (!kVault || !kIntegrity) return;
@@ -57,7 +66,6 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
         );
         if (!isValid) {
           setIntegrityViolation(entry.id, true);
-          alert('SECURITY WARNING: Vault entry integrity violation detected! Decryption aborted.');
           return;
         }
       }
@@ -66,7 +74,6 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
       setDecryptedText(plaintext);
     } catch (err) {
       console.error('Local decryption failed:', err);
-      alert('Decryption failed: signature salt mismatch or corrupted payload.');
     } finally {
       setIsDecrypting(false);
     }
@@ -76,7 +83,6 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
     if (!kVault || !kIntegrity) return;
 
     if (isTampered) {
-      alert('Action blocked: Cannot copy a tampered vault entry.');
       return;
     }
 
@@ -94,7 +100,6 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
         );
         if (!isValid) {
           setIntegrityViolation(entry.id, true);
-          alert('SECURITY WARNING: Vault entry integrity violation detected! Copy action aborted.');
           return;
         }
       }
@@ -103,18 +108,28 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
                         await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault);
 
       await navigator.clipboard.writeText(plaintext);
-      setIsCopied(true);
+      
+      // Update global store active clipboard timer
+      setActiveClipboardTimer({
+        entryId: entry.id,
+        label: entry.label,
+        duration: 15000
+      });
 
+      // Register a 15-second clear timer
       setTimeout(async () => {
         try {
-          await navigator.clipboard.writeText('');
+          const currentTimer = useVaultStore.getState().activeClipboardTimer;
+          // Protects against newer copy overlaps
+          if (currentTimer?.entryId === entry.id) {
+            await navigator.clipboard.writeText('');
+            setActiveClipboardTimer(null);
+          }
         } catch (e) {}
-        setIsCopied(false);
       }, 15000);
 
     } catch (err) {
       console.error('Copy failed:', err);
-      alert('Failed to copy: could not decrypt credentials.');
     }
   };
 
@@ -122,7 +137,6 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
     if (!kVault || !kIntegrity) return;
 
     if (isTampered) {
-      alert('Action blocked: Cannot edit a tampered vault entry.');
       return;
     }
 
@@ -140,7 +154,6 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
         );
         if (!isValid) {
           setIntegrityViolation(entry.id, true);
-          alert('SECURITY WARNING: Vault entry integrity violation detected! Edit action aborted.');
           return;
         }
       }
@@ -167,7 +180,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
       {/* Top Section: Service & Category */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2.5">
-          <div className={`rounded-lg p-2 border text-xs font-semibold ${isTampered ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400'}`}>
+          <div className={`rounded-lg p-2 border text-xs font-semibold ${isTampered ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-amber-500/10 border-[#D4AF37]/20 text-[#D4AF37]'}`}>
             <Globe size={16} />
           </div>
           <div>
@@ -179,7 +192,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
         </div>
 
         {/* Locked/Unlocked status */}
-        <div className={`transition-colors ${isTampered ? 'text-red-400/50' : 'text-white/20 group-hover:text-purple-400/50'}`}>
+        <div className={`transition-colors ${isTampered ? 'text-red-400/50 animate-pulse' : 'text-white/20 group-hover:text-[#D4AF37]/50'}`}>
           {isTampered ? <AlertTriangle size={14} /> : decryptedText !== null ? <Unlock size={14} /> : <Lock size={14} />}
         </div>
       </div>
@@ -193,20 +206,19 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
 
         <div className="flex items-center justify-between mt-1">
           <span className="text-white/30 font-semibold">Password</span>
-          <span className="font-mono">
+          <div>
             {isTampered ? (
               <span className="text-red-400 font-bold bg-red-950/20 border border-red-500/20 px-2 py-0.5 rounded flex items-center gap-1 select-none animate-pulse">
                 <AlertTriangle size={10} />
                 TAMPERED
               </span>
-            ) : decryptedText !== null ? (
-              <span className="text-purple-300 font-semibold bg-purple-950/15 border border-purple-500/10 px-1.5 py-0.5 rounded selection:bg-purple-500/30 selection:text-white select-all">
-                {decryptedText}
-              </span>
             ) : (
-              <span className="text-white/10 tracking-widest">••••••••</span>
+              <DecryptedPassword 
+                password={decryptedText || ''} 
+                isDecrypted={decryptedText !== null} 
+              />
             )}
-          </span>
+          </div>
         </div>
       </div>
 
@@ -228,7 +240,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
             onClick={handleEdit}
             disabled={isTampered}
             className={`p-1.5 rounded-lg transition-colors ${
-              isTampered ? 'text-white/10 cursor-not-allowed' : 'text-white/30 hover:text-cyan-400 hover:bg-white/5'
+              isTampered ? 'text-white/10 cursor-not-allowed' : 'text-white/30 hover:text-[#D4AF37] hover:bg-white/5'
             }`}
             title={isTampered ? 'Edit blocked: Tampered' : 'Edit secret'}
           >
@@ -254,7 +266,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
               isTampered
                 ? 'text-white/10 cursor-not-allowed'
                 : isCopied 
-                  ? 'text-emerald-400' 
+                  ? 'text-emerald-400 font-bold' 
                   : 'text-white/30 hover:text-white hover:bg-white/5'
             }`}
             title={isTampered ? 'Copy blocked: Tampered' : isCopied ? 'Copied! Clears in 15s.' : 'Copy decrypted'}
@@ -271,8 +283,8 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
               isTampered
                 ? 'bg-transparent border-red-500/10 text-red-500/35 cursor-not-allowed'
                 : decryptedText !== null
-                  ? 'bg-purple-950/20 border-purple-500/20 text-purple-400 hover:text-purple-300'
-                  : 'bg-cyan-950/20 border-cyan-500/20 text-cyan-400 hover:text-cyan-300'
+                  ? 'bg-amber-950/20 border-[#D4AF37]/20 text-amber-500 hover:text-amber-400'
+                  : 'bg-amber-950/10 border-[#D4AF37]/10 text-[#D4AF37] hover:text-white hover:bg-[#D4AF37]/15'
             }`}
           >
             {decryptedText !== null ? <EyeOff size={12} /> : <Eye size={12} />}

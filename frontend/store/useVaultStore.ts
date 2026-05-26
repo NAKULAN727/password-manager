@@ -25,6 +25,7 @@ interface VaultState {
   error: string | null;
   searchQuery: string;
   integrityViolations: Record<string, boolean>; // Tamper indicators mapping entryId -> true
+  activeClipboardTimer: { entryId: string; label: string; duration: number } | null;
   unlockVault: (masterPassword: string) => Promise<void>;
   lockVault: () => void;
   fetchEntries: () => Promise<void>;
@@ -34,6 +35,7 @@ interface VaultState {
   setSearchQuery: (query: string) => void;
   setError: (error: string | null) => void;
   setIntegrityViolation: (id: string, violated: boolean) => void;
+  setActiveClipboardTimer: (timer: { entryId: string; label: string; duration: number } | null) => void;
 }
 
 export const useVaultStore = create<VaultState>((set, get) => ({
@@ -45,6 +47,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
   error: null,
   searchQuery: '',
   integrityViolations: {},
+  activeClipboardTimer: null,
 
   /**
    * Prompts wallet signature derivation, derives both kVault and kIntegrity via HKDF,
@@ -108,7 +111,8 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       isUnlocked: false,
       vaultEntries: [],
       integrityViolations: {},
-      error: null
+      error: null,
+      activeClipboardTimer: null
     });
   },
 
@@ -245,5 +249,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         [id]: violated
       }
     }));
-  }
+  },
+
+  setActiveClipboardTimer: (timer) => set({ activeClipboardTimer: timer })
 }));

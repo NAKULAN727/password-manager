@@ -15,20 +15,23 @@ import { VaultSearch } from '../../components/vault/VaultSearch';
 import { VaultTable } from '../../components/vault/VaultTable';
 import { VaultCard } from '../../components/vault/VaultCard';
 
+// The Obsidian Sanctuary Security Additions
+import { ClipboardPurgeBar } from '../../components/vault/ClipboardPurgeBar';
+import { TamperAlarm } from '../../components/vault/TamperAlarm';
+import { KeyDerivationAnimation } from '../../components/vault/KeyDerivationAnimation';
+
 import { 
   Shield, 
   Key, 
-  Eye, 
-  EyeOff, 
   Plus, 
   Database, 
   Power, 
-  AlertCircle, 
   CheckCircle2, 
   Lock, 
   Unlock, 
   RefreshCw,
-  Search
+  Search,
+  LockKeyhole
 } from 'lucide-react';
 
 /**
@@ -132,69 +135,77 @@ export default function DashboardPage() {
   // --- RENDERING ROUTE 1: Vault Locked Gateway Portal ---
   if (!isUnlocked) {
     return (
-      <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#0B0B0F] px-6 py-12">
-        <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#7F00FF]/5 blur-[120px] animate-pulse-glow" />
+      <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#090D16] px-6 py-12">
+        
+        {/* Radial ambient background glows with Burnished Gold accents */}
+        <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D4AF37]/5 blur-[120px] animate-pulse-glow" />
 
-        <div className="w-full max-w-md animate-fade-in">
+        <div className="w-full max-w-md animate-fade-in z-10">
           <div className="mb-8 flex flex-col items-center text-center">
-            <div className="mb-4 rounded-2xl bg-gradient-to-tr from-[#7F00FF] to-[#E100FF] p-3.5 shadow-[0_0_20px_rgba(127,0,255,0.45)]">
+            <div className="mb-4 rounded-2xl bg-gradient-to-tr from-amber-600 to-[#D4AF37] p-3.5 shadow-[0_0_25px_rgba(212,175,55,0.25)] border border-[#D4AF37]/35">
               <Lock className="h-7 w-7 text-white" />
             </div>
-            <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-white to-purple-400 bg-clip-text text-transparent">Sphynx Unlock</h2>
+            <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">
+              Sanctuary Gateway
+            </h2>
             <p className="mt-2 text-sm text-slate-400">
-              Derive secure AES-256-GCM key locally to access secrets
+              Derive secure AES-256-GCM keys locally to unlock your secrets
             </p>
           </div>
 
-          <Card glow className="border-white/5 bg-white/[0.01]">
-            <form onSubmit={handleUnlock} className="flex flex-col gap-5">
-              {vaultError && (
-                <div className="rounded-xl border border-red-500/15 bg-red-500/5 p-4 text-red-400 text-xs leading-relaxed animate-fade-in">
-                  <div className="font-semibold mb-1">Key Derivation Error</div>
-                  {vaultError}
+          {/* Show Orbiting Particles during cryptographic calculations */}
+          {vaultLoading ? (
+            <KeyDerivationAnimation />
+          ) : (
+            <Card className="border-[#D4AF37]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+              <form onSubmit={handleUnlock} className="flex flex-col gap-5">
+                {vaultError && (
+                  <div className="rounded-xl border border-red-500/15 bg-red-500/5 p-4 text-red-400 text-xs leading-relaxed animate-fade-in">
+                    <div className="font-semibold mb-1">Key Derivation Error</div>
+                    {vaultError}
+                  </div>
+                )}
+
+                {/* Wallet identifier info */}
+                <div className="rounded-xl border border-white/5 bg-[#090D16]/80 p-3.5 text-slate-400 text-xs flex flex-col gap-1">
+                  <span className="text-[10px] text-white/30 uppercase tracking-widest block font-semibold">Vault Salt (Address)</span>
+                  <span className="font-mono text-[#D4AF37] break-all text-[11px]">{address}</span>
                 </div>
-              )}
 
-              {/* Wallet identifier info */}
-              <div className="rounded-xl border border-white/5 bg-white/[0.01] p-3 text-slate-400 text-xs">
-                <span className="text-[10px] text-white/30 uppercase block mb-1">Vault Salt (Address)</span>
-                <span className="font-mono text-purple-300 break-all text-[11px]">{address}</span>
-              </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    Master Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter vault master password"
+                    value={masterPassword}
+                    onChange={(e) => setMasterPassword(e.target.value)}
+                    className="glow-input w-full rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                  Master Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="Enter vault master password"
-                  value={masterPassword}
-                  onChange={(e) => setMasterPassword(e.target.value)}
-                  className="glow-input w-full rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none"
-                />
-              </div>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  className="w-full gap-2 py-3.5 text-sm font-semibold bg-gradient-to-r from-amber-600 to-[#D4AF37] border border-[#D4AF37]/35 text-white hover:brightness-110 shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_0_30px_rgba(212,175,55,0.4)]"
+                >
+                  <Key size={18} />
+                  Derive Vault Key & Unlock
+                </Button>
+              </form>
+            </Card>
+          )}
 
-              <Button
-                variant="primary"
-                type="submit"
-                isLoading={vaultLoading}
-                className="w-full gap-2 py-3.5 text-sm font-semibold"
-              >
-                {!vaultLoading && <Key size={18} />}
-                {vaultLoading ? 'Deriving Keys Locally...' : 'Derive Vault Key & Unlock'}
-              </Button>
-            </form>
-          </Card>
-
-          <p className="mt-6 text-center text-xs text-white/20 leading-relaxed max-w-xs mx-auto">
-            Metamask will prompt a deterministic signature to derive the vault's salt. Your Master Password and keys **never** leave your machine.
+          <p className="mt-6 text-center text-xs text-white/25 leading-relaxed max-w-xs mx-auto font-mono">
+            MetaMask will verify account ownership. HKDF derivations happen on-the-fly and never touch the network.
           </p>
 
           <div className="mt-8 text-center">
             <button
               onClick={handleLogout}
-              className="text-xs font-semibold text-white/30 hover:text-white transition-colors"
+              className="text-xs font-semibold text-[#D4AF37]/65 hover:text-[#D4AF37] transition-colors"
             >
               Sign Out Wallet
             </button>
@@ -206,8 +217,14 @@ export default function DashboardPage() {
 
   // --- RENDERING ROUTE 2: Vault Unlocked Workspace ---
   return (
-    <div className="min-h-screen bg-[#0B0B0F] text-slate-100 pb-20">
+    <div className="min-h-screen bg-[#090D16] text-slate-100 pb-20 relative">
       
+      {/* Depleting progress bar countdown at the very top of the screen */}
+      <ClipboardPurgeBar />
+
+      {/* Pulsing red perimeter overlay for tamper alarm states */}
+      <TamperAlarm />
+
       {/* Background inactivity monitoring trigger */}
       <SessionLock />
 
@@ -222,31 +239,31 @@ export default function DashboardPage() {
       />
       
       {/* Radial ambient background glows */}
-      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#7F00FF]/4 blur-[120px] animate-pulse-glow" />
-      <div className="absolute bottom-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#00F2FE]/2 blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
+      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#D4AF37]/3 blur-[120px] animate-pulse-glow" />
+      <div className="absolute bottom-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-emerald-500/1 blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
 
       {/* Unlocked Header */}
-      <header className="border-b border-white/5 bg-[#0B0B0F]/30 backdrop-blur-xl sticky top-0 z-50">
+      <header className="border-b border-white/5 bg-[#090D16]/60 backdrop-blur-xl sticky top-0 z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-gradient-to-tr from-[#7F00FF] to-[#E100FF] p-2 shadow-[0_0_15px_rgba(127,0,255,0.4)]">
+            <div className="rounded-xl bg-gradient-to-tr from-amber-600 to-[#D4AF37] p-2 shadow-[0_0_15px_rgba(212,175,55,0.25)] border border-[#D4AF37]/25">
               <Shield className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-extrabold tracking-wider bg-gradient-to-r from-white via-white to-purple-400 bg-clip-text text-transparent">
+            <span className="text-lg font-extrabold tracking-wider bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent font-mono">
               SPHYNX
             </span>
           </div>
 
           <div className="flex items-center gap-3.5">
-            <div className="hidden sm:flex items-center gap-2 rounded-xl border border-white/5 bg-white/[0.02] px-3 py-1.5 text-xs font-mono text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.05)] select-none">
+            <div className="hidden sm:flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs font-mono text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.05)] select-none">
               <Unlock size={12} className="animate-pulse" />
-              Vault Unlocked
+              Integrity Verified
             </div>
             
             <Button
               variant="outline"
               onClick={lockVault}
-              className="px-4 py-2 border-[#7F00FF]/25 hover:border-[#7F00FF]/50 text-purple-400 hover:text-white text-xs font-semibold gap-1.5"
+              className="px-4 py-2 border-[#D4AF37]/25 hover:border-[#D4AF37]/60 text-[#D4AF37] hover:text-white text-xs font-bold gap-1.5 shadow-[inset_0_0_10px_rgba(212,175,55,0.05)]"
             >
               <Lock size={13} />
               Lock Vault
@@ -270,7 +287,7 @@ export default function DashboardPage() {
         {/* Workspace Title bar & CTAs */}
         <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Security Vault Workspace</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">Security Vault Workspace</h1>
             <p className="mt-1.5 text-sm text-slate-400">
               Manage your credentials locally with zero server trust
             </p>
@@ -282,7 +299,7 @@ export default function DashboardPage() {
               setEntryToEdit(null);
               setIsModalOpen(true);
             }} 
-            className="gap-1.5 text-xs font-semibold px-6 py-3"
+            className="gap-1.5 text-xs font-bold px-6 py-3 bg-gradient-to-r from-amber-600 to-[#D4AF37] border border-[#D4AF37]/35 text-white hover:brightness-110 shadow-[0_0_20px_rgba(212,175,55,0.2)]"
           >
             <Plus size={14} />
             Create Secret
@@ -294,51 +311,51 @@ export default function DashboardPage() {
           
           {/* Diagnostic status block (Left Panel - Span 1) */}
           <div className="lg:col-span-1 flex flex-col gap-6">
-            <Card className="border-[#7F00FF]/10 bg-white/[0.01] text-xs p-5">
-              <h2 className="text-sm font-bold mb-4 flex items-center gap-2">
-                <Database size={15} className="text-purple-400" />
+            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 text-xs p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+              <h2 className="text-sm font-bold mb-4 flex items-center gap-2 text-[#D4AF37]">
+                <Database size={15} />
                 Session Diagnostics
               </h2>
 
               <div className="flex flex-col gap-4">
                 <div>
-                  <span className="text-[10px] text-white/30 uppercase tracking-wider block mb-0.5">derived K_vault status</span>
+                  <span className="text-[10px] text-white/30 uppercase tracking-wider block mb-0.5 font-semibold">derived K_vault status</span>
                   <span className="font-mono text-emerald-400 flex items-center gap-1.5 py-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    AES-256-GCM (Secure)
+                    AES-GCM Memory Lock
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-[10px] text-white/30 uppercase tracking-wider block mb-0.5">express JWT handshake</span>
+                  <span className="text-[10px] text-white/30 uppercase tracking-wider block mb-0.5 font-semibold font-mono">express JWT handshake</span>
                   {apiLoading ? (
-                    <span className="text-slate-400 animate-pulse">Verifying...</span>
+                    <span className="text-slate-400 animate-pulse font-mono">Verifying...</span>
                   ) : apiError ? (
-                    <span className="text-red-400 flex items-center gap-1">{apiError}</span>
+                    <span className="text-red-400 flex items-center gap-1 font-mono">{apiError}</span>
                   ) : (
-                    <span className="text-emerald-400 flex items-center gap-1"><CheckCircle2 size={11} /> Handshake Verified</span>
+                    <span className="text-emerald-400 flex items-center gap-1 font-mono"><CheckCircle2 size={11} /> Handshake Verified</span>
                   )}
                 </div>
 
                 <div>
-                  <span className="text-[10px] text-white/30 uppercase tracking-wider block mb-0.5">JWT Session Storage</span>
-                  <span className="font-mono text-[10px] text-purple-300 bg-purple-950/15 border border-purple-500/10 rounded-xl px-2 py-1.5 block select-none mt-1">
-                    🔒 HttpOnly Secure Cookie
+                  <span className="text-[10px] text-white/30 uppercase tracking-wider block mb-0.5 font-semibold">Session Isolation</span>
+                  <span className="font-mono text-[10px] text-[#D4AF37] bg-amber-950/15 border border-[#D4AF37]/15 rounded-xl px-2.5 py-2.5 block select-none mt-1 leading-relaxed">
+                    🔒 Non-Extractable CryptoKey
                   </span>
-                  <span className="text-[9px] text-white/30 mt-1 block select-none leading-relaxed">
-                    Access tokens are hidden from JavaScript context to completely prevent token harvesting and XSS theft.
+                  <span className="text-[9.5px] text-white/30 mt-2 block select-none leading-relaxed">
+                    The derived keys use <code>extractable: false</code>. It is physically impossible for client scripts (XSS) to harvest or read the keys.
                   </span>
                 </div>
               </div>
             </Card>
 
             {/* Note banner */}
-            <div className="rounded-2xl border border-purple-500/10 bg-purple-500/5 p-4 text-xs leading-relaxed text-purple-300">
-              <div className="font-semibold flex items-center gap-1.5 mb-1 text-purple-200">
+            <div className="rounded-2xl border border-[#D4AF37]/10 bg-amber-950/5 p-4 text-xs leading-relaxed text-slate-400">
+              <div className="font-bold flex items-center gap-1.5 mb-1.5 text-[#D4AF37]">
                 <Shield size={14} className="shrink-0" />
-                Zero-Knowledge Proof
+                Zero-Trust Philosophy
               </div>
-              All credentials are encrypted and decrypted on-the-fly strictly inside your browser. No plaintext password is ever sent through a network.
+              Your master key is expanded via HKDF using deterministic signatures. Secrets are decrypted strictly inside browser memory sandbox.
             </div>
           </div>
 
@@ -351,7 +368,7 @@ export default function DashboardPage() {
               
               <button
                 onClick={fetchEntries}
-                className="text-xs text-white/40 hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-white/5 bg-white/[0.01] rounded-2xl px-4 py-2.5 z-10"
+                className="text-xs text-[#D4AF37]/70 hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#D4AF37]/15 bg-white/[0.01] hover:bg-[#D4AF37]/5 rounded-2xl px-4 py-2.5 z-10"
               >
                 <RefreshCw size={12} className={vaultLoading ? "animate-spin" : ""} />
                 Sync Locker
@@ -359,11 +376,11 @@ export default function DashboardPage() {
             </div>
 
             {/* Vault List UI */}
-            <Card className="bg-white/[0.005] border-white/5 flex flex-col p-6 min-h-[400px]">
+            <Card className="bg-[#090D16]/20 border-white/5 flex flex-col p-6 min-h-[400px] shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
               {vaultEntries.length === 0 ? (
                 /* Empty state UI */
                 <div className="flex flex-col items-center justify-center py-24 my-auto">
-                  <Lock className="h-10 w-10 text-white/10 mb-4" />
+                  <LockKeyhole className="h-10 w-10 text-white/10 mb-4" />
                   <p className="text-sm font-semibold text-slate-400">Vault locker is empty</p>
                   <p className="text-xs text-white/20 mt-1 max-w-xs text-center leading-relaxed">
                     Local browser GCM encryptions are active. Click the "Create Secret" button to add your first secure record.

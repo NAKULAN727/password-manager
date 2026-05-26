@@ -11,27 +11,27 @@ import { Shield, Key, ChevronRight, Zap, Database } from 'lucide-react';
  */
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0B0B0F]">
+    <div className="relative min-h-screen overflow-hidden bg-[#090D16]">
       
-      {/* Premium ambient high-fidelity pulsing glows */}
-      <div className="absolute top-[-10%] left-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-[#7F00FF]/8 blur-[120px] animate-pulse-glow" />
-      <div className="absolute bottom-[-10%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-[#00F2FE]/4 blur-[120px] animate-pulse-glow" style={{ animationDelay: '1.5s' }} />
+      {/* Premium ambient high-fidelity pulsing glows with Burnished Gold accents */}
+      <div className="absolute top-[-10%] left-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-[#D4AF37]/5 blur-[120px] animate-pulse-glow" />
+      <div className="absolute bottom-[-10%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-emerald-500/2 blur-[120px] animate-pulse-glow" style={{ animationDelay: '1.5s' }} />
 
       {/* Navigation Header */}
-      <header className="border-b border-white/5 bg-[#0B0B0F]/30 backdrop-blur-xl">
+      <header className="border-b border-white/5 bg-[#090D16]/30 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 sm:px-8">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-gradient-to-tr from-[#7F00FF] to-[#E100FF] p-2.5 shadow-[0_0_15px_rgba(127,0,255,0.4)]">
+            <div className="rounded-xl bg-gradient-to-tr from-amber-600 to-[#D4AF37] p-2.5 shadow-[0_0_15px_rgba(212,175,55,0.25)] border border-[#D4AF37]/25">
               <Shield className="h-5.5 w-5.5 text-white" />
             </div>
-            <span className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-white via-white to-purple-400 bg-clip-text text-transparent">
+            <span className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent font-mono">
               SPHYNX
             </span>
           </div>
 
           <div className="flex items-center gap-4">
             <Link href="/login">
-              <Button variant="secondary" className="px-5 py-2 text-xs font-semibold">
+              <Button variant="secondary" className="px-5 py-2 text-xs font-bold border-[#D4AF37]/15 hover:border-[#D4AF37]/45 text-[#D4AF37] hover:text-white">
                 Launch App
               </Button>
             </Link>
@@ -44,15 +44,15 @@ export default function LandingPage() {
         <div className="flex flex-col items-center text-center animate-fade-in">
           
           {/* Next-gen Tagline Pill */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#7F00FF]/30 bg-[#7F00FF]/5 px-4 py-1.5 text-xs font-semibold tracking-wider text-purple-400 shadow-[0_0_15px_rgba(127,0,255,0.1)]">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5 px-4 py-1.5 text-xs font-semibold tracking-wider text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.1)] font-mono">
             <Zap size={12} />
             NEXT-GEN WEB3 SECURITY
           </div>
 
           <h1 className="max-w-4xl text-5xl font-extrabold tracking-tight sm:text-7xl leading-tight sm:leading-none">
             The Zero-Knowledge <br className="hidden sm:inline" />
-            <span className="bg-gradient-to-r from-[#7F00FF] via-[#E100FF] to-[#00F2FE] bg-clip-text text-transparent">
-              Sphynx
+            <span className="bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent font-mono">
+              Sanctuary
             </span>{" "}
             for Your Credentials
           </h1>
@@ -63,14 +63,17 @@ export default function LandingPage() {
 
           <div className="mt-12 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             <Link href="/login">
-              <Button variant="primary" className="gap-2 px-8 py-4 text-base font-semibold group">
+              <Button 
+                variant="primary" 
+                className="gap-2 px-8 py-4 text-base font-bold bg-gradient-to-r from-amber-600 to-[#D4AF37] border border-[#D4AF37]/35 text-white hover:brightness-110 shadow-[0_0_20px_rgba(212,175,55,0.2)] group"
+              >
                 Access Vault
                 <ChevronRight size={18} className="transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
             
             <a href="#features">
-              <Button variant="secondary" className="px-8 py-4 text-base font-semibold">
+              <Button variant="secondary" className="px-8 py-4 text-base font-semibold border-white/5 hover:border-white/15">
                 Explore Tech
               </Button>
             </a>
@@ -89,8 +92,8 @@ export default function LandingPage() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
-            <Card glow className="flex flex-col gap-5">
-              <div className="w-fit rounded-2xl bg-[#7F00FF]/10 p-4 border border-[#7F00FF]/20 text-[#7F00FF] shadow-[0_0_15px_rgba(127,0,255,0.15)]">
+            <Card className="flex flex-col gap-5 border-[#D4AF37]/10 bg-[#090D16]/50">
+              <div className="w-fit rounded-2xl bg-[#D4AF37]/10 p-4 border border-[#D4AF37]/20 text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.15)]">
                 <Shield size={28} />
               </div>
               <h3 className="text-xl font-bold">Sign-In with Ethereum</h3>
@@ -99,8 +102,8 @@ export default function LandingPage() {
               </p>
             </Card>
 
-            <Card className="flex flex-col gap-5">
-              <div className="w-fit rounded-2xl bg-[#00F2FE]/10 p-4 border border-[#00F2FE]/20 text-[#00F2FE] shadow-[0_0_15px_rgba(0,242,254,0.15)]">
+            <Card className="flex flex-col gap-5 border-[#D4AF37]/10 bg-[#090D16]/50">
+              <div className="w-fit rounded-2xl bg-emerald-500/10 p-4 border border-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
                 <Key size={28} />
               </div>
               <h3 className="text-xl font-bold">Zero-Knowledge Trust</h3>
@@ -109,8 +112,8 @@ export default function LandingPage() {
               </p>
             </Card>
 
-            <Card className="flex flex-col gap-5">
-              <div className="w-fit rounded-2xl bg-[#E100FF]/10 p-4 border border-[#E100FF]/20 text-[#E100FF] shadow-[0_0_15px_rgba(225,0,255,0.15)]">
+            <Card className="flex flex-col gap-5 border-[#D4AF37]/10 bg-[#090D16]/50">
+              <div className="w-fit rounded-2xl bg-amber-500/10 p-4 border border-amber-500/20 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
                 <Database size={28} />
               </div>
               <h3 className="text-xl font-bold">Ephemeral Nonces</h3>
@@ -123,7 +126,7 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 bg-[#0B0B0F] py-10 mt-32 text-center text-xs text-white/30 tracking-wider">
+      <footer className="border-t border-white/5 bg-[#090D16] py-10 mt-32 text-center text-xs text-white/30 tracking-wider font-mono">
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <p>© {new Date().getFullYear()} Sphynx Security Labs. All cryptographic rights reserved.</p>
         </div>
