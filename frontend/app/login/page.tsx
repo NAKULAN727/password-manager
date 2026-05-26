@@ -106,7 +106,7 @@ export default function LoginPage() {
         {/* Core Security Disclaimers */}
         <motion.p 
           variants={itemVariants} 
-          className="mt-6 text-center text-[11px] text-white/20 leading-relaxed max-w-xs mx-auto font-mono"
+          className="mt-6 text-center text-[11px] text-slate-400 leading-relaxed max-w-xs mx-auto font-mono"
         >
           By signing in, you confirm the digital signature in your wallet. Sphynx never asks for, stores, or transmits your seed phrases or private keys.
         </motion.p>

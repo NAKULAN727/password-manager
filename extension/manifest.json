@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Sphynx Secure Vault",
+  "version": "1.0.0",
+  "description": "Sphynx Zero-Knowledge cryptographic vault helper and secure autofill assistant.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "http://localhost:5000/*"
+  ],
+  "action": {
+    "default_popup": "public/index.html"
+  },
+  "background": {
+    "service_worker": "public/dist/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["public/dist/content.js"],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ],
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:3000/*"
+    ]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  }
+}

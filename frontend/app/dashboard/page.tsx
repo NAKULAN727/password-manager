@@ -96,6 +96,52 @@ export default function DashboardPage() {
     fetchProfile();
   }, [isAuthenticated]);
 
+  // Extension Session Synchronization
+  const [extensionId, setExtensionId] = useState<string | null>(null);
+  const { token } = useAuthStore();
+  const { derivationSignature } = useVaultStore();
+
+  useEffect(() => {
+    const handleExtensionDetected = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'SPHYNX_EXTENSION_DETECTED' && event.data.extensionId) {
+        console.log('Sphynx extension detected:', event.data.extensionId);
+        setExtensionId(event.data.extensionId);
+      }
+    };
+    window.addEventListener('message', handleExtensionDetected);
+    return () => {
+      window.removeEventListener('message', handleExtensionDetected);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!extensionId || !address || !derivationSignature || !token) return;
+
+    const chromeObj = (window as any).chrome;
+    if (chromeObj && chromeObj.runtime && chromeObj.runtime.sendMessage) {
+      console.log('Syncing session parameters to Sphynx Chrome Extension...');
+      chromeObj.runtime.sendMessage(
+        extensionId,
+        {
+          type: 'SYNC_SESSION',
+          payload: {
+            address,
+            derivationSignature,
+            token
+          }
+        },
+        (response: any) => {
+          const lastError = chromeObj.runtime.lastError;
+          if (lastError) {
+            console.warn('Extension synchronization failed:', lastError.message);
+          } else {
+            console.log('Extension synchronization response:', response);
+          }
+        }
+      );
+    }
+  }, [extensionId, address, derivationSignature, token]);
+
   // Trigger atomic logout
   const handleLogout = () => {
     lockVault();
@@ -199,7 +245,7 @@ export default function DashboardPage() {
             </Card>
           )}
 
-          <p className="mt-6 text-center text-xs text-white/25 leading-relaxed max-w-xs mx-auto font-mono">
+          <p className="mt-6 text-center text-xs text-slate-400 leading-relaxed max-w-xs mx-auto font-mono">
             MetaMask will verify account ownership. HKDF derivations happen on-the-fly and never touch the network.
           </p>
 

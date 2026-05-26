@@ -19,6 +19,7 @@ export interface EncryptedVaultEntry {
 interface VaultState {
   kVault: CryptoKey | null;
   kIntegrity: CryptoKey | null; // Non-extractable HMAC key
+  derivationSignature: string | null; // Store signature to sync with browser extension
   isUnlocked: boolean;
   vaultEntries: EncryptedVaultEntry[];
   isLoading: boolean;
@@ -41,6 +42,7 @@ interface VaultState {
 export const useVaultStore = create<VaultState>((set, get) => ({
   kVault: null,
   kIntegrity: null,
+  derivationSignature: null,
   isUnlocked: false,
   vaultEntries: [],
   isLoading: false,
@@ -78,9 +80,10 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       // Cryptographically derive dual keys (kVault and kIntegrity)
       const { kVault, kIntegrity } = await deriveVaultKey(masterPassword, address, derivationSignature);
 
-      set({
+       set({
         kVault,
         kIntegrity,
+        derivationSignature,
         isUnlocked: true,
         integrityViolations: {}, // Reset any violation states
         error: null
@@ -108,6 +111,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     set({
       kVault: null,
       kIntegrity: null,
+      derivationSignature: null,
       isUnlocked: false,
       vaultEntries: [],
       integrityViolations: {},
