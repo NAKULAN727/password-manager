@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Shield, Key, ChevronRight, Zap, Database } from 'lucide-react';
@@ -20,13 +21,15 @@ export default function LandingPage() {
       {/* Navigation Header */}
       <header className="border-b border-white/5 bg-[#090D16]/30 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 sm:px-8">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-gradient-to-tr from-amber-600 to-[#D4AF37] p-2.5 shadow-[0_0_15px_rgba(212,175,55,0.25)] border border-[#D4AF37]/25">
-              <Shield className="h-5.5 w-5.5 text-white" />
-            </div>
-            <span className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent font-mono">
-              SPHYNX
-            </span>
+          <div className="flex items-center">
+            <Image
+              src="/logo-password.png"
+              alt="Sphynx Logo"
+              width={160}
+              height={64}
+              className="object-contain drop-shadow-[0_0_12px_rgba(212,175,55,0.35)]"
+              priority
+            />
           </div>
 
           <div className="flex items-center gap-4">

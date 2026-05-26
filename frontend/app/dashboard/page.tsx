@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useVaultStore, EncryptedVaultEntry } from '../../store/useVaultStore';
 import { api } from '../../lib/api/client';
@@ -245,13 +246,15 @@ export default function DashboardPage() {
       {/* Unlocked Header */}
       <header className="border-b border-white/5 bg-[#090D16]/60 backdrop-blur-xl sticky top-0 z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-gradient-to-tr from-amber-600 to-[#D4AF37] p-2 shadow-[0_0_15px_rgba(212,175,55,0.25)] border border-[#D4AF37]/25">
-              <Shield className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-lg font-extrabold tracking-wider bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent font-mono">
-              SPHYNX
-            </span>
+          <div className="flex items-center">
+            <Image
+              src="/logo-password.png"
+              alt="Sphynx Logo"
+              width={160}
+              height={64}
+              className="object-contain drop-shadow-[0_0_12px_rgba(212,175,55,0.35)]"
+              priority
+            />
           </div>
 
           <div className="flex items-center gap-3.5">
