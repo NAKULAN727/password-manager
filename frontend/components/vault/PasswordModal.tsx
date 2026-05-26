@@ -87,22 +87,22 @@ export function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro
       {/* Background glass blur backdrop */}
       <div 
         onClick={onClose}
-        className="absolute inset-0 bg-[#0B0B0F]/60 backdrop-blur-md transition-opacity duration-300"
+        className="absolute inset-0 bg-[#090D16]/60 backdrop-blur-md transition-opacity duration-300"
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-white/5 bg-[#0B0B0F]/90 p-8 shadow-[0_0_50px_rgba(127,0,255,0.15)] backdrop-blur-2xl animate-fade-in z-10">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-[#D4AF37]/15 bg-[#090D16]/90 p-8 shadow-[0_0_50px_rgba(212,175,55,0.08)] backdrop-blur-2xl animate-fade-in z-10">
         
         {/* Ambient background accent */}
-        <div className="absolute -right-20 -top-20 -z-10 h-40 w-40 rounded-full bg-[#7F00FF]/5 blur-[60px]" />
+        <div className="absolute -right-20 -top-20 -z-10 h-40 w-40 rounded-full bg-[#D4AF37]/5 blur-[60px]" />
         
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-gradient-to-tr from-[#7F00FF] to-[#E100FF] p-2 shadow-[0_0_12px_rgba(127,0,255,0.35)]">
+            <div className="rounded-xl bg-gradient-to-tr from-amber-600 to-[#D4AF37] p-2 shadow-[0_0_12px_rgba(212,175,55,0.2)] border border-[#D4AF37]/25">
               <Shield className="h-5 w-5 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-white">
+            <h3 className="text-xl font-bold text-white font-mono">
               {entryToEdit ? 'Edit Secure Secret' : 'Create New Secret'}
             </h3>
           </div>
@@ -158,7 +158,7 @@ export function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro
               <button
                 type="button"
                 onClick={handleGeneratePassword}
-                className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 transition-colors select-none"
+                className="text-[10px] text-[#D4AF37] hover:text-[#e5c158] font-bold flex items-center gap-1 transition-colors select-none font-mono"
               >
                 <Sparkles size={11} />
                 Generate Secure

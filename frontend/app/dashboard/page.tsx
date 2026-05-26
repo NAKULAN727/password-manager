@@ -189,7 +189,7 @@ export default function DashboardPage() {
                 <Button
                   variant="primary"
                   type="submit"
-                  className="w-full gap-2 py-3.5 text-sm font-semibold bg-gradient-to-r from-amber-600 to-[#D4AF37] border border-[#D4AF37]/35 text-white hover:brightness-110 shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_0_30px_rgba(212,175,55,0.4)]"
+                  className="w-full gap-2 py-3.5 text-sm font-semibold"
                 >
                   <Key size={18} />
                   Derive Vault Key & Unlock
@@ -299,7 +299,7 @@ export default function DashboardPage() {
               setEntryToEdit(null);
               setIsModalOpen(true);
             }} 
-            className="gap-1.5 text-xs font-bold px-6 py-3 bg-gradient-to-r from-amber-600 to-[#D4AF37] border border-[#D4AF37]/35 text-white hover:brightness-110 shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+            className="gap-1.5 text-xs font-bold px-6 py-3"
           >
             <Plus size={14} />
             Create Secret

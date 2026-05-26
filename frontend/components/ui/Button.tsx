@@ -17,12 +17,12 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const baseStyle = "relative inline-flex items-center justify-center px-6 py-3 rounded-xl font-medium tracking-wide transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-[#0B0B0F] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden active:scale-95 text-sm select-none";
+  const baseStyle = "relative inline-flex items-center justify-center px-6 py-3 rounded-xl font-medium tracking-wide transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 focus:ring-offset-[#090D16] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden active:scale-95 text-sm select-none";
   
   const variants = {
-    primary: "bg-gradient-to-r from-[#7F00FF] to-[#E100FF] text-white shadow-[0_0_20px_rgba(127,0,255,0.3)] hover:shadow-[0_0_30px_rgba(127,0,255,0.6)] hover:brightness-110",
+    primary: "bg-[#1E293B] hover:bg-[#253248] text-white border border-[#D4AF37]/35 hover:border-[#D4AF37]/70 shadow-[0_0_20px_rgba(212,175,55,0.06)] hover:shadow-[0_0_30px_rgba(212,175,55,0.22)]",
     secondary: "bg-white/5 hover:bg-white/10 text-white backdrop-blur-md border border-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]",
-    outline: "bg-transparent border-2 border-[#7F00FF]/40 hover:border-[#7F00FF] text-purple-400 hover:text-white hover:bg-[#7F00FF]/10 shadow-[inset_0_0_12px_rgba(127,0,255,0.1)] hover:shadow-[inset_0_0_20px_rgba(127,0,255,0.2)]",
+    outline: "bg-transparent border-2 border-[#D4AF37]/35 hover:border-[#D4AF37] text-[#D4AF37] hover:text-white hover:bg-[#D4AF37]/10 shadow-[inset_0_0_12px_rgba(212,175,55,0.05)] hover:shadow-[inset_0_0_20px_rgba(212,175,55,0.15)]",
     danger: "bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)]"
   };
 

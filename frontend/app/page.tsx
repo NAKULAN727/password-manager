@@ -65,7 +65,7 @@ export default function LandingPage() {
             <Link href="/login">
               <Button 
                 variant="primary" 
-                className="gap-2 px-8 py-4 text-base font-bold bg-gradient-to-r from-amber-600 to-[#D4AF37] border border-[#D4AF37]/35 text-white hover:brightness-110 shadow-[0_0_20px_rgba(212,175,55,0.2)] group"
+                className="gap-2 px-8 py-4 text-base font-bold group"
               >
                 Access Vault
                 <ChevronRight size={18} className="transition-transform group-hover:translate-x-1" />
