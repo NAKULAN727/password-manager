@@ -7,15 +7,21 @@ interface RequestOptions extends RequestInit {
 }
 
 /**
- * Custom lightweight API wrapper with credentials integration for HttpOnly cookies.
+ * Custom lightweight API wrapper with hybrid secure cookie and Authorization header support.
  */
 async function request(path: string, options: RequestOptions = {}) {
   const url = `${BASE_URL}${path}`;
 
-  const { clearSession } = useAuthStore.getState();
+  // Get active session parameters from in-memory store
+  const { token, clearSession } = useAuthStore.getState();
 
   const headers = new Headers(options.headers || {});
   headers.set('Content-Type', 'application/json');
+
+  // Enforce header-based authentication as a fallback if present in memory
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
 
   const response = await fetch(url, {
     ...options,
@@ -32,7 +38,7 @@ async function request(path: string, options: RequestOptions = {}) {
   }
 
   if (!response.ok) {
-    // If the backend rejects the session (expired cookie or tampered token), purge frontend state
+    // If the backend rejects the session (expired cookie or invalid token), purge frontend state
     if (response.status === 401 || response.status === 403) {
       clearSession();
     }

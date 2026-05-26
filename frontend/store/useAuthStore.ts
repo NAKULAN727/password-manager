@@ -3,10 +3,11 @@ import { api } from '../lib/api/client';
 
 interface AuthState {
   address: string | null;
+  token: string | null; // In-memory JWT fallback (never stored in localStorage for maximum security)
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  setSession: (address: string) => void;
+  setSession: (address: string, token?: string) => void;
   clearSession: () => Promise<void>;
   setError: (error: string | null) => void;
   setLoading: (isLoading: boolean) => void;
@@ -16,6 +17,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   // Initialize state to null to guarantee exact matching with Server-Rendered HTML
   address: null,
+  token: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
@@ -35,23 +37,24 @@ export const useAuthStore = create<AuthState>((set) => ({
           error: null 
         });
       } else {
-        set({ address: null, isAuthenticated: false });
+        set({ address: null, token: null, isAuthenticated: false });
       }
     } catch (err: any) {
       // Session is not active or expired - keep clean signed-out state
-      set({ address: null, isAuthenticated: false });
+      set({ address: null, token: null, isAuthenticated: false });
     } finally {
       set({ isLoading: false });
     }
   },
 
   /**
-   * Establishes secure local session context. 
-   * Cookies are automatically handled at the browser layer during verification.
+   * Establishes secure local session context.
+   * Leverages HttpOnly cookies primarily, with in-memory JWT header fallback for dev origin policies.
    */
-  setSession: (address: string) => {
+  setSession: (address: string, token?: string) => {
     set({ 
       address: address.toLowerCase(), 
+      token: token || null,
       isAuthenticated: true, 
       error: null 
     });
@@ -66,7 +69,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (err) {
       console.warn('Backend session termination failed:', err);
     } finally {
-      set({ address: null, isAuthenticated: false, error: null });
+      set({ address: null, token: null, isAuthenticated: false, error: null });
     }
   },
 

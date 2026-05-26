@@ -163,6 +163,7 @@ export async function verifySiwe(req: Request, res: Response) {
     });
 
     return res.status(200).json({
+      token: accessToken, // Hybrid fallback for environments where cross-origin cookies are blocked
       user: {
         address: cleanAddress
       }
@@ -214,6 +215,7 @@ export async function refreshSession(req: Request, res: Response) {
     });
 
     return res.status(200).json({
+      token: newAccessToken, // Hybrid fallback
       user: {
         address: session.address
       }
