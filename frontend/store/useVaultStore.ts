@@ -2,6 +2,14 @@ import { create } from 'zustand';
 import { useAuthStore } from './useAuthStore';
 import { api } from '../lib/api/client';
 import { deriveVaultKey, encryptEntry, decryptEntry, computeEntryHMAC } from '../lib/crypto/vault';
+import {
+  generateVEK,
+  deriveKEK,
+  encryptVEK,
+  decryptVEK,
+  importVEKasCryptoKey,
+  EncryptedVEKEnvelope,
+} from '../lib/crypto/sanctuary';
 import { ethers } from 'ethers';
 
 export interface EncryptedVaultEntry {
@@ -18,15 +26,22 @@ export interface EncryptedVaultEntry {
 
 interface VaultState {
   kVault: CryptoKey | null;
-  kIntegrity: CryptoKey | null; // Non-extractable HMAC key
-  derivationSignature: string | null; // Store signature to sync with browser extension
+  kIntegrity: CryptoKey | null;
+  derivationSignature: string | null;
   isUnlocked: boolean;
+  // Sanctuary / VEK state
+  sanctuaryStatus: 'idle' | 'checking' | 'new_user' | 'returning_user' | 'active';
   vaultEntries: EncryptedVaultEntry[];
   isLoading: boolean;
   error: string | null;
   searchQuery: string;
-  integrityViolations: Record<string, boolean>; // Tamper indicators mapping entryId -> true
+  integrityViolations: Record<string, boolean>;
   activeClipboardTimer: { entryId: string; label: string; duration: number } | null;
+  // Sanctuary actions
+  checkSanctuaryStatus: () => Promise<void>;
+  initializeSanctuary: (sanctuaryPhrase: string) => Promise<void>;
+  unlockSanctuary: (sanctuaryPhrase: string) => Promise<void>;
+  // Legacy vault actions
   unlockVault: (masterPassword: string) => Promise<void>;
   lockVault: () => void;
   fetchEntries: () => Promise<void>;
@@ -44,12 +59,148 @@ export const useVaultStore = create<VaultState>((set, get) => ({
   kIntegrity: null,
   derivationSignature: null,
   isUnlocked: false,
+  sanctuaryStatus: 'idle',
   vaultEntries: [],
   isLoading: false,
   error: null,
   searchQuery: '',
   integrityViolations: {},
   activeClipboardTimer: null,
+
+  /**
+   * Checks the backend to determine if this wallet has an existing VEK.
+   * Sets sanctuaryStatus to 'new_user' or 'returning_user'.
+   */
+  checkSanctuaryStatus: async () => {
+    try {
+      set({ sanctuaryStatus: 'checking', error: null });
+      const data = await api.get('/vault/vek-status');
+      set({ sanctuaryStatus: data.hasVek ? 'returning_user' : 'new_user' });
+    } catch (err: any) {
+      set({ sanctuaryStatus: 'idle', error: err.message || 'Failed to check sanctuary status.' });
+    }
+  },
+
+  /**
+   * First-time onboarding: generates VEK, derives KEK from sanctuary phrase,
+   * encrypts VEK with KEK, persists envelope to backend, then unlocks vault.
+   */
+  initializeSanctuary: async (sanctuaryPhrase: string) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const address = useAuthStore.getState().address;
+      if (!address) throw new Error('Wallet address not found. Please log in first.');
+
+      // 1. Generate random 256-bit VEK
+      const vekBytes = generateVEK();
+
+      // 2. Derive KEK from sanctuary phrase + wallet address (PBKDF2)
+      const kek = await deriveKEK(sanctuaryPhrase, address);
+
+      // 3. Encrypt VEK with KEK (AES-256-GCM)
+      const envelope = await encryptVEK(vekBytes, kek);
+
+      // 4. Persist encrypted envelope to backend (zero-knowledge: KEK/VEK never sent)
+      await api.post('/vault/vek', envelope);
+
+      // 5. Import VEK as non-extractable CryptoKey for vault operations
+      const vekCryptoKey = await importVEKasCryptoKey(vekBytes);
+
+      // 6. Derive kIntegrity via existing HKDF pipeline using VEK as master
+      const ethereum = (window as any).ethereum;
+      const provider = new ethers.BrowserProvider(ethereum);
+      const signer = await provider.getSigner();
+      const derivationSignature = await signer.signMessage('vault-key-derivation-v1');
+
+      const { kVault, kIntegrity } = await deriveVaultKey(
+        // Use VEK bytes as hex string as the "master password" for HKDF
+        Array.from(vekBytes).map(b => b.toString(16).padStart(2, '0')).join(''),
+        address,
+        derivationSignature
+      );
+
+      set({
+        kVault,
+        kIntegrity,
+        derivationSignature,
+        isUnlocked: true,
+        sanctuaryStatus: 'active',
+        integrityViolations: {},
+        error: null,
+      });
+
+      await get().fetchEntries();
+    } catch (err: any) {
+      console.error('Sanctuary initialization failed:', err);
+      set({ error: err.message || 'Failed to initialize sanctuary.' });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  /**
+   * Returning user: fetches encrypted VEK envelope, derives KEK from sanctuary phrase,
+   * decrypts VEK, then unlocks vault. Wrong phrase throws AES-GCM decryption error.
+   */
+  unlockSanctuary: async (sanctuaryPhrase: string) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const address = useAuthStore.getState().address;
+      if (!address) throw new Error('Wallet address not found. Please log in first.');
+
+      // 1. Fetch encrypted VEK envelope from backend
+      const envelope: EncryptedVEKEnvelope = await api.get('/vault/vek');
+
+      // 2. Derive KEK from sanctuary phrase
+      const kek = await deriveKEK(sanctuaryPhrase, address);
+
+      // 3. Decrypt VEK — throws if phrase is wrong (GCM auth tag mismatch)
+      let vekBytes: Uint8Array;
+      try {
+        vekBytes = await decryptVEK(envelope, kek);
+      } catch {
+        throw new Error('Incorrect sanctuary phrase. Your vault could not be unlocked.');
+      }
+
+      // 4. Import VEK as non-extractable CryptoKey
+      const vekCryptoKey = await importVEKasCryptoKey(vekBytes);
+
+      // 5. Derive kVault + kIntegrity via HKDF
+      const ethereum = (window as any).ethereum;
+      const provider = new ethers.BrowserProvider(ethereum);
+      const signer = await provider.getSigner();
+      const derivationSignature = await signer.signMessage('vault-key-derivation-v1');
+
+      const { kVault, kIntegrity } = await deriveVaultKey(
+        Array.from(vekBytes).map(b => b.toString(16).padStart(2, '0')).join(''),
+        address,
+        derivationSignature
+      );
+
+      set({
+        kVault,
+        kIntegrity,
+        derivationSignature,
+        isUnlocked: true,
+        sanctuaryStatus: 'active',
+        integrityViolations: {},
+        error: null,
+      });
+
+      await get().fetchEntries();
+    } catch (err: any) {
+      console.error('Sanctuary unlock failed:', err);
+      if (err.code === 4001) {
+        set({ error: 'Unlock cancelled: Signature request was rejected in MetaMask.' });
+      } else {
+        set({ error: err.message || 'Failed to unlock sanctuary.' });
+      }
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
   /**
    * Prompts wallet signature derivation, derives both kVault and kIntegrity via HKDF,
@@ -105,7 +256,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
   },
 
   /**
-   * Wipes kVault, kIntegrity, and all credential lists immediately from client memory.
+   * Wipes all key material and credential lists from client memory.
    */
   lockVault: () => {
     set({
@@ -113,10 +264,11 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       kIntegrity: null,
       derivationSignature: null,
       isUnlocked: false,
+      sanctuaryStatus: 'idle',
       vaultEntries: [],
       integrityViolations: {},
       error: null,
-      activeClipboardTimer: null
+      activeClipboardTimer: null,
     });
   },
 

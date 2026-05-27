@@ -19,11 +19,10 @@ import { VaultCard } from '../../components/vault/VaultCard';
 // The Obsidian Sanctuary Security Additions
 import { ClipboardPurgeBar } from '../../components/vault/ClipboardPurgeBar';
 import { TamperAlarm } from '../../components/vault/TamperAlarm';
-import { KeyDerivationAnimation } from '../../components/vault/KeyDerivationAnimation';
+import { SanctuaryGate } from '../../components/vault/SanctuaryGate';
 
 import { 
   Shield, 
-  Key, 
   Plus, 
   Database, 
   Power, 
@@ -53,13 +52,11 @@ export default function DashboardPage() {
     searchQuery,
     isLoading: vaultLoading, 
     error: vaultError,
-    unlockVault, 
     lockVault, 
     fetchEntries
   } = useVaultStore();
 
   // Local UX state
-  const [masterPassword, setMasterPassword] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [entryToEdit, setEntryToEdit] = useState<EncryptedVaultEntry & { decryptedPassword?: string } | null>(null);
 
@@ -149,14 +146,6 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
-  // Local key derivation and unlock trigger
-  const handleUnlock = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!masterPassword) return;
-    await unlockVault(masterPassword);
-    setMasterPassword(''); // Purge password input instantly
-  };
-
   // Opens Edit modal pre-filled with plaintext credentials
   const handleEditClick = (entry: EncryptedVaultEntry & { decryptedPassword?: string }) => {
     setEntryToEdit(entry);
@@ -179,94 +168,9 @@ export default function DashboardPage() {
     );
   });
 
-  // --- RENDERING ROUTE 1: Vault Locked Gateway Portal ---
+  // --- RENDERING ROUTE 1: Sanctuary Gate (new user onboarding + returning user unlock) ---
   if (!isUnlocked) {
-    return (
-      <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#090D16] px-6 py-12">
-        
-        {/* Radial ambient background glows with Burnished Gold accents */}
-        <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D4AF37]/5 blur-[120px] animate-pulse-glow" />
-
-        <div className="w-full max-w-md animate-fade-in z-10">
-          <div className="mb-8 flex flex-col items-center text-center">
-            <div className="mb-4 cursor-default">
-              <Image
-                src="/letter-logo.png"
-                alt="Sphynx Logo"
-                width={72}
-                height={72}
-                className="object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.35)]"
-                priority
-              />
-            </div>
-            <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">
-              Sanctuary Gateway
-            </h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Derive secure AES-256-GCM keys locally to unlock your secrets
-            </p>
-          </div>
-
-          {/* Show Orbiting Particles during cryptographic calculations */}
-          {vaultLoading ? (
-            <KeyDerivationAnimation />
-          ) : (
-            <Card className="border-[#D4AF37]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-              <form onSubmit={handleUnlock} className="flex flex-col gap-5">
-                {vaultError && (
-                  <div className="rounded-xl border border-red-500/15 bg-red-500/5 p-4 text-red-400 text-xs leading-relaxed animate-fade-in">
-                    <div className="font-semibold mb-1">Key Derivation Error</div>
-                    {vaultError}
-                  </div>
-                )}
-
-                {/* Wallet identifier info */}
-                <div className="rounded-xl border border-white/5 bg-[#090D16]/80 p-3.5 text-slate-400 text-xs flex flex-col gap-1">
-                  <span className="text-[10px] text-white/30 uppercase tracking-widest block font-semibold">Vault Salt (Address)</span>
-                  <span className="font-mono text-[#D4AF37] break-all text-[11px]">{address}</span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                    Master Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="Enter vault master password"
-                    value={masterPassword}
-                    onChange={(e) => setMasterPassword(e.target.value)}
-                    className="glow-input w-full rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none"
-                  />
-                </div>
-
-                <Button
-                  variant="primary"
-                  type="submit"
-                  className="w-full gap-2 py-3.5 text-sm font-semibold"
-                >
-                  <Key size={18} />
-                  Derive Vault Key & Unlock
-                </Button>
-              </form>
-            </Card>
-          )}
-
-          <p className="mt-6 text-center text-xs text-slate-400 leading-relaxed max-w-xs mx-auto font-mono">
-            MetaMask will verify account ownership. HKDF derivations happen on-the-fly and never touch the network.
-          </p>
-
-          <div className="mt-8 text-center">
-            <button
-              onClick={handleLogout}
-              className="text-xs font-semibold text-[#D4AF37]/65 hover:text-[#D4AF37] transition-colors"
-            >
-              Sign Out Wallet
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    return <SanctuaryGate onLogout={handleLogout} />;
   }
 
   // --- RENDERING ROUTE 2: Vault Unlocked Workspace ---
@@ -299,21 +203,23 @@ export default function DashboardPage() {
       {/* Unlocked Header */}
       <header className="border-b border-white/5 bg-[#090D16]/60 backdrop-blur-xl sticky top-0 z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
-          <div className="flex items-center gap-0">
+          <div className="flex items-center gap-3 py-1">
             <Image
-              src="/letter-logo.png"
+              src="/logo-web-redesigned.png"
               alt="Sphynx Logomark"
-              width={32}
-              height={32}
-              className="object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.25)] transition-transform duration-300 hover:scale-105"
+              width={42}
+              height={42}
+              style={{ width: 'auto', height: 'auto' }}
+              className="object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.2)] transition-transform duration-300 hover:scale-105"
               priority
             />
             <Image
               src="/logo-password.png"
               alt="Sphynx Logo"
-              width={160}
-              height={64}
-              className="object-contain drop-shadow-[0_0_12px_rgba(212,175,55,0.35)] -ml-3"
+              width={110}
+              height={44}
+              style={{ width: 'auto', height: 'auto' }}
+              className="object-contain drop-shadow-[0_0_12px_rgba(212,175,55,0.25)]"
               priority
             />
           </div>

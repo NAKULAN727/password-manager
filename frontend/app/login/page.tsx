@@ -86,10 +86,10 @@ export default function LoginPage() {
             className="mb-4 cursor-default"
           >
             <Image
-              src="/letter-logo.png"
+              src="/logo-web-redesigned.png"
               alt="Sphynx Logo"
-              width={72}
-              height={72}
+              width={120}
+              height={120}
               className="object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.35)]"
               priority
             />

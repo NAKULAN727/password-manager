@@ -1,6 +1,74 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
 
+// In-memory ZK VEK store: Key is lowercase wallet address
+interface EncryptedVEKRecord {
+  encryptedVEK: string; // Base64 AES-GCM ciphertext
+  vekIv: string;        // Base64 IV
+  vekTag: string;       // Base64 GCM auth tag
+  kdfSalt: string;      // wallet address used as PBKDF2 salt (informational)
+  createdAt: string;
+}
+const vekStore = new Map<string, EncryptedVEKRecord>();
+
+/**
+ * Returns whether an encrypted VEK exists for the authenticated wallet.
+ * GET /api/vault/vek-status
+ */
+export async function getVekStatus(req: Request, res: Response) {
+  const user = (req as any).user;
+  if (!user?.address) return res.status(401).json({ error: 'Unauthorized.' });
+
+  const hasVek = vekStore.has(user.address.toLowerCase());
+  return res.status(200).json({ hasVek });
+}
+
+/**
+ * Persists the client-side encrypted VEK envelope. Zero-knowledge: server
+ * never receives the sanctuary phrase, KEK, or raw VEK.
+ * POST /api/vault/vek
+ */
+export async function saveVek(req: Request, res: Response) {
+  const user = (req as any).user;
+  if (!user?.address) return res.status(401).json({ error: 'Unauthorized.' });
+
+  const { encryptedVEK, vekIv, vekTag } = req.body;
+  if (!encryptedVEK || !vekIv || !vekTag) {
+    return res.status(400).json({ error: 'encryptedVEK, vekIv, and vekTag are required.' });
+  }
+
+  const cleanAddress = user.address.toLowerCase();
+
+  // Prevent overwriting an existing VEK — sanctuary phrase cannot be reset
+  if (vekStore.has(cleanAddress)) {
+    return res.status(409).json({ error: 'Encrypted VEK already exists for this wallet.' });
+  }
+
+  vekStore.set(cleanAddress, {
+    encryptedVEK: String(encryptedVEK),
+    vekIv: String(vekIv),
+    vekTag: String(vekTag),
+    kdfSalt: cleanAddress,
+    createdAt: new Date().toISOString(),
+  });
+
+  return res.status(201).json({ status: 'success' });
+}
+
+/**
+ * Returns the encrypted VEK envelope for the authenticated wallet.
+ * GET /api/vault/vek
+ */
+export async function getVek(req: Request, res: Response) {
+  const user = (req as any).user;
+  if (!user?.address) return res.status(401).json({ error: 'Unauthorized.' });
+
+  const record = vekStore.get(user.address.toLowerCase());
+  if (!record) return res.status(404).json({ error: 'No VEK found for this wallet.' });
+
+  return res.status(200).json(record);
+}
+
 export interface VaultEntry {
   id: string;
   label: string;
