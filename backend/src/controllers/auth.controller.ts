@@ -3,24 +3,31 @@ import jwt from 'jsonwebtoken';
 import { ethers } from 'ethers';
 import crypto from 'crypto';
 import { generateNonce, parseSiweMessage, verifySignature } from '../utils/crypto';
+import { UserService, AuditService, SessionService } from '../services';
 
-// In-memory cache to manage pending SIWE nonces securely
+// ─── Nonce Store ─────────────────────────────────────────────────────────────
+// Nonces are ephemeral (90s TTL) and intentionally kept in-memory.
+// They are single-use, short-lived, and don't need persistence.
+// For multi-instance deployments, replace with Redis.
+
 interface NonceSession {
   nonce: string;
-  expiresAt: number; // millisecond timestamp
-}
-
-// Key is lowercase ethereum address, value is the session nonce metadata
-const nonceStore = new Map<string, NonceSession>();
-
-// In-memory cache to manage secure refresh tokens
-interface RefreshSession {
-  address: string;
   expiresAt: number;
 }
-const refreshTokenStore = new Map<string, RefreshSession>();
 
-// Helper to parse specific cookie values from the Raw Cookie Header string
+const nonceStore = new Map<string, NonceSession>();
+
+// Periodic garbage collection for expired nonces
+setInterval(() => {
+  const now = Date.now();
+  for (const [address, session] of nonceStore.entries()) {
+    if (session.expiresAt < now) {
+      nonceStore.delete(address);
+    }
+  }
+}, 60 * 1000);
+
+// Helper to parse cookie values
 function parseCookie(cookieString: string | undefined, name: string): string | null {
   if (!cookieString) return null;
   const pairs = cookieString.split(';');
@@ -34,23 +41,8 @@ function parseCookie(cookieString: string | undefined, name: string): string | n
   return null;
 }
 
-// Periodic garbage collection to clear expired nonces and prevent memory exhaustion
-setInterval(() => {
-  const now = Date.now();
-  for (const [address, session] of nonceStore.entries()) {
-    if (session.expiresAt < now) {
-      nonceStore.delete(address);
-    }
-  }
-  for (const [token, session] of refreshTokenStore.entries()) {
-    if (session.expiresAt < now) {
-      refreshTokenStore.delete(token);
-    }
-  }
-}, 60 * 1000); // Run cleanup every 60 seconds
-
 /**
- * Handles Requesting a single-use cryptographically secure nonce.
+ * Request a single-use cryptographically secure nonce.
  * POST /api/auth/nonce
  */
 export async function getNonce(req: Request, res: Response) {
@@ -63,22 +55,22 @@ export async function getNonce(req: Request, res: Response) {
 
     const cleanAddress = address.toLowerCase();
     const nonce = generateNonce();
-    const expiresAt = Date.now() + 90 * 1000; // 90 seconds lifetime (production default)
+    const expiresAt = Date.now() + 90 * 1000;
 
     nonceStore.set(cleanAddress, { nonce, expiresAt });
 
     return res.status(200).json({
       nonce,
-      expiresAt: new Date(expiresAt).toISOString()
+      expiresAt: new Date(expiresAt).toISOString(),
     });
   } catch (error: any) {
     console.error('Error in getNonce:', error);
-    return res.status(500).json({ error: 'Internal server error while generating nonce.' });
+    return res.status(500).json({ error: 'Internal server error.' });
   }
 }
 
 /**
- * Handles SIWE Message signature validation and JWT issuance.
+ * SIWE signature validation, JWT issuance, and persistent session creation.
  * POST /api/auth/verify
  */
 export async function verifySiwe(req: Request, res: Response) {
@@ -86,7 +78,7 @@ export async function verifySiwe(req: Request, res: Response) {
     const { address, message, signature } = req.body;
 
     if (!address || !message || !signature) {
-      return res.status(400).json({ error: 'Missing required parameters: address, message, and signature are required.' });
+      return res.status(400).json({ error: 'address, message, and signature are required.' });
     }
 
     if (!ethers.isAddress(address)) {
@@ -95,54 +87,54 @@ export async function verifySiwe(req: Request, res: Response) {
 
     const cleanAddress = address.toLowerCase();
 
-    // 1. Retrieve the nonce active session
+    // 1. Retrieve nonce session
     const activeSession = nonceStore.get(cleanAddress);
     if (!activeSession) {
-      return res.status(400).json({ error: 'No active nonce session found for this wallet. Request a new nonce.' });
+      return res.status(400).json({ error: 'No active nonce session. Request a new nonce.' });
     }
 
-    // 2. Assert Nonce Expiration
+    // 2. Check expiration
     if (Date.now() > activeSession.expiresAt) {
-      nonceStore.delete(cleanAddress); // Clean up expired session
-      return res.status(400).json({ error: 'Nonce session has expired. Please try signing in again.' });
+      nonceStore.delete(cleanAddress);
+      return res.status(400).json({ error: 'Nonce session has expired.' });
     }
 
-    // 3. Parse SIWE Message
+    // 3. Parse SIWE message
     const siweData = parseSiweMessage(message);
     if (!siweData) {
       return res.status(400).json({ error: 'Malformed EIP-4361 SIWE message.' });
     }
 
-    // 4. Assert Address Matching
+    // 4. Validate address match
     if (siweData.address.toLowerCase() !== cleanAddress) {
-      return res.status(400).json({ error: 'Wallet address in the message does not match the requester.' });
+      return res.status(400).json({ error: 'Address mismatch in SIWE message.' });
     }
 
-    // 5. Assert Nonce Matching
+    // 5. Validate nonce match
     if (siweData.nonce !== activeSession.nonce) {
-      return res.status(400).json({ error: 'Cryptographic nonce does not match the session nonce.' });
+      return res.status(400).json({ error: 'Nonce mismatch.' });
     }
 
-    // 6. Cryptographically Verify Signature
+    // 6. Verify cryptographic signature
     const isSignatureValid = verifySignature(message, signature, cleanAddress);
     if (!isSignatureValid) {
-      return res.status(401).json({ error: 'Cryptographic signature verification failed.' });
+      return res.status(401).json({ error: 'Signature verification failed.' });
     }
 
-    // 7. Atomic Invalidation (Strict single-use policy to protect against replay attacks)
+    // 7. Invalidate nonce (single-use)
     nonceStore.delete(cleanAddress);
 
-    // 7.5. Ensure user exists in database (upsert on successful auth)
-    const { UserService, AuditService } = await import('../services');
+    // 8. Ensure user exists in PostgreSQL
     const dbUser = await UserService.findOrCreate(cleanAddress);
-    await AuditService.log({
+
+    // 9. Create persistent session in PostgreSQL (replaces in-memory refreshTokenStore)
+    const { rawToken: refreshToken } = await SessionService.create({
       userId: dbUser.id,
-      eventType: 'auth.login',
       ipAddress: req.ip || undefined,
       userAgent: req.headers['user-agent'] || undefined,
     });
 
-    // 8. Generate short-lived JWT accessToken session (15 minutes)
+    // 10. Generate short-lived JWT access token (15 minutes)
     const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_key';
     const accessToken = jwt.sign(
       { address: cleanAddress },
@@ -150,113 +142,126 @@ export async function verifySiwe(req: Request, res: Response) {
       { expiresIn: '15m' }
     );
 
-    // 9. Generate high-entropy Refresh Token (7 days)
-    const refreshToken = crypto.randomBytes(32).toString('hex');
-    const refreshExpiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
-    refreshTokenStore.set(refreshToken, { address: cleanAddress, expiresAt: refreshExpiresAt });
+    // 11. Audit log
+    await AuditService.log({
+      userId: dbUser.id,
+      eventType: 'auth.login',
+      ipAddress: req.ip || undefined,
+      userAgent: req.headers['user-agent'] || undefined,
+    });
 
-    // 10. Set cookies on response
+    // 12. Set secure cookies
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'strict',
-      maxAge: 15 * 60 * 1000 // 15 minutes
+      maxAge: 15 * 60 * 1000,
     });
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
-      token: accessToken, // Hybrid fallback for environments where cross-origin cookies are blocked
-      user: {
-        address: cleanAddress
-      }
+      token: accessToken,
+      user: { address: cleanAddress },
     });
   } catch (error: any) {
     console.error('Error in verifySiwe:', error);
-    return res.status(500).json({ error: 'Internal server error during signature verification.' });
+    return res.status(500).json({ error: 'Internal server error.' });
   }
 }
 
 /**
- * Refresh access token session using the refresh token cookie.
+ * Refresh access token using persistent session.
+ * Implements refresh token rotation — old token is revoked, new one issued.
  * POST /api/auth/refresh
  */
 export async function refreshSession(req: Request, res: Response) {
   try {
     const cookies = req.headers.cookie;
-    const token = parseCookie(cookies, 'refreshToken');
+    const rawToken = parseCookie(cookies, 'refreshToken');
 
-    if (!token) {
-      return res.status(401).json({ error: 'Refresh token is missing. Please log in again.' });
+    if (!rawToken) {
+      return res.status(401).json({ error: 'Refresh token is missing.' });
     }
 
-    const session = refreshTokenStore.get(token);
+    // Validate and rotate the refresh token (revoke old, create new)
+    const result = await SessionService.rotate(rawToken, {
+      ipAddress: req.ip || undefined,
+      userAgent: req.headers['user-agent'] || undefined,
+    });
+
+    if (!result) {
+      return res.status(401).json({ error: 'Invalid or expired refresh token.' });
+    }
+
+    // Look up user for the new session
+    const session = await SessionService.validate(result.rawToken);
     if (!session) {
-      return res.status(401).json({ error: 'Invalid or expired refresh token. Please log in again.' });
+      return res.status(401).json({ error: 'Session validation failed.' });
     }
 
-    if (Date.now() > session.expiresAt) {
-      refreshTokenStore.delete(token);
-      return res.status(401).json({ error: 'Refresh token has expired. Please log in again.' });
-    }
-
-    // Refresh access token
+    // Generate new access token
     const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_key';
     const newAccessToken = jwt.sign(
-      { address: session.address },
+      { address: session.user.walletAddress },
       jwtSecret,
       { expiresIn: '15m' }
     );
 
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'strict',
-      maxAge: 15 * 60 * 1000
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie('refreshToken', result.rawToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
-      token: newAccessToken, // Hybrid fallback
-      user: {
-        address: session.address
-      }
+      token: newAccessToken,
+      user: { address: session.user.walletAddress },
     });
   } catch (error) {
     console.error('Error in refreshSession:', error);
-    return res.status(500).json({ error: 'Internal server error during session refresh.' });
+    return res.status(500).json({ error: 'Internal server error.' });
   }
 }
 
 /**
- * Terminate secure session and invalidate cookies.
+ * Terminate session — revokes refresh token in PostgreSQL.
  * POST /api/auth/logout
  */
 export async function logoutSession(req: Request, res: Response) {
   try {
     const cookies = req.headers.cookie;
-    const token = parseCookie(cookies, 'refreshToken');
+    const rawToken = parseCookie(cookies, 'refreshToken');
 
-    if (token) {
-      refreshTokenStore.delete(token);
+    if (rawToken) {
+      await SessionService.revoke(rawToken);
     }
 
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
     res.cookie('accessToken', '', {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'strict',
       maxAge: 0,
-      expires: new Date(0)
+      expires: new Date(0),
     });
 
     res.cookie('refreshToken', '', {
@@ -264,18 +269,18 @@ export async function logoutSession(req: Request, res: Response) {
       secure: isProduction,
       sameSite: 'strict',
       maxAge: 0,
-      expires: new Date(0)
+      expires: new Date(0),
     });
 
-    return res.status(200).json({ status: 'success', message: 'Logged out successfully.' });
+    return res.status(200).json({ status: 'success', message: 'Logged out.' });
   } catch (error) {
     console.error('Error in logoutSession:', error);
-    return res.status(500).json({ error: 'Internal server error during logout.' });
+    return res.status(500).json({ error: 'Internal server error.' });
   }
 }
 
 /**
- * Endpoint for testing token status and returning profile info.
+ * Get authenticated user profile.
  * GET /api/auth/profile
  */
 export async function getProfile(req: Request, res: Response) {

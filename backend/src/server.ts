@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.routes';
 import vaultRoutes from './routes/vault.routes';
 import guardianRoutes from './routes/guardian.routes';
 import recoveryRoutes from './routes/recovery.routes';
+import deviceRoutes from './routes/device.routes';
 
 // Load environment variables
 dotenv.config();
@@ -91,11 +92,70 @@ app.use('/api/auth', apiLimiter, authRoutes);
 app.use('/api/vault', apiLimiter, vaultRoutes);
 app.use('/api/guardians', apiLimiter, guardianRoutes);
 app.use('/api/recovery', apiLimiter, recoveryRoutes);
+app.use('/api/devices', apiLimiter, deviceRoutes);
 
-// Health Check Endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health Check Endpoint (with database connectivity verification)
+app.get('/health', async (req, res) => {
+  try {
+    const { default: prisma } = await import('./lib/prisma');
+    await prisma.$queryRaw`SELECT 1`;
+    
+    const [userCount, entryCount, sessionCount] = await Promise.all([
+      prisma.user.count(),
+      prisma.vaultEntry.count(),
+      prisma.session.count({ where: { revokedAt: null, expiresAt: { gt: new Date() } } }),
+    ]);
+
+    res.status(200).json({
+      status: 'ok',
+      database: 'connected',
+      timestamp: new Date().toISOString(),
+      stats: {
+        users: userCount,
+        vaultEntries: entryCount,
+        activeSessions: sessionCount,
+      },
+    });
+  } catch (error: any) {
+    res.status(503).json({
+      status: 'degraded',
+      database: 'disconnected',
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
+
+// Database verification endpoint (development only)
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/db-verify', async (req, res) => {
+    try {
+      const { default: prisma } = await import('./lib/prisma');
+
+      const tables = await prisma.$queryRaw<Array<{ tablename: string }>>`
+        SELECT tablename FROM pg_tables WHERE schemaname = 'public'
+      `;
+
+      const counts: Record<string, number> = {};
+      for (const { tablename } of tables) {
+        const result = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+          `SELECT COUNT(*) as count FROM "${tablename}"`
+        );
+        counts[tablename] = Number(result[0].count);
+      }
+
+      res.status(200).json({
+        status: 'verified',
+        tables: tables.map(t => t.tablename),
+        rowCounts: counts,
+        prismaModels: ['User', 'EncryptedVEK', 'VaultEntry', 'Guardian', 'RecoveryRequest', 'RecoveryApproval', 'AuditLog', 'TrustedDevice', 'Session'],
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+}
 
 // Global 404 Route handler
 app.use((req, res) => {

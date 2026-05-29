@@ -28,6 +28,7 @@ model User {
   recoveryRequests  RecoveryRequest[]
   auditLogs         AuditLog[]
   trustedDevices    TrustedDevice[]
+  sessions          Session[]
 
   @@index([walletAddress])
   @@map("users")
@@ -218,4 +219,29 @@ model TrustedDevice {
   @@index([userId])
   @@unique([userId, deviceFingerprint])
   @@map("trusted_devices")
+}
+
+// ─── Session Model ───────────────────────────────────────────────────────────
+// Persistent refresh token sessions. Replaces in-memory refreshTokenStore.
+// Tokens are hashed (SHA-256) before storage — server never stores raw tokens.
+
+model Session {
+  id              String    @id @default(uuid())
+  userId          String
+  tokenHash       String    @unique @db.VarChar(64)  // SHA-256 hash of refresh token
+  ipAddress       String?   @db.VarChar(45)
+  userAgent       String?   @db.VarChar(512)
+  deviceLabel     String?   @db.VarChar(100)
+  expiresAt       DateTime
+  lastRefreshedAt DateTime  @default(now())
+  revokedAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("sessions")
 }
