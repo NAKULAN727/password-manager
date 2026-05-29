@@ -1,196 +1,84 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
 import { ethers } from 'ethers';
-import { guardianCircleStore } from './guardian.controller';
-
-// ─── In-Memory Recovery Storage ──────────────────────────────────────────────
-
-export interface RecoveryApproval {
-  guardianAddress: string;
-  signature: string;
-  timestamp: string;
-  expiresAt: string; // 48h from signing
-}
-
-export interface RecoveryRequest {
-  id: string;
-  ownerAddress: string;
-  status: 'pending_cooldown' | 'active' | 'completed' | 'cancelled' | 'expired';
-  challengeNonce: string;
-  createdAt: string;
-  cooldownExpiresAt: string;  // 24h cooldown
-  requestExpiresAt: string;   // 7 days total
-  approvals: RecoveryApproval[];
-  threshold: number;
-  completedAt?: string;
-  cancelledAt?: string;
-  // Blockchain extensibility
-  txHash?: string | null;
-  blockNumber?: number | null;
-  contractAddress?: string | null;
-}
-
-// Key: ownerAddress (lowercase)
-const recoveryRequestStore = new Map<string, RecoveryRequest>();
-
-// Audit trail
-export interface AuditEvent {
-  id: string;
-  ownerAddress: string;
-  eventType: 'request_created' | 'request_cancelled' | 'approval_received' | 'recovery_completed' | 'guardian_added' | 'guardian_revoked';
-  metadata: Record<string, any>;
-  timestamp: string;
-  // Blockchain extensibility
-  txHash?: string | null;
-  blockNumber?: number | null;
-}
-
-const auditTrailStore = new Map<string, AuditEvent[]>();
-
-// Recovery cooldown tracking (last successful recovery per address)
-const lastRecoveryStore = new Map<string, string>(); // address -> ISO timestamp
-
-// Cancellation tracking for elevated security
-const cancellationCountStore = new Map<string, { count: number; since: string }>();
-
-// Rate limiting: recovery requests per 30 days
-const recoveryRateStore = new Map<string, { count: number; windowStart: string }>();
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function addAuditEvent(ownerAddress: string, eventType: AuditEvent['eventType'], metadata: Record<string, any>) {
-  const event: AuditEvent = {
-    id: crypto.randomUUID(),
-    ownerAddress,
-    eventType,
-    metadata,
-    timestamp: new Date().toISOString(),
-    txHash: null,
-    blockNumber: null,
-  };
-
-  if (!auditTrailStore.has(ownerAddress)) {
-    auditTrailStore.set(ownerAddress, []);
-  }
-  auditTrailStore.get(ownerAddress)!.push(event);
-}
-
-function checkRateLimit(ownerAddress: string): boolean {
-  const record = recoveryRateStore.get(ownerAddress);
-  const now = Date.now();
-  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-
-  if (!record) {
-    recoveryRateStore.set(ownerAddress, { count: 1, windowStart: new Date().toISOString() });
-    return true;
-  }
-
-  const windowStart = new Date(record.windowStart).getTime();
-  if (now - windowStart > thirtyDaysMs) {
-    // Reset window
-    recoveryRateStore.set(ownerAddress, { count: 1, windowStart: new Date().toISOString() });
-    return true;
-  }
-
-  if (record.count >= 3) {
-    return false; // Rate limited
-  }
-
-  record.count++;
-  return true;
-}
-
-// ─── Controllers ─────────────────────────────────────────────────────────────
+import { RecoveryStatus } from '@prisma/client';
+import { UserService, GuardianService, RecoveryService, VaultService, AuditService } from '../services';
 
 /**
  * Create a recovery request.
  * POST /api/recovery/request
- * Body: { signature } — SIWE signature proving wallet ownership
  */
 export async function createRecoveryRequest(req: Request, res: Response) {
   try {
     const user = (req as any).user;
     if (!user?.address) return res.status(401).json({ error: 'Unauthorized.' });
 
-    const ownerAddress = user.address.toLowerCase();
+    const dbUser = await UserService.findByAddress(user.address);
+    if (!dbUser) return res.status(404).json({ error: 'User not found.' });
 
-    // Rate limit check
-    if (!checkRateLimit(ownerAddress)) {
+    // Rate limit: max 3 requests per 30 days
+    const recentCount = await RecoveryService.countRecentRequests(dbUser.id, 30);
+    if (recentCount >= 3) {
       return res.status(429).json({ error: 'Maximum 3 recovery requests per 30-day period exceeded.' });
     }
 
-    // Check global cooldown (7 days between successful recoveries)
-    const lastRecovery = lastRecoveryStore.get(ownerAddress);
-    if (lastRecovery) {
-      const daysSince = (Date.now() - new Date(lastRecovery).getTime()) / (1000 * 60 * 60 * 24);
+    // Global cooldown: 7 days between successful recoveries
+    const lastRecovery = await RecoveryService.getLastCompletedRecovery(dbUser.id);
+    if (lastRecovery?.completedAt) {
+      const daysSince = (Date.now() - lastRecovery.completedAt.getTime()) / (1000 * 60 * 60 * 24);
       if (daysSince < 7) {
-        return res.status(429).json({
-          error: `Recovery cooldown active. ${Math.ceil(7 - daysSince)} days remaining.`,
-        });
+        return res.status(429).json({ error: `Recovery cooldown active. ${Math.ceil(7 - daysSince)} days remaining.` });
       }
     }
 
-    // Cancel any existing active request
-    const existing = recoveryRequestStore.get(ownerAddress);
-    if (existing && (existing.status === 'pending_cooldown' || existing.status === 'active')) {
-      existing.status = 'cancelled';
-      existing.cancelledAt = new Date().toISOString();
-      addAuditEvent(ownerAddress, 'request_cancelled', { requestId: existing.id, reason: 'superseded' });
+    // Cancel any existing active requests
+    await RecoveryService.cancelActiveRequests(dbUser.id);
+
+    // Verify guardian circle
+    const threshold = await GuardianService.getThreshold(dbUser.id);
+    if (threshold === 0) {
+      return res.status(400).json({ error: 'No guardian circle configured.' });
     }
 
-    // Get guardian circle
-    const circle = guardianCircleStore.get(ownerAddress);
-    if (!circle || circle.threshold === 0) {
-      return res.status(400).json({ error: 'No guardian circle configured. Set up guardians first.' });
-    }
-
-    const activeGuardians = circle.guardians.filter(g => g.status === 'accepted');
-    if (activeGuardians.length < circle.threshold) {
+    const acceptedCount = await GuardianService.getAcceptedCount(dbUser.id);
+    if (acceptedCount < threshold) {
       return res.status(400).json({ error: 'Insufficient active guardians to meet threshold.' });
     }
 
-    // Check elevated security (2+ cancellations in 30 days)
-    let effectiveThreshold = circle.threshold;
-    const cancellations = cancellationCountStore.get(ownerAddress);
-    if (cancellations && cancellations.count >= 2) {
-      const daysSince = (Date.now() - new Date(cancellations.since).getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSince < 30) {
-        effectiveThreshold = Math.min(circle.threshold + 1, activeGuardians.length);
-      }
+    // Elevated security check
+    let effectiveThreshold = threshold;
+    const recentCancellations = await RecoveryService.countRecentCancellations(dbUser.id, 30);
+    if (recentCancellations >= 2) {
+      effectiveThreshold = Math.min(threshold + 1, acceptedCount);
     }
 
     const challengeNonce = crypto.randomBytes(32).toString('hex');
-    const now = new Date();
-    const cooldownExpiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(); // 24h
-    const requestExpiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+    const cooldownExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const requestExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    const recoveryRequest: RecoveryRequest = {
-      id: crypto.randomUUID(),
-      ownerAddress,
-      status: 'pending_cooldown',
+    const request = await RecoveryService.createRequest(dbUser.id, {
       challengeNonce,
-      createdAt: now.toISOString(),
+      threshold: effectiveThreshold,
       cooldownExpiresAt,
       requestExpiresAt,
-      approvals: [],
-      threshold: effectiveThreshold,
-      txHash: null,
-      blockNumber: null,
-      contractAddress: null,
-    };
+    });
 
-    recoveryRequestStore.set(ownerAddress, recoveryRequest);
-    addAuditEvent(ownerAddress, 'request_created', { requestId: recoveryRequest.id, threshold: effectiveThreshold });
+    await AuditService.log({
+      userId: dbUser.id,
+      eventType: 'recovery.request_created',
+      metadata: { requestId: request.id, threshold: effectiveThreshold },
+      ipAddress: req.ip || undefined,
+    });
 
     return res.status(201).json({
       status: 'success',
       request: {
-        id: recoveryRequest.id,
-        status: recoveryRequest.status,
-        challengeNonce: recoveryRequest.challengeNonce,
-        cooldownExpiresAt: recoveryRequest.cooldownExpiresAt,
-        requestExpiresAt: recoveryRequest.requestExpiresAt,
-        threshold: recoveryRequest.threshold,
+        id: request.id,
+        status: request.status,
+        challengeNonce: request.challengeNonce,
+        cooldownExpiresAt: request.cooldownExpiresAt.toISOString(),
+        requestExpiresAt: request.requestExpiresAt.toISOString(),
+        threshold: request.threshold,
         approvalsCollected: 0,
       },
     });
@@ -203,13 +91,10 @@ export async function createRecoveryRequest(req: Request, res: Response) {
 /**
  * Approve a recovery request (called by guardians).
  * POST /api/recovery/approve
- * Body: { ownerAddress, requestId, signature }
- * Auth: Verified via EIP-712 signature (not JWT)
  */
 export async function approveRecovery(req: Request, res: Response) {
   try {
     const { ownerAddress, requestId, signature, guardianAddress } = req.body;
-
     if (!ownerAddress || !requestId || !signature || !guardianAddress) {
       return res.status(400).json({ error: 'ownerAddress, requestId, signature, and guardianAddress are required.' });
     }
@@ -217,44 +102,32 @@ export async function approveRecovery(req: Request, res: Response) {
     const cleanOwner = ownerAddress.toLowerCase();
     const cleanGuardian = guardianAddress.toLowerCase();
 
-    // Get recovery request
-    const request = recoveryRequestStore.get(cleanOwner);
+    const owner = await UserService.findByAddress(cleanOwner);
+    if (!owner) return res.status(404).json({ error: 'Owner not found.' });
+
+    const request = await RecoveryService.getActiveRequest(owner.id);
     if (!request || request.id !== requestId) {
       return res.status(404).json({ error: 'Recovery request not found.' });
     }
 
-    // Check request status
-    if (request.status === 'completed' || request.status === 'cancelled' || request.status === 'expired') {
-      return res.status(400).json({ error: `Recovery request is ${request.status}.` });
-    }
-
     // Check expiration
-    if (new Date() > new Date(request.requestExpiresAt)) {
-      request.status = 'expired';
+    if (new Date() > request.requestExpiresAt) {
+      await RecoveryService.updateStatus(request.id, RecoveryStatus.EXPIRED);
       return res.status(410).json({ error: 'Recovery request has expired.' });
     }
 
-    // Check cooldown period
-    if (request.status === 'pending_cooldown') {
-      if (new Date() < new Date(request.cooldownExpiresAt)) {
-        return res.status(400).json({
-          error: 'Recovery is in cooldown period. Approvals cannot be processed yet.',
-          cooldownExpiresAt: request.cooldownExpiresAt,
-        });
-      }
-      // Cooldown passed, activate
-      request.status = 'active';
+    // Check cooldown
+    if (request.status === 'PENDING_COOLDOWN' && new Date() < request.cooldownExpiresAt) {
+      return res.status(400).json({ error: 'Recovery is in cooldown period.', cooldownExpiresAt: request.cooldownExpiresAt.toISOString() });
     }
 
-    // Verify guardian is in the circle
-    const circle = guardianCircleStore.get(cleanOwner);
-    if (!circle) {
-      return res.status(404).json({ error: 'Guardian circle not found.' });
+    // Activate if cooldown passed
+    if (request.status === 'PENDING_COOLDOWN') {
+      await RecoveryService.updateStatus(request.id, RecoveryStatus.ACTIVE);
     }
 
-    const guardian = circle.guardians.find(
-      g => g.guardianAddress === cleanGuardian && g.status === 'accepted'
-    );
+    // Verify guardian
+    const guardian = await GuardianService.findByOwnerAndAddress(owner.id, cleanGuardian);
     if (!guardian) {
       return res.status(403).json({ error: 'You are not an active guardian for this vault.' });
     }
@@ -270,34 +143,32 @@ export async function approveRecovery(req: Request, res: Response) {
       return res.status(401).json({ error: 'Invalid signature format.' });
     }
 
-    // Check duplicate approval
-    const alreadyApproved = request.approvals.find(a => a.guardianAddress === cleanGuardian);
+    // Check duplicate
+    const alreadyApproved = await RecoveryService.hasGuardianApproved(request.id, guardian.id);
     if (alreadyApproved) {
-      return res.status(409).json({ error: 'You have already approved this recovery request.' });
+      return res.status(409).json({ error: 'You have already approved this request.' });
     }
 
     // Add approval
-    const approval: RecoveryApproval = {
-      guardianAddress: cleanGuardian,
+    await RecoveryService.addApproval({
+      recoveryRequestId: request.id,
+      guardianId: guardian.id,
       signature,
-      timestamp: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48h
-    };
-    request.approvals.push(approval);
-
-    addAuditEvent(cleanOwner, 'approval_received', {
-      requestId,
-      guardianAddress: cleanGuardian,
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
     });
 
-    // Check if threshold is met (filter expired approvals)
-    const validApprovals = request.approvals.filter(a => new Date() < new Date(a.expiresAt));
-    const thresholdMet = validApprovals.length >= request.threshold;
+    await AuditService.log({
+      userId: owner.id,
+      eventType: 'recovery.approval_received',
+      metadata: { requestId, guardianAddress: cleanGuardian },
+    });
+
+    const validCount = await RecoveryService.countValidApprovals(request.id);
+    const thresholdMet = validCount >= request.threshold;
 
     return res.status(200).json({
       status: 'success',
-      message: 'Approval recorded.',
-      approvalsCollected: validApprovals.length,
+      approvalsCollected: validCount,
       threshold: request.threshold,
       thresholdMet,
     });
@@ -316,36 +187,21 @@ export async function cancelRecovery(req: Request, res: Response) {
     const user = (req as any).user;
     if (!user?.address) return res.status(401).json({ error: 'Unauthorized.' });
 
-    const ownerAddress = user.address.toLowerCase();
-    const request = recoveryRequestStore.get(ownerAddress);
+    const dbUser = await UserService.findByAddress(user.address);
+    if (!dbUser) return res.status(404).json({ error: 'User not found.' });
 
-    if (!request || (request.status !== 'pending_cooldown' && request.status !== 'active')) {
+    const result = await RecoveryService.cancelActiveRequests(dbUser.id);
+    if (result.count === 0) {
       return res.status(404).json({ error: 'No active recovery request found.' });
     }
 
-    request.status = 'cancelled';
-    request.cancelledAt = new Date().toISOString();
-    request.approvals = []; // Invalidate all approvals
-
-    // Track cancellations for elevated security
-    const cancellations = cancellationCountStore.get(ownerAddress);
-    if (cancellations) {
-      const daysSince = (Date.now() - new Date(cancellations.since).getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSince < 30) {
-        cancellations.count++;
-      } else {
-        cancellationCountStore.set(ownerAddress, { count: 1, since: new Date().toISOString() });
-      }
-    } else {
-      cancellationCountStore.set(ownerAddress, { count: 1, since: new Date().toISOString() });
-    }
-
-    addAuditEvent(ownerAddress, 'request_cancelled', { requestId: request.id, reason: 'user_cancelled' });
-
-    return res.status(200).json({
-      status: 'success',
-      message: 'Recovery request cancelled. All approvals invalidated.',
+    await AuditService.log({
+      userId: dbUser.id,
+      eventType: 'recovery.request_cancelled',
+      ipAddress: req.ip || undefined,
     });
+
+    return res.status(200).json({ status: 'success', message: 'Recovery request cancelled.' });
   } catch (error) {
     console.error('Error in cancelRecovery:', error);
     return res.status(500).json({ error: 'Internal server error.' });
@@ -361,40 +217,32 @@ export async function getRecoveryStatus(req: Request, res: Response) {
     const user = (req as any).user;
     if (!user?.address) return res.status(401).json({ error: 'Unauthorized.' });
 
-    const ownerAddress = user.address.toLowerCase();
-    const request = recoveryRequestStore.get(ownerAddress);
+    const dbUser = await UserService.findByAddress(user.address);
+    if (!dbUser) return res.status(200).json({ hasActiveRequest: false });
 
-    if (!request) {
+    const request = await RecoveryService.getActiveRequest(dbUser.id);
+    if (!request) return res.status(200).json({ hasActiveRequest: false });
+
+    // Check expiration
+    if (new Date() > request.requestExpiresAt) {
+      await RecoveryService.updateStatus(request.id, RecoveryStatus.EXPIRED);
       return res.status(200).json({ hasActiveRequest: false });
     }
 
-    // Check and update expiration
-    if ((request.status === 'pending_cooldown' || request.status === 'active') &&
-        new Date() > new Date(request.requestExpiresAt)) {
-      request.status = 'expired';
-    }
-
-    // Update cooldown status
-    if (request.status === 'pending_cooldown' && new Date() >= new Date(request.cooldownExpiresAt)) {
-      request.status = 'active';
-    }
-
-    // Count valid approvals (not expired)
-    const validApprovals = request.approvals.filter(a => new Date() < new Date(a.expiresAt));
-    const thresholdMet = validApprovals.length >= request.threshold;
+    const validCount = await RecoveryService.countValidApprovals(request.id);
 
     return res.status(200).json({
-      hasActiveRequest: request.status === 'pending_cooldown' || request.status === 'active',
+      hasActiveRequest: true,
       request: {
         id: request.id,
         status: request.status,
         challengeNonce: request.challengeNonce,
-        cooldownExpiresAt: request.cooldownExpiresAt,
-        requestExpiresAt: request.requestExpiresAt,
+        cooldownExpiresAt: request.cooldownExpiresAt.toISOString(),
+        requestExpiresAt: request.requestExpiresAt.toISOString(),
         threshold: request.threshold,
-        approvalsCollected: validApprovals.length,
-        thresholdMet,
-        createdAt: request.createdAt,
+        approvalsCollected: validCount,
+        thresholdMet: validCount >= request.threshold,
+        createdAt: request.createdAt.toISOString(),
       },
     });
   } catch (error) {
@@ -404,25 +252,24 @@ export async function getRecoveryStatus(req: Request, res: Response) {
 }
 
 /**
- * Complete recovery — marks request as completed after VEK re-protection.
+ * Complete recovery with new VEK envelope.
  * POST /api/recovery/complete
- * Body: { encryptedVEK, vekIv, vekTag } — new VEK envelope
  */
 export async function completeRecovery(req: Request, res: Response) {
   try {
     const user = (req as any).user;
     if (!user?.address) return res.status(401).json({ error: 'Unauthorized.' });
 
-    const ownerAddress = user.address.toLowerCase();
-    const request = recoveryRequestStore.get(ownerAddress);
+    const dbUser = await UserService.findByAddress(user.address);
+    if (!dbUser) return res.status(404).json({ error: 'User not found.' });
 
-    if (!request || request.status !== 'active') {
-      return res.status(400).json({ error: 'No active recovery request found.' });
+    const request = await RecoveryService.getActiveRequest(dbUser.id);
+    if (!request || request.status !== 'ACTIVE') {
+      return res.status(400).json({ error: 'No active recovery request.' });
     }
 
-    // Verify threshold is met
-    const validApprovals = request.approvals.filter(a => new Date() < new Date(a.expiresAt));
-    if (validApprovals.length < request.threshold) {
+    const validCount = await RecoveryService.countValidApprovals(request.id);
+    if (validCount < request.threshold) {
       return res.status(400).json({ error: 'Recovery threshold not yet met.' });
     }
 
@@ -431,19 +278,23 @@ export async function completeRecovery(req: Request, res: Response) {
       return res.status(400).json({ error: 'New encrypted VEK envelope is required.' });
     }
 
-    // Mark recovery as completed
-    request.status = 'completed';
-    request.completedAt = new Date().toISOString();
-
-    // Record last recovery time for cooldown
-    lastRecoveryStore.set(ownerAddress, new Date().toISOString());
-
-    addAuditEvent(ownerAddress, 'recovery_completed', { requestId: request.id });
-
-    return res.status(200).json({
-      status: 'success',
-      message: 'Recovery completed. New VEK envelope accepted.',
+    // Update VEK and mark recovery complete
+    await VaultService.updateVek(dbUser.id, {
+      encryptedVEK,
+      iv: vekIv,
+      tag: vekTag,
     });
+
+    await RecoveryService.updateStatus(request.id, RecoveryStatus.COMPLETED);
+
+    await AuditService.log({
+      userId: dbUser.id,
+      eventType: 'recovery.completed',
+      metadata: { requestId: request.id },
+      ipAddress: req.ip || undefined,
+    });
+
+    return res.status(200).json({ status: 'success', message: 'Recovery completed.' });
   } catch (error) {
     console.error('Error in completeRecovery:', error);
     return res.status(500).json({ error: 'Internal server error.' });
@@ -451,42 +302,28 @@ export async function completeRecovery(req: Request, res: Response) {
 }
 
 /**
- * Get encrypted recovery shares for reconstruction.
+ * Get encrypted recovery shares.
  * GET /api/recovery/shares
- * Only available when threshold is met.
  */
 export async function getRecoveryShares(req: Request, res: Response) {
   try {
     const user = (req as any).user;
     if (!user?.address) return res.status(401).json({ error: 'Unauthorized.' });
 
-    const ownerAddress = user.address.toLowerCase();
-    const request = recoveryRequestStore.get(ownerAddress);
+    const dbUser = await UserService.findByAddress(user.address);
+    if (!dbUser) return res.status(404).json({ error: 'User not found.' });
 
-    if (!request || request.status !== 'active') {
+    const request = await RecoveryService.getActiveRequest(dbUser.id);
+    if (!request || request.status !== 'ACTIVE') {
       return res.status(400).json({ error: 'No active recovery request.' });
     }
 
-    // Verify threshold
-    const validApprovals = request.approvals.filter(a => new Date() < new Date(a.expiresAt));
-    if (validApprovals.length < request.threshold) {
+    const validCount = await RecoveryService.countValidApprovals(request.id);
+    if (validCount < request.threshold) {
       return res.status(403).json({ error: 'Recovery threshold not yet met.' });
     }
 
-    // Get guardian circle and return encrypted shares
-    const circle = guardianCircleStore.get(ownerAddress);
-    if (!circle) {
-      return res.status(404).json({ error: 'Guardian circle not found.' });
-    }
-
-    const shares = circle.guardians
-      .filter(g => g.status === 'accepted' && g.encryptedShare)
-      .map(g => ({
-        guardianAddress: g.guardianAddress,
-        encryptedShare: g.encryptedShare,
-        shareIndex: g.shareIndex,
-      }));
-
+    const shares = await GuardianService.getSharesForRecovery(dbUser.id);
     return res.status(200).json({ shares });
   } catch (error) {
     console.error('Error in getRecoveryShares:', error);
@@ -495,7 +332,7 @@ export async function getRecoveryShares(req: Request, res: Response) {
 }
 
 /**
- * Get audit trail for the authenticated user.
+ * Get audit trail.
  * GET /api/recovery/audit
  */
 export async function getAuditTrail(req: Request, res: Response) {
@@ -503,9 +340,10 @@ export async function getAuditTrail(req: Request, res: Response) {
     const user = (req as any).user;
     if (!user?.address) return res.status(401).json({ error: 'Unauthorized.' });
 
-    const ownerAddress = user.address.toLowerCase();
-    const events = auditTrailStore.get(ownerAddress) || [];
+    const dbUser = await UserService.findByAddress(user.address);
+    if (!dbUser) return res.status(200).json([]);
 
+    const events = await AuditService.getTrail(dbUser.id);
     return res.status(200).json(events);
   } catch (error) {
     console.error('Error in getAuditTrail:', error);

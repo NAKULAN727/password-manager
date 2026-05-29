@@ -37,3 +37,7 @@ Thumbs.db
 
 /.kiro
 /.vscode
+
+# Prisma
+backend/prisma/migrations/
+backend/prisma/*.db

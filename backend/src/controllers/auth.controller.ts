@@ -132,6 +132,16 @@ export async function verifySiwe(req: Request, res: Response) {
     // 7. Atomic Invalidation (Strict single-use policy to protect against replay attacks)
     nonceStore.delete(cleanAddress);
 
+    // 7.5. Ensure user exists in database (upsert on successful auth)
+    const { UserService, AuditService } = await import('../services');
+    const dbUser = await UserService.findOrCreate(cleanAddress);
+    await AuditService.log({
+      userId: dbUser.id,
+      eventType: 'auth.login',
+      ipAddress: req.ip || undefined,
+      userAgent: req.headers['user-agent'] || undefined,
+    });
+
     // 8. Generate short-lived JWT accessToken session (15 minutes)
     const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_key';
     const accessToken = jwt.sign(

@@ -1,0 +1,221 @@
+// ─── Sphynx Zero-Knowledge Password Manager — Prisma Schema ─────────────────
+// Production-grade PostgreSQL schema with full relational integrity.
+// SECURITY: No plaintext secrets are ever stored. Only encrypted blobs.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── User Model ──────────────────────────────────────────────────────────────
+// Core identity: wallet address is the unique identifier (no email/password)
+
+model User {
+  id            String   @id @default(uuid())
+  walletAddress String   @unique @db.VarChar(42)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  encryptedVek      EncryptedVEK?
+  vaultEntries      VaultEntry[]
+  guardianCircle    Guardian[]         @relation("GuardianOwner")
+  guardianOf        Guardian[]         @relation("GuardianWallet")
+  recoveryRequests  RecoveryRequest[]
+  auditLogs         AuditLog[]
+  trustedDevices    TrustedDevice[]
+
+  @@index([walletAddress])
+  @@map("users")
+}
+
+// ─── Encrypted VEK Model ─────────────────────────────────────────────────────
+// Stores the AES-256-GCM encrypted Vault Encryption Key envelope.
+// The server NEVER possesses the KEK or raw VEK.
+
+model EncryptedVEK {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  encryptedVEK String   @db.Text  // Base64 AES-GCM ciphertext
+  iv           String   @db.VarChar(64)  // Base64 initialization vector
+  tag          String   @db.VarChar(64)  // Base64 GCM authentication tag
+  kdfSalt      String   @db.VarChar(42)  // wallet address used as PBKDF2 salt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("encrypted_veks")
+}
+
+// ─── Vault Entry Model ───────────────────────────────────────────────────────
+// Stores encrypted credential records. All crypto fields are Base64 blobs.
+// The server cannot decrypt any field.
+
+model VaultEntry {
+  id         String   @id @default(uuid())
+  userId     String
+  label      String   @db.VarChar(255)
+  username   String   @db.VarChar(255) @default("")
+  ciphertext String   @db.Text    // Base64 AES-GCM encrypted password
+  iv         String   @db.VarChar(64)
+  tag        String   @db.VarChar(64)
+  checksum   String?  @db.Text    // Base64 HMAC-SHA256 integrity checksum
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, label])
+  @@map("vault_entries")
+}
+
+// ─── Guardian Model ──────────────────────────────────────────────────────────
+// Trusted recovery guardians with Shamir's Secret Sharing encrypted shares.
+
+model Guardian {
+  id               String          @id @default(uuid())
+  ownerId          String
+  guardianUserId   String?         // Nullable: guardian may not have a Sphynx account
+  guardianAddress  String          @db.VarChar(42)
+  status           GuardianStatus  @default(PENDING)
+  invitationNonce  String          @db.VarChar(64)
+  encryptedShare   String?         @db.Text  // Base64 encrypted Shamir share
+  shareIndex       Int?
+  threshold        Int             @default(3)
+  createdAt        DateTime        @default(now())
+  acceptedAt       DateTime?
+  revokedAt        DateTime?
+  expiresAt        DateTime        // Invitation expiry
+
+  // Blockchain extensibility
+  txHash          String?  @db.VarChar(66)
+  blockNumber     Int?
+  contractAddress String?  @db.VarChar(42)
+
+  // Relations
+  owner        User              @relation("GuardianOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  guardianUser User?             @relation("GuardianWallet", fields: [guardianUserId], references: [id], onDelete: SetNull)
+  approvals    RecoveryApproval[]
+
+  @@index([ownerId])
+  @@index([guardianAddress])
+  @@index([ownerId, status])
+  @@map("guardians")
+}
+
+enum GuardianStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+// ─── Recovery Request Model ──────────────────────────────────────────────────
+// Tracks the lifecycle of vault recovery attempts.
+
+model RecoveryRequest {
+  id                String              @id @default(uuid())
+  userId            String
+  status            RecoveryStatus      @default(PENDING_COOLDOWN)
+  challengeNonce    String              @db.VarChar(128)
+  threshold         Int
+  cooldownExpiresAt DateTime
+  requestExpiresAt  DateTime
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+  createdAt         DateTime            @default(now())
+
+  // Blockchain extensibility
+  txHash          String?  @db.VarChar(66)
+  blockNumber     Int?
+  contractAddress String?  @db.VarChar(42)
+
+  // Relations
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  approvals RecoveryApproval[]
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("recovery_requests")
+}
+
+enum RecoveryStatus {
+  PENDING_COOLDOWN
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+// ─── Recovery Approval Model ─────────────────────────────────────────────────
+// Individual guardian approvals for a recovery request.
+
+model RecoveryApproval {
+  id                String   @id @default(uuid())
+  recoveryRequestId String
+  guardianId        String
+  signature         String   @db.Text  // EIP-712 approval signature
+  approvedAt        DateTime @default(now())
+  expiresAt         DateTime // 48h from approval
+
+  // Relations
+  recoveryRequest RecoveryRequest @relation(fields: [recoveryRequestId], references: [id], onDelete: Cascade)
+  guardian        Guardian        @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+
+  @@unique([recoveryRequestId, guardianId])
+  @@index([recoveryRequestId])
+  @@map("recovery_approvals")
+}
+
+// ─── Audit Log Model ─────────────────────────────────────────────────────────
+// Immutable security event log. Records are never updated or deleted.
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  eventType String   @db.VarChar(100)
+  metadata  Json     @default("{}")
+  ipAddress String?  @db.VarChar(45)
+  userAgent String?  @db.Text
+  createdAt DateTime @default(now())
+
+  // Blockchain extensibility
+  txHash      String? @db.VarChar(66)
+  blockNumber Int?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, eventType])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Trusted Device Model ────────────────────────────────────────────────────
+// Device-assisted recovery tokens.
+
+model TrustedDevice {
+  id                    String   @id @default(uuid())
+  userId                String
+  deviceFingerprint     String   @db.VarChar(128)
+  encryptedRecoveryData String?  @db.Text  // Device-encrypted VEK recovery material
+  label                 String   @db.VarChar(100) @default("Unknown Device")
+  lastUsedAt            DateTime @default(now())
+  createdAt             DateTime @default(now())
+  revokedAt             DateTime?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@unique([userId, deviceFingerprint])
+  @@map("trusted_devices")
+}
