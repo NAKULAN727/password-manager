@@ -21,23 +21,14 @@ export default function LandingPage() {
       {/* Navigation Header */}
       <header className="border-b border-white/5 bg-[#090D16]/30 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 sm:px-8">
-          <div className="flex items-center gap-3 bg-transparent p-1">
+          <div className="flex items-center">
             <Image
-              src="/logo-web-redesigned.png"
-              alt="Sphynx Logomark"
-              width={34}
-              height={34}
-              style={{ width: 'auto', height: 'auto' }}
-              className="object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.2)] transition-transform duration-300 hover:scale-105"
-              priority
-            />
-            <Image
-              src="/logo-password.png"
+              src="/Logo-with-password.png"
               alt="Sphynx Logo"
-              width={110}
-              height={44}
-              style={{ width: 'auto', height: 'auto' }}
-              className="object-contain drop-shadow-[0_0_12px_rgba(212,175,55,0.25)]"
+              width={280}
+              height={130}
+              style={{ width: 'auto', height: '130px' }}
+              className="object-contain drop-shadow-[0_0_12px_rgba(212,175,55,0.25)] transition-transform duration-300 hover:scale-105"
               priority
             />
           </div>

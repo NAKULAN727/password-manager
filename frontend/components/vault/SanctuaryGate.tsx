@@ -136,8 +136,8 @@ function CreateSanctuary() {
           <Image
             src="/logo-web-redesigned.png"
             alt="Sphynx"
-            width={120}
-            height={120}
+            width={150}
+            height={150}
             className="object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.35)]"
             priority
           />
@@ -259,8 +259,8 @@ function UnlockSanctuary() {
           <Image
             src="/logo-web-redesigned.png"
             alt="Sphynx"
-            width={120}
-            height={120}
+            width={150}
+            height={150}
             className="object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.35)]"
             priority
           />
