@@ -55,7 +55,7 @@ export async function encryptVEK(vekBytes: Uint8Array, kek: CryptoKey): Promise<
   const encryptedBuffer = await window.crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
     kek,
-    vekBytes
+    vekBytes as unknown as ArrayBuffer
   );
 
   const encryptedBytes = new Uint8Array(encryptedBuffer);
@@ -84,9 +84,9 @@ export async function decryptVEK(envelope: EncryptedVEKEnvelope, kek: CryptoKey)
   combined.set(tag, ciphertext.length);
 
   const decryptedBuffer = await window.crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv: iv as unknown as ArrayBuffer },
     kek,
-    combined
+    combined as unknown as ArrayBuffer
   );
 
   return new Uint8Array(decryptedBuffer);
@@ -99,7 +99,7 @@ export async function decryptVEK(envelope: EncryptedVEKEnvelope, kek: CryptoKey)
 export async function importVEKasCryptoKey(vekBytes: Uint8Array): Promise<CryptoKey> {
   return window.crypto.subtle.importKey(
     'raw',
-    vekBytes,
+    vekBytes as unknown as ArrayBuffer,
     { name: 'AES-GCM', length: 256 },
     false, // non-extractable
     ['encrypt', 'decrypt']

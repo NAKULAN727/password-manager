@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import vaultRoutes from './routes/vault.routes';
+import guardianRoutes from './routes/guardian.routes';
+import recoveryRoutes from './routes/recovery.routes';
 
 // Load environment variables
 dotenv.config();
@@ -87,6 +89,8 @@ const apiLimiter = rateLimiter(100, 15 * 60 * 1000);
 // Routes Bindings
 app.use('/api/auth', apiLimiter, authRoutes);
 app.use('/api/vault', apiLimiter, vaultRoutes);
+app.use('/api/guardians', apiLimiter, guardianRoutes);
+app.use('/api/recovery', apiLimiter, recoveryRoutes);
 
 // Health Check Endpoint
 app.get('/health', (req, res) => {

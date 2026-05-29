@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useVaultStore, EncryptedVaultEntry } from '../../store/useVaultStore';
 import { api } from '../../lib/api/client';
@@ -31,7 +32,8 @@ import {
   Unlock, 
   RefreshCw,
   Search,
-  LockKeyhole
+  LockKeyhole,
+  Flower2
 } from 'lucide-react';
 
 /**
@@ -254,17 +256,39 @@ export default function DashboardPage() {
             </p>
           </div>
           
-          <Button 
-            variant="primary" 
-            onClick={() => {
-              setEntryToEdit(null);
-              setIsModalOpen(true);
-            }} 
-            className="gap-1.5 text-xs font-bold px-6 py-3"
-          >
-            <Plus size={14} />
-            Create Secret
-          </Button>
+          <div className="flex items-center gap-3">
+            <Link href="/guardians">
+              <Button 
+                variant="outline" 
+                className="gap-1.5 text-xs font-bold px-5 py-3 border-white/10 hover:border-[#D4AF37]/30 text-white/60 hover:text-[#D4AF37]"
+              >
+                <Shield size={14} />
+                Guardians
+              </Button>
+            </Link>
+
+            <Link href="/audit">
+              <Button 
+                variant="outline" 
+                className="gap-1.5 text-xs font-bold px-5 py-3 border-[#D4AF37]/20 hover:border-[#D4AF37]/50 text-[#D4AF37] hover:text-white"
+              >
+                <Flower2 size={14} />
+                Security Garden
+              </Button>
+            </Link>
+            
+            <Button 
+              variant="primary" 
+              onClick={() => {
+                setEntryToEdit(null);
+                setIsModalOpen(true);
+              }} 
+              className="gap-1.5 text-xs font-bold px-6 py-3"
+            >
+              <Plus size={14} />
+              Create Secret
+            </Button>
+          </div>
         </div>
 
         {/* Dashboard Workspace */}
