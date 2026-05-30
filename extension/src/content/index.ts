@@ -699,11 +699,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-// Broadcast extension ID to Sphynx frontend for auto-syncing
+// Broadcast extension ID to Sphynx frontend for auto-syncing.
+// Re-broadcasts periodically to handle SPA navigation (dashboard loads after login).
 if (window.location.origin === 'http://localhost:3000') {
-  setTimeout(() => {
+  function broadcastExtensionId() {
     window.postMessage({ type: 'SPHYNX_EXTENSION_DETECTED', extensionId: chrome.runtime.id }, '*');
-  }, 1000);
+  }
+
+  // Initial broadcast after page settles
+  setTimeout(broadcastExtensionId, 500);
+
+  // Re-broadcast on SPA navigation (URL changes without full page reload)
+  let lastUrl = window.location.href;
+  const navObserver = new MutationObserver(() => {
+    if (window.location.href !== lastUrl) {
+      lastUrl = window.location.href;
+      setTimeout(broadcastExtensionId, 300);
+    }
+  });
+  navObserver.observe(document.body, { childList: true, subtree: true });
+
+  // Also listen for explicit requests from the web app
+  window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SPHYNX_PING_EXTENSION') {
+      broadcastExtensionId();
+    }
+  });
 }
 
 console.log('[Sphynx] Content script active: Form scanning + credential capture initialized.');

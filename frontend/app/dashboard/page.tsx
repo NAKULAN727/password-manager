@@ -108,36 +108,43 @@ export default function DashboardPage() {
       }
     };
     window.addEventListener('message', handleExtensionDetected);
+
+    // Actively ping the content script to re-broadcast its extension ID.
+    // This handles the case where the content script loaded before this component mounted.
+    window.postMessage({ type: 'SPHYNX_PING_EXTENSION' }, '*');
+
     return () => {
       window.removeEventListener('message', handleExtensionDetected);
     };
   }, []);
 
   useEffect(() => {
-    if (!extensionId || !address || !derivationSignature || !token) return;
+    if (!extensionId || !address || !derivationSignature || !token) {
+      console.log('[Sphynx Sync] Waiting for all params:', { extensionId: !!extensionId, address: !!address, derivationSignature: !!derivationSignature, token: !!token });
+      return;
+    }
 
     const chromeObj = (window as any).chrome;
     if (chromeObj && chromeObj.runtime && chromeObj.runtime.sendMessage) {
-      console.log('Syncing session parameters to Sphynx Chrome Extension...');
+      const payload = { address, derivationSignature, token };
+      console.log('[Sphynx Sync] Sending SYNC_SESSION to extension:', extensionId, payload);
       chromeObj.runtime.sendMessage(
         extensionId,
         {
           type: 'SYNC_SESSION',
-          payload: {
-            address,
-            derivationSignature,
-            token
-          }
+          payload
         },
         (response: any) => {
           const lastError = chromeObj.runtime.lastError;
           if (lastError) {
-            console.warn('Extension synchronization failed:', lastError.message);
+            console.warn('[Sphynx Sync] Failed:', lastError.message);
           } else {
-            console.log('Extension synchronization response:', response);
+            console.log('[Sphynx Sync] Success:', response);
           }
         }
       );
+    } else {
+      console.warn('[Sphynx Sync] chrome.runtime.sendMessage not available');
     }
   }, [extensionId, address, derivationSignature, token]);
 

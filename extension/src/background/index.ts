@@ -118,13 +118,18 @@ async function apiPut(path: string, token: string, body: object) {
 // ============================================================
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+  console.log('[Sphynx BG] External message received from:', sender.url, 'type:', message?.type);
+
   if (!sender.url || !sender.url.startsWith(CONFIG.WEB_APP_URL)) {
+    console.warn('[Sphynx BG] Rejected: unauthorized origin', sender.url);
     sendResponse({ success: false, error: 'Unauthorized sender origin.' });
     return;
   }
 
   if (message.type === 'SYNC_SESSION') {
     const { address, derivationSignature, token } = message.payload;
+    console.log('[Sphynx BG] SYNC_SESSION payload:', { address, hasSignature: !!derivationSignature, hasToken: !!token });
+
     if (!address || !derivationSignature || !token) {
       sendResponse({ success: false, error: 'Invalid payload elements.' });
       return;
@@ -138,8 +143,10 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
     }).then(() => {
       kVault = null;
       kIntegrity = null;
+      console.log('[Sphynx BG] Session stored successfully for:', address);
       sendResponse({ success: true, message: 'Session metadata synchronized.' });
     }).catch(err => {
+      console.error('[Sphynx BG] Session store failed:', err);
       sendResponse({ success: false, error: err.message });
     });
     return true;

@@ -38,6 +38,7 @@ export function Popup() {
 
   const checkStatus = () => {
     chrome.runtime.sendMessage({ type: 'GET_VAULT_STATUS' }, (response) => {
+      console.log('[Sphynx Popup] GET_VAULT_STATUS response:', response);
       if (response?.success) {
         setAddress(response.data.address);
         setIsUnlocked(response.data.isUnlocked);
