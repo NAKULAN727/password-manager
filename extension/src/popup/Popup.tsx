@@ -34,7 +34,21 @@ export function Popup() {
   const [copiedType, setCopiedType] = useState<'user' | 'pass' | null>(null);
   const [clipboardTimer, setClipboardTimer] = useState<number | null>(null);
 
-  useEffect(() => { checkStatus(); }, []);
+  useEffect(() => {
+    checkStatus();
+
+    // Listen for session storage changes (e.g., after SYNC_SESSION from web app)
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, area: string) => {
+      if (area === 'session') {
+        // Session data changed — re-check vault status
+        console.log('[Sphynx Popup] Session storage changed, refreshing status');
+        checkStatus();
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => { chrome.storage.onChanged.removeListener(handleStorageChange); };
+  }, []);
 
   const checkStatus = () => {
     chrome.runtime.sendMessage({ type: 'GET_VAULT_STATUS' }, (response) => {

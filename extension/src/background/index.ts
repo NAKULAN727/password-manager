@@ -130,14 +130,14 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
     const { address, derivationSignature, token } = message.payload;
     console.log('[Sphynx BG] SYNC_SESSION payload:', { address, hasSignature: !!derivationSignature, hasToken: !!token });
 
-    if (!address || !derivationSignature || !token) {
-      sendResponse({ success: false, error: 'Invalid payload elements.' });
+    if (!address || !token) {
+      sendResponse({ success: false, error: 'Missing address or token.' });
       return;
     }
 
     saveSession({
       address: address.toLowerCase(),
-      derivationSignature,
+      derivationSignature: derivationSignature || '',
       token,
       isUnlocked: false
     }).then(() => {
@@ -170,6 +170,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Reset auto-lock timer on any activity
   if (kVault) {
     resetAutoLockTimer();
+  }
+
+  // --- STORE_PENDING_CREDENTIAL (from content script) ---
+  if (type === 'STORE_PENDING_CREDENTIAL') {
+    chrome.storage.session.set({ sphynx_pending_credential: message.payload }, () => {
+      console.log('[Sphynx BG] Pending credential stored');
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+
+  // --- GET_PENDING_CREDENTIAL (from content script on new page) ---
+  if (type === 'GET_PENDING_CREDENTIAL') {
+    chrome.storage.session.get('sphynx_pending_credential', (data) => {
+      const pending = data.sphynx_pending_credential || null;
+      // Clear it after retrieval (one-shot)
+      if (pending) {
+        chrome.storage.session.remove('sphynx_pending_credential');
+        console.log('[Sphynx BG] Pending credential retrieved and cleared');
+      }
+      sendResponse({ success: true, data: pending });
+    });
+    return true;
   }
 
   // --- GET_VAULT_STATUS ---

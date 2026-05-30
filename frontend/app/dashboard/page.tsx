@@ -119,33 +119,31 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (!extensionId || !address || !derivationSignature || !token) {
-      console.log('[Sphynx Sync] Waiting for all params:', { extensionId: !!extensionId, address: !!address, derivationSignature: !!derivationSignature, token: !!token });
+    if (!extensionId || !address || !token) {
+      console.log('[Sphynx Sync] Waiting — extensionId:', extensionId, 'address:', address, 'token:', !!token, 'derivationSignature:', !!derivationSignature);
       return;
     }
 
     const chromeObj = (window as any).chrome;
-    if (chromeObj && chromeObj.runtime && chromeObj.runtime.sendMessage) {
-      const payload = { address, derivationSignature, token };
-      console.log('[Sphynx Sync] Sending SYNC_SESSION to extension:', extensionId, payload);
-      chromeObj.runtime.sendMessage(
-        extensionId,
-        {
-          type: 'SYNC_SESSION',
-          payload
-        },
-        (response: any) => {
-          const lastError = chromeObj.runtime.lastError;
-          if (lastError) {
-            console.warn('[Sphynx Sync] Failed:', lastError.message);
-          } else {
-            console.log('[Sphynx Sync] Success:', response);
-          }
-        }
-      );
-    } else {
+    if (!chromeObj?.runtime?.sendMessage) {
       console.warn('[Sphynx Sync] chrome.runtime.sendMessage not available');
+      return;
     }
+
+    const payload = { address, derivationSignature: derivationSignature || '', token };
+    console.log('[Sphynx Sync] Sending SYNC_SESSION to extension:', extensionId);
+    chromeObj.runtime.sendMessage(
+      extensionId,
+      { type: 'SYNC_SESSION', payload },
+      (response: any) => {
+        const lastError = chromeObj.runtime.lastError;
+        if (lastError) {
+          console.warn('[Sphynx Sync] Failed:', lastError.message);
+        } else {
+          console.log('[Sphynx Sync] Success:', response);
+        }
+      }
+    );
   }, [extensionId, address, derivationSignature, token]);
 
   // Trigger atomic logout
