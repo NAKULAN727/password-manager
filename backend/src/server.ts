@@ -7,6 +7,7 @@ import vaultRoutes from './routes/vault.routes';
 import guardianRoutes from './routes/guardian.routes';
 import recoveryRoutes from './routes/recovery.routes';
 import deviceRoutes from './routes/device.routes';
+import contactRoutes from './routes/contact.routes';
 
 // Load environment variables
 dotenv.config();
@@ -93,6 +94,7 @@ app.use('/api/vault', apiLimiter, vaultRoutes);
 app.use('/api/guardians', apiLimiter, guardianRoutes);
 app.use('/api/recovery', apiLimiter, recoveryRoutes);
 app.use('/api/devices', apiLimiter, deviceRoutes);
+app.use('/api/contact', apiLimiter, contactRoutes);
 
 // Health Check Endpoint (with database connectivity verification)
 app.get('/health', async (req, res) => {
