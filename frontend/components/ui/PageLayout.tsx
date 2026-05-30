@@ -8,15 +8,15 @@ interface PageLayoutProps {
 }
 
 /**
- * Shared page layout wrapper for all public-facing marketing pages.
- * Includes the Navbar and Footer with the Obsidian Sanctuary ambient glows.
+ * Shared page layout wrapper — The Vault theme.
+ * Warm radial background with subtle amber glow from top-left.
  */
 export function PageLayout({ children }: PageLayoutProps) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#090D16]">
-      {/* Premium ambient pulsing glows */}
-      <div className="absolute top-[-10%] left-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-[#D4AF37]/5 blur-[120px] animate-pulse-glow" />
-      <div className="absolute bottom-[-10%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-emerald-500/2 blur-[120px] animate-pulse-glow" style={{ animationDelay: '1.5s' }} />
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Warm ambient glow — like a lamp inside a vault */}
+      <div className="fixed top-[-20%] left-[-10%] -z-10 h-[700px] w-[700px] rounded-full bg-[#E8A020]/[0.03] blur-[150px] animate-pulse-glow" />
+      <div className="fixed bottom-[-20%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-[#B86A1A]/[0.02] blur-[140px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
 
       <Navbar />
       {children}

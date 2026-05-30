@@ -7,19 +7,12 @@ interface CardProps {
 }
 
 /**
- * Reusable obsidian glassmorphism card component with dynamic background glows,
- * multi-layered borders, and high-fidelity shadow states.
+ * Card component — The Vault theme.
+ * Warm surface with amber-tinted shadows and subtle hover glow.
  */
 export function Card({ children, className = '', glow = false }: CardProps) {
   return (
-    <div className={`group relative overflow-hidden rounded-3xl border border-[#D4AF37]/10 bg-[#090D16]/65 p-8 backdrop-blur-2xl transition-all duration-500 hover:border-[#D4AF37]/25 hover:bg-[#090D16]/75 ${glow ? 'shadow-[0_0_50px_rgba(212,175,55,0.06)] hover:shadow-[0_0_60px_rgba(212,175,55,0.15)]' : 'shadow-2xl'} ${className}`}>
-      
-      {/* Decorative high-fidelity neon ambient light (Top Right Corner) - Burnished Gold */}
-      <div className="absolute -right-20 -top-20 -z-10 h-40 w-40 rounded-full bg-[#D4AF37]/5 blur-[80px] transition-all duration-500 group-hover:bg-[#D4AF37]/12 group-hover:blur-[60px]" />
-      
-      {/* Decorative high-fidelity neon ambient light (Bottom Left Corner) - Emerald Pulse */}
-      <div className="absolute -bottom-20 -left-20 -z-10 h-40 w-40 rounded-full bg-[#10B981]/2 blur-[80px] transition-all duration-500 group-hover:bg-[#10B981]/6 group-hover:blur-[60px]" />
-
+    <div className={`group relative overflow-hidden rounded-2xl border border-[#2A1E10] bg-[#141009] p-8 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[rgba(232,160,32,0.3)] ${glow ? 'shadow-[0_0_50px_rgba(232,160,32,0.06),0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_0_60px_rgba(232,160,32,0.12),0_8px_30px_rgba(0,0,0,0.5)]' : 'shadow-[0_0_30px_rgba(232,160,32,0.05),0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_0_40px_rgba(232,160,32,0.1),0_8px_30px_rgba(0,0,0,0.5)]'} ${className}`}>
       {children}
     </div>
   );

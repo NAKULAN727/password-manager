@@ -1,28 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  --color-obsidian-dark: #090D16;
-  --color-obsidian-bg: #0F172A;
-  --color-obsidian-card: rgba(9, 13, 22, 0.75);
+  /* The Vault — Warm Dark Color System */
+  --color-bg-base: #0A0806;
+  --color-bg-surface: #141009;
+  --color-bg-raised: #1E160D;
+  --color-accent-primary: #E8A020;
+  --color-accent-secondary: #B86A1A;
+  --color-glow: #FF9A3C;
   --color-gold: #D4AF37;
-  --color-emerald-pulse: #10B981;
-  --color-sand: #F8F3E7;
+  --color-text-primary: #F0E6D0;
+  --color-text-muted: #9A7D5A;
+  --color-success: #5EAA7A;
+  --color-danger: #CC4A3A;
+  --color-border: #2A1E10;
 
-  /* Premium Obsidian Sanctuary color palette variants */
-  --color-gold-light: #F3D070;
-  --color-gold-dark: #A37F1C;
-  --color-emerald-light: #34D399;
-  --color-emerald-dark: #065F46;
-
-  /* High fidelity premium micro-animations */
-  --animate-fade-in: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  --animate-pulse-glow: pulse-glow 3s infinite ease-in-out;
+  /* Animations */
+  --animate-fade-in: fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --animate-fade-up: fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --animate-pulse-glow: pulse-glow 4s infinite ease-in-out;
+  --animate-shimmer: shimmer 0.6s ease forwards;
   --animate-pulse-perimeter: pulse-perimeter 2.5s infinite ease-in-out;
 
   @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes fade-up {
     from {
       opacity: 0;
-      transform: translateY(12px);
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
@@ -32,99 +40,109 @@
 
   @keyframes pulse-glow {
     0%, 100% {
-      opacity: 0.08;
+      opacity: 0.06;
       filter: blur(100px) saturate(1.2);
     }
     50% {
-      opacity: 0.18;
-      filter: blur(80px) saturate(1.5);
+      opacity: 0.14;
+      filter: blur(80px) saturate(1.4);
     }
+  }
+
+  @keyframes shimmer {
+    from { background-position: 200% center; }
+    to { background-position: -200% center; }
   }
 
   @keyframes pulse-perimeter {
     0%, 100% {
-      box-shadow: inset 0 0 25px rgba(239, 68, 68, 0.2), 0 0 8px rgba(239, 68, 68, 0.1);
-      border-color: rgba(239, 68, 68, 0.25);
+      box-shadow: inset 0 0 25px rgba(204, 74, 58, 0.2), 0 0 8px rgba(204, 74, 58, 0.1);
+      border-color: rgba(204, 74, 58, 0.25);
     }
     50% {
-      box-shadow: inset 0 0 50px rgba(239, 68, 68, 0.45), 0 0 20px rgba(239, 68, 68, 0.25);
-      border-color: rgba(239, 68, 68, 0.55);
+      box-shadow: inset 0 0 50px rgba(204, 74, 58, 0.45), 0 0 20px rgba(204, 74, 58, 0.25);
+      border-color: rgba(204, 74, 58, 0.55);
     }
   }
 }
 
 :root {
-  --background: #090D16;
-  --foreground: #F8F3E7;
+  --background: #0A0806;
+  --foreground: #F0E6D0;
 }
 
 body {
-  background-color: var(--background);
+  background: radial-gradient(ellipse 80% 50% at 20% 10%, #1A0F05 0%, #0A0806 60%);
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Glassmorphism Classes */
-.glass-obsidian {
-  background: rgba(9, 13, 22, 0.75);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(212, 175, 55, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+/* Sora for headlines */
+h1, h2, h3, h4, .font-display {
+  font-family: 'Sora', 'Inter', system-ui, sans-serif;
 }
 
-.glass-obsidian-hover {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+/* JetBrains Mono for code/password fields */
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', monospace;
 }
 
-.glass-obsidian-hover:hover {
-  background: rgba(9, 13, 22, 0.85);
-  border-color: rgba(212, 175, 55, 0.22);
-  box-shadow: 0 0 25px rgba(212, 175, 55, 0.04), 0 16px 40px rgba(0, 0, 0, 0.5);
+/* Glassmorphism Classes — Vault Theme */
+.glass-vault {
+  background: rgba(20, 16, 9, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid #2A1E10;
+  box-shadow: 0 0 30px rgba(232, 160, 32, 0.05), 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.glass-vault-hover {
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.glass-vault-hover:hover {
+  border-color: rgba(232, 160, 32, 0.3);
+  box-shadow: 0 0 40px rgba(232, 160, 32, 0.1), 0 8px 30px rgba(0, 0, 0, 0.5);
   transform: translateY(-2px);
 }
 
-/* Shimmer reveal effect */
-.shimmer-bg {
-  background: linear-gradient(
-    90deg,
-    rgba(212, 175, 55, 0.15) 25%,
-    rgba(212, 175, 55, 0.3) 50%,
-    rgba(212, 175, 55, 0.15) 75%
-  );
+/* Shimmer one-shot effect for hero headline */
+.shimmer-text {
+  background: linear-gradient(90deg, transparent, rgba(232, 160, 32, 0.15), transparent);
   background-size: 200% 100%;
-  animation: shimmer-swipe 1.5s infinite linear;
+  animation: shimmer 0.6s ease forwards;
 }
 
-@keyframes shimmer-swipe {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* Custom premium ambient glowing borders for input controls */
+/* Glow input for forms */
 .glow-input {
-  transition: all 0.3s ease;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .glow-input:focus {
-  border-color: rgba(212, 175, 55, 0.5);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15), inset 0 0 8px rgba(212, 175, 55, 0.05);
+  border-color: rgba(232, 160, 32, 0.5);
+  box-shadow: 0 0 20px rgba(232, 160, 32, 0.12), inset 0 0 8px rgba(232, 160, 32, 0.04);
 }
 
-/* Custom premium scrollbar styling */
+/* Custom scrollbar — warm amber tint */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #090D16;
+  background: #0A0806;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.15);
+  background: rgba(232, 160, 32, 0.12);
   border-radius: 9999px;
-  border: 2px solid #090D16;
+  border: 2px solid #0A0806;
   transition: background 0.3s;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 175, 55, 0.35);
+  background: rgba(232, 160, 32, 0.3);
+}
+
+/* Section divider utility */
+.section-divider {
+  border-top: 1px solid rgba(232, 160, 32, 0.08);
 }

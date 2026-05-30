@@ -1,22 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Inter } from "next/font/google";
+import { Sora, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionInitializer } from "../components/auth/SessionInitializer";
 import { HydrationSafe } from "../components/ui/HydrationSafe";
-import { AmbientBackground } from "../components/ui/AmbientBackground";
 
-// Configure Outfit Google Font for headlines and primary text
-const outfit = Outfit({
+// Sora — Headlines / Display (weight 700)
+const sora = Sora({
   subsets: ["latin"],
-  variable: "--font-outfit",
-  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-sora",
+  weight: ["400", "500", "600", "700"],
 });
 
-// Configure Inter Google Font for highly readable interface elements
+// Inter — Body / UI text (weight 400/500)
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   weight: ["300", "400", "500", "600", "700"],
+});
+
+// JetBrains Mono — Password / key fields only
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500"],
 });
 
 export const viewport: Viewport = {
@@ -26,9 +32,9 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Sphynx | ZK Password Manager",
-  description: "Next-generation zero-knowledge credential vault secured by EIP-4361 Sign-In with Ethereum cryptography. Your secrets never leave your device.",
+  description: "Your passwords, locked away where only you can reach them. Zero-knowledge credential vault secured by blockchain cryptography.",
   keywords: ["blockchain", "zero-knowledge", "security", "ethereum", "web3", "password manager", "siwe", "eip-4361"],
-  authors: [{ name: "Sphynx Security Group" }],
+  authors: [{ name: "Sphynx Security Labs" }],
 };
 
 export default function RootLayout({
@@ -39,7 +45,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${inter.variable} h-full antialiased dark`}
+      className={`${sora.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
       suppressHydrationWarning
     >
       <head>
@@ -71,12 +77,11 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body 
-        className="min-h-full flex flex-col bg-[#090D16] text-slate-100 font-sans selection:bg-[#D4AF37]/20 selection:text-white"
+      <body
+        className="min-h-full flex flex-col bg-[#0A0806] text-[#F0E6D0] font-[family-name:var(--font-inter)] selection:bg-[#E8A020]/20 selection:text-[#F0E6D0]"
         suppressHydrationWarning
       >
         <SessionInitializer />
-        <AmbientBackground />
         <HydrationSafe>
           {children}
         </HydrationSafe>
