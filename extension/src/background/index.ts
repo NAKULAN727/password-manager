@@ -1,4 +1,7 @@
 import { decryptEntry, deriveVaultKey } from '../lib/crypto';
+import { encryptCredential } from '../lib/encrypt';
+import { normalizeDomain, isDuplicate } from '../lib/domain';
+import { isDomainIgnored, addIgnoredDomain } from '../lib/ignorelist';
 import { EncryptedVaultEntry, ExtensionSession } from '../types';
 
 // In-memory key caches (never persisted to storage)
@@ -60,11 +63,55 @@ async function apiGet(path: string, token: string) {
 }
 
 /**
+ * API POST caller
+ */
+async function apiPost(path: string, token: string, body: object) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      await clearSession();
+    }
+    throw new Error(`API Error ${res.status}: Request failed.`);
+  }
+  return res.json();
+}
+
+/**
+ * API PUT caller
+ */
+async function apiPut(path: string, token: string, body: object) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      await clearSession();
+    }
+    throw new Error(`API Error ${res.status}: Request failed.`);
+  }
+  return res.json();
+}
+
+/**
  * Handle incoming external sync requests from Next.js Frontend
  */
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
   console.log('Received external message from:', sender.url, message);
-  
+
   // Validate sender URL
   if (!sender.url || !sender.url.startsWith('http://localhost:3000')) {
     sendResponse({ success: false, error: 'Unauthorized sender origin.' });
@@ -82,16 +129,15 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
       address: address.toLowerCase(),
       derivationSignature,
       token,
-      isUnlocked: false // Locked until master password is typed in popup
+      isUnlocked: false
     }).then(() => {
-      // Clear key caches because new credentials are being synchronized
       kVault = null;
       kIntegrity = null;
       sendResponse({ success: true, message: 'Session metadata synchronized.' });
     }).catch(err => {
       sendResponse({ success: false, error: err.message });
     });
-    return true; // Keep message channel open for async response
+    return true;
   }
 
   if (message.type === 'LOCK_VAULT') {
@@ -154,8 +200,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
 
       const encryptedEntries: EncryptedVaultEntry[] = await apiGet('/vault/list', session.token);
-      
-      // Decrypt entries locally inside secure background environment
+
       const decrypted = [];
       for (const entry of encryptedEntries) {
         try {
@@ -164,15 +209,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             id: entry.id,
             label: entry.label,
             username: entry.username,
+            url: entry.url,
             plaintext
           });
         } catch (decErr) {
           console.error('Decryption failed for entry ID:', entry.id, decErr);
-          // Return placeholder on decryption failure
           decrypted.push({
             id: entry.id,
             label: entry.label,
             username: entry.username,
+            url: entry.url,
             plaintext: 'Decryption Error (Incorrect Key/Tampered)'
           });
         }
@@ -188,8 +234,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // 5. GET_CREDENTIALS (called by Content Script for autofill)
   if (type === 'GET_CREDENTIALS') {
     const { entryId, hostname } = message.payload;
-    
-    // Check script permissions & validate sender is valid tab/frame
+
     if (!sender.tab) {
       sendResponse({ success: false, error: 'Request denied: Caller is not a content page.' });
       return;
@@ -200,7 +245,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         throw new Error('Sphynx Vault is locked. Unlock the extension to autofill.');
       }
 
-      // Fetch encrypted list from server
       const encryptedEntries: EncryptedVaultEntry[] = await apiGet('/vault/list', session.token);
       const entry = encryptedEntries.find(e => e.id === entryId);
 
@@ -208,18 +252,136 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         throw new Error('Requested vault entry not found.');
       }
 
-      // Decrypt locally inside background context
       const plaintext = await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault);
 
-      console.log(`Providing credentials for entry ${entry.label} to tab ${sender.tab?.id} matching host ${hostname}`);
-      
       sendResponse({
         success: true,
-        data: {
-          username: entry.username,
-          password: plaintext
-        }
+        data: { username: entry.username, password: plaintext }
       });
+    }).catch((err) => {
+      sendResponse({ success: false, error: err.message });
+    });
+    return true;
+  }
+
+  // 6. CHECK_SAVE_CREDENTIAL — Check if we should show save prompt
+  if (type === 'CHECK_SAVE_CREDENTIAL') {
+    const { hostname, username } = message.payload;
+
+    getSession().then(async (session) => {
+      if (!session.isUnlocked || !kVault || !session.token) {
+        sendResponse({ success: false, error: 'Vault is locked.' });
+        return;
+      }
+
+      // Check ignore list
+      const domain = normalizeDomain(hostname);
+      const ignored = await isDomainIgnored(domain);
+      if (ignored) {
+        sendResponse({ success: true, data: { action: 'ignored' } });
+        return;
+      }
+
+      // Fetch existing entries to check for duplicates
+      const encryptedEntries: EncryptedVaultEntry[] = await apiGet('/vault/list', session.token);
+      const entries = encryptedEntries.map(e => ({
+        id: e.id,
+        label: e.label,
+        username: e.username,
+        url: e.url
+      }));
+
+      const duplicateCheck = isDuplicate(entries, hostname, username);
+
+      if (duplicateCheck.isDuplicate) {
+        // Find the entry ID for update
+        const existingEntry = encryptedEntries.find(e =>
+          e.username.toLowerCase().trim() === username.toLowerCase().trim()
+        );
+        sendResponse({
+          success: true,
+          data: {
+            action: 'update',
+            existingEntryId: existingEntry?.id,
+            existingLabel: existingEntry?.label
+          }
+        });
+      } else {
+        sendResponse({ success: true, data: { action: 'save' } });
+      }
+    }).catch((err) => {
+      sendResponse({ success: false, error: err.message });
+    });
+    return true;
+  }
+
+  // 7. SAVE_CREDENTIAL — Encrypt and save a new credential
+  if (type === 'SAVE_CREDENTIAL') {
+    const { hostname, username, password, label } = message.payload;
+
+    getSession().then(async (session) => {
+      if (!session.isUnlocked || !kVault || !session.token) {
+        throw new Error('Vault is locked. Cannot save credential.');
+      }
+
+      // Encrypt the password locally
+      const { ciphertext, iv } = await encryptCredential(password, kVault);
+
+      // Determine label
+      const credLabel = label || normalizeDomain(hostname);
+
+      // Send encrypted payload to backend
+      await apiPost('/vault/entries', session.token, {
+        label: credLabel,
+        username: username,
+        encryptedPassword: ciphertext,
+        iv: iv,
+        url: hostname
+      });
+
+      console.log(`[Sphynx] Credential saved for ${credLabel} (${username})`);
+      sendResponse({ success: true });
+    }).catch((err) => {
+      console.error('[Sphynx] Save credential failed:', err);
+      sendResponse({ success: false, error: err.message });
+    });
+    return true;
+  }
+
+  // 8. UPDATE_CREDENTIAL — Encrypt and update an existing credential
+  if (type === 'UPDATE_CREDENTIAL') {
+    const { entryId, password } = message.payload;
+
+    getSession().then(async (session) => {
+      if (!session.isUnlocked || !kVault || !session.token) {
+        throw new Error('Vault is locked. Cannot update credential.');
+      }
+
+      // Encrypt the new password locally
+      const { ciphertext, iv } = await encryptCredential(password, kVault);
+
+      // Update via API
+      await apiPut(`/vault/entries/${entryId}`, session.token, {
+        encryptedPassword: ciphertext,
+        iv: iv
+      });
+
+      console.log(`[Sphynx] Credential updated for entry ${entryId}`);
+      sendResponse({ success: true });
+    }).catch((err) => {
+      console.error('[Sphynx] Update credential failed:', err);
+      sendResponse({ success: false, error: err.message });
+    });
+    return true;
+  }
+
+  // 9. IGNORE_DOMAIN — Add domain to never-save list
+  if (type === 'IGNORE_DOMAIN') {
+    const { hostname } = message.payload;
+    const domain = normalizeDomain(hostname);
+    addIgnoredDomain(domain).then(() => {
+      console.log(`[Sphynx] Domain ignored: ${domain}`);
+      sendResponse({ success: true });
     }).catch((err) => {
       sendResponse({ success: false, error: err.message });
     });

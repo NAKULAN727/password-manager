@@ -1,37 +1,60 @@
-// Types from extension
+import { showSavePrompt, dismissSavePrompt } from './savePrompt';
+
+// ============================================================
+// TYPES
+// ============================================================
+
 interface DecryptedCredentials {
   username: string;
   plaintext: string;
 }
 
-// Global reference for active components
+interface CapturedCredential {
+  username: string;
+  password: string;
+  hostname: string;
+  timestamp: number;
+}
+
+// ============================================================
+// GLOBAL STATE
+// ============================================================
+
 let activeBadgeContainers = new Map<HTMLInputElement, HTMLDivElement>();
 let activeDropdown: HTMLDivElement | null = null;
 let currentInput: HTMLInputElement | null = null;
 
-// CSS styles to inject inside the Shadow DOM
+// Save-password detection state
+let lastCapturedCredential: CapturedCredential | null = null;
+let lastNavigationUrl: string = window.location.href;
+let savePromptShownForCredential: string | null = null;
+
+// ============================================================
+// AUTOFILL BADGE STYLES (Shadow DOM)
+// ============================================================
+
 const SHADOW_STYLE = `
   .sphynx-badge-trigger {
     width: 20px;
     height: 20px;
     cursor: pointer;
-    background: linear-gradient(135deg, #F4D068 0%, #D4AF37 100%);
+    background: linear-gradient(135deg, #E8A020 0%, #B86A1A 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 8px rgba(232, 160, 32, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.2s ease-in-out;
+    transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .sphynx-badge-trigger:hover {
     transform: scale(1.15);
-    box-shadow: 0 0 12px rgba(212, 175, 55, 0.7);
+    box-shadow: 0 0 12px rgba(232, 160, 32, 0.7);
   }
   .sphynx-badge-icon {
     width: 10px;
     height: 10px;
-    border: 1.5px solid #05070B;
+    border: 1.5px solid #0A0806;
     border-bottom: 0;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
@@ -43,33 +66,33 @@ const SHADOW_STYLE = `
     position: absolute;
     width: 6px;
     height: 5px;
-    background-color: #05070B;
+    background-color: #0A0806;
     bottom: -5px;
     left: 50%;
     transform: translateX(-50%);
     border-radius: 1px;
   }
-  
+
   .sphynx-dropdown {
     position: absolute;
     width: 250px;
     max-height: 200px;
     overflow-y: auto;
-    background: rgba(9, 13, 22, 0.95);
+    background: rgba(20, 16, 9, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1.5px solid rgba(212, 175, 55, 0.25);
+    border: 1.5px solid rgba(232, 160, 32, 0.2);
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(232, 160, 32, 0.05);
     z-index: 2147483647;
     margin-top: 5px;
     display: none;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #F1F5F9;
+    color: #F0E6D0;
     padding: 6px;
-    animation: slideDown 0.2s ease-out;
+    animation: slideDown 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  
+
   @keyframes slideDown {
     from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
@@ -80,9 +103,9 @@ const SHADOW_STYLE = `
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: rgba(212, 175, 55, 0.65);
+    color: rgba(232, 160, 32, 0.65);
     padding: 6px 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(42, 30, 16, 0.5);
   }
 
   .sphynx-dropdown-item {
@@ -97,37 +120,291 @@ const SHADOW_STYLE = `
   }
 
   .sphynx-dropdown-item:hover {
-    background: rgba(212, 175, 55, 0.15);
+    background: rgba(232, 160, 32, 0.1);
   }
 
   .sphynx-item-label {
     font-weight: 600;
-    color: #FFF;
+    color: #F0E6D0;
   }
 
   .sphynx-item-sub {
     font-size: 10px;
-    color: rgba(255, 255, 255, 0.4);
+    color: #9A7D5A;
   }
 
   .sphynx-dropdown-empty {
     padding: 12px;
     text-align: center;
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.4);
+    color: #9A7D5A;
     line-height: 1.4;
   }
 
   .sphynx-dropdown-empty a {
-    color: #D4AF37;
+    color: #E8A020;
     text-decoration: none;
     font-weight: 600;
   }
 `;
 
+// ============================================================
+// LOGIN FORM DETECTION
+// ============================================================
+
 /**
- * Detects all password fields on the page and initializes autofill badges
+ * Detects if an input is likely a username/email field.
  */
+function isUsernameField(input: HTMLInputElement): boolean {
+  const type = input.type.toLowerCase();
+  if (type === 'email' || type === 'text' || type === 'tel') {
+    const indicators = ['user', 'email', 'login', 'account', 'name', 'id', 'phone'];
+    const fieldStr = `${input.name} ${input.id} ${input.placeholder} ${input.autocomplete}`.toLowerCase();
+    return indicators.some(ind => fieldStr.includes(ind)) || type === 'email';
+  }
+  return false;
+}
+
+/**
+ * Detects if an input is a password field.
+ */
+function isPasswordField(input: HTMLInputElement): boolean {
+  return input.type === 'password';
+}
+
+/**
+ * Finds the username field associated with a password field.
+ */
+function findAssociatedUsername(passwordInput: HTMLInputElement): HTMLInputElement | null {
+  // Check within the same form
+  const form = passwordInput.closest('form');
+  if (form) {
+    const inputs = Array.from(form.querySelectorAll('input'));
+    for (const input of inputs) {
+      if (input !== passwordInput && isUsernameField(input as HTMLInputElement)) {
+        return input as HTMLInputElement;
+      }
+    }
+    // Fallback: first text/email input before the password
+    for (const input of inputs) {
+      if (input === passwordInput) break;
+      const type = (input as HTMLInputElement).type.toLowerCase();
+      if (type === 'text' || type === 'email') {
+        return input as HTMLInputElement;
+      }
+    }
+  }
+
+  // No form: search nearby in DOM
+  const allInputs = Array.from(document.querySelectorAll('input'));
+  const pwIdx = allInputs.indexOf(passwordInput);
+  if (pwIdx > 0) {
+    for (let i = pwIdx - 1; i >= Math.max(0, pwIdx - 3); i--) {
+      const input = allInputs[i] as HTMLInputElement;
+      if (isUsernameField(input) || input.type === 'text' || input.type === 'email') {
+        return input;
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Captures credentials from a form submission or navigation.
+ */
+function captureCredentials(passwordInput: HTMLInputElement): CapturedCredential | null {
+  const password = passwordInput.value;
+  if (!password || password.length < 1) return null;
+
+  const usernameInput = findAssociatedUsername(passwordInput);
+  const username = usernameInput?.value || '';
+
+  // Skip if no username (likely not a login form)
+  if (!username) return null;
+
+  // Skip if this looks like a registration form (multiple password fields)
+  const form = passwordInput.closest('form');
+  if (form) {
+    const passwordFields = form.querySelectorAll('input[type="password"]');
+    if (passwordFields.length > 2) return null; // Likely registration with confirm
+  }
+
+  return {
+    username,
+    password,
+    hostname: window.location.hostname,
+    timestamp: Date.now()
+  };
+}
+
+/**
+ * Determines if a form submission likely represents a successful login.
+ * We capture on submit and then verify via navigation/page change.
+ */
+function handleFormSubmit(event: Event) {
+  const form = event.target as HTMLFormElement;
+  const passwordInputs = form.querySelectorAll('input[type="password"]');
+
+  if (passwordInputs.length === 0) return;
+
+  // Use the first visible password field
+  let targetPassword: HTMLInputElement | null = null;
+  for (const pw of passwordInputs) {
+    const input = pw as HTMLInputElement;
+    if (input.value && input.offsetParent !== null) {
+      targetPassword = input;
+      break;
+    }
+  }
+
+  if (!targetPassword) return;
+
+  const captured = captureCredentials(targetPassword);
+  if (captured) {
+    lastCapturedCredential = captured;
+    console.log('[Sphynx] Credentials captured on form submit:', captured.hostname, captured.username);
+  }
+}
+
+/**
+ * Monitors for successful login by detecting page navigation or URL changes.
+ * Shows save prompt after navigation (indicating successful login).
+ */
+function checkForSuccessfulLogin() {
+  if (!lastCapturedCredential) return;
+
+  // Only show prompt if credentials were captured recently (within 10s)
+  const age = Date.now() - lastCapturedCredential.timestamp;
+  if (age > 10000) {
+    lastCapturedCredential = null;
+    return;
+  }
+
+  // Avoid showing duplicate prompts for the same credential
+  const credKey = `${lastCapturedCredential.hostname}:${lastCapturedCredential.username}`;
+  if (savePromptShownForCredential === credKey) return;
+  savePromptShownForCredential = credKey;
+
+  const credential = lastCapturedCredential;
+
+  // Ask background if we should show save prompt
+  chrome.runtime.sendMessage({
+    type: 'CHECK_SAVE_CREDENTIAL',
+    payload: {
+      hostname: credential.hostname,
+      username: credential.username
+    }
+  }, (response) => {
+    if (!response || !response.success) return;
+
+    const { action, existingEntryId, existingLabel } = response.data;
+
+    if (action === 'ignored') {
+      console.log('[Sphynx] Domain is in ignore list, skipping save prompt.');
+      return;
+    }
+
+    showSavePrompt({
+      hostname: credential.hostname,
+      username: credential.username,
+      password: credential.password,
+      mode: action === 'update' ? 'update' : 'save',
+      existingEntryId,
+      existingLabel,
+      onSave: () => {
+        chrome.runtime.sendMessage({
+          type: 'SAVE_CREDENTIAL',
+          payload: {
+            hostname: credential.hostname,
+            username: credential.username,
+            password: credential.password,
+            label: credential.hostname
+          }
+        }, (res) => {
+          if (res?.success) {
+            console.log('[Sphynx] Credential saved successfully.');
+          } else {
+            console.error('[Sphynx] Save failed:', res?.error);
+          }
+        });
+      },
+      onUpdate: () => {
+        if (existingEntryId) {
+          chrome.runtime.sendMessage({
+            type: 'UPDATE_CREDENTIAL',
+            payload: {
+              entryId: existingEntryId,
+              password: credential.password
+            }
+          }, (res) => {
+            if (res?.success) {
+              console.log('[Sphynx] Credential updated successfully.');
+            } else {
+              console.error('[Sphynx] Update failed:', res?.error);
+            }
+          });
+        }
+      },
+      onDismiss: () => {
+        console.log('[Sphynx] Save prompt dismissed.');
+      },
+      onNeverForSite: () => {
+        chrome.runtime.sendMessage({
+          type: 'IGNORE_DOMAIN',
+          payload: { hostname: credential.hostname }
+        });
+      }
+    });
+
+    // Clear captured credential after showing prompt
+    lastCapturedCredential = null;
+  });
+}
+
+// ============================================================
+// SPA NAVIGATION DETECTION
+// ============================================================
+
+/**
+ * Detects URL changes for SPA navigation (pushState, replaceState, popstate).
+ */
+function setupNavigationDetection() {
+  // Override pushState and replaceState
+  const originalPushState = history.pushState;
+  const originalReplaceState = history.replaceState;
+
+  history.pushState = function (...args) {
+    originalPushState.apply(this, args);
+    onNavigationChange();
+  };
+
+  history.replaceState = function (...args) {
+    originalReplaceState.apply(this, args);
+    onNavigationChange();
+  };
+
+  window.addEventListener('popstate', onNavigationChange);
+
+  // Also detect full page loads
+  window.addEventListener('load', () => {
+    setTimeout(checkForSuccessfulLogin, 500);
+  });
+}
+
+function onNavigationChange() {
+  const currentUrl = window.location.href;
+  if (currentUrl !== lastNavigationUrl) {
+    lastNavigationUrl = currentUrl;
+    // Delay to allow page to settle
+    setTimeout(checkForSuccessfulLogin, 800);
+  }
+}
+
+// ============================================================
+// AUTOFILL BADGE SYSTEM (existing functionality)
+// ============================================================
+
 function scanForPasswordInputs() {
   const inputs = document.querySelectorAll('input[type="password"]');
   inputs.forEach((element) => {
@@ -138,49 +415,40 @@ function scanForPasswordInputs() {
   });
 }
 
-/**
- * Injects a floating autofill trigger badge relative to the target input
- */
 function injectAutofillBadge(passwordInput: HTMLInputElement) {
-  // Create wrapper container in host DOM
   const badgeContainer = document.createElement('div');
   badgeContainer.style.position = 'absolute';
   badgeContainer.style.zIndex = '2147483646';
-  badgeContainer.style.pointerEvents = 'none'; // click-through where transparent
+  badgeContainer.style.pointerEvents = 'none';
 
   document.body.appendChild(badgeContainer);
 
-  // Attach a secure Closed Shadow DOM to prevent host styles leak
   const shadow = badgeContainer.attachShadow({ mode: 'closed' });
 
-  // Add styles
   const styleTag = document.createElement('style');
   styleTag.textContent = SHADOW_STYLE;
   shadow.appendChild(styleTag);
 
-  // Add badge trigger element
   const badge = document.createElement('div');
   badge.className = 'sphynx-badge-trigger';
-  badge.style.pointerEvents = 'auto'; // Re-enable pointer events
+  badge.style.pointerEvents = 'auto';
 
   const icon = document.createElement('div');
   icon.className = 'sphynx-badge-icon';
   badge.appendChild(icon);
   shadow.appendChild(badge);
 
-  // Track coordinates and position dynamically
   const reposition = () => {
     if (!document.body.contains(passwordInput)) {
       badgeContainer.remove();
       activeBadgeContainers.delete(passwordInput);
       return;
     }
-    
+
     const rect = passwordInput.getBoundingClientRect();
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
 
-    // Position badge floating at the far right of the password input
     badgeContainer.style.left = `${rect.left + scrollX + rect.width - 28}px`;
     badgeContainer.style.top = `${rect.top + scrollY + (rect.height - 20) / 2}px`;
   };
@@ -188,11 +456,9 @@ function injectAutofillBadge(passwordInput: HTMLInputElement) {
   reposition();
   activeBadgeContainers.set(passwordInput, badgeContainer);
 
-  // Listen for window resizes and document updates to maintain correct positioning
   window.addEventListener('resize', reposition);
   document.addEventListener('scroll', reposition, true);
 
-  // Observe when the user interacts with the trigger
   badge.addEventListener('click', (e) => {
     e.stopPropagation();
     currentInput = passwordInput;
@@ -200,40 +466,32 @@ function injectAutofillBadge(passwordInput: HTMLInputElement) {
   });
 }
 
-/**
- * Renders a dropdown overlay loaded with local decrypted vault options
- */
 function showAutofillDropdown(passwordInput: HTMLInputElement, shadow: ShadowRoot) {
-  // Clear any existing active dropdown first
   if (activeDropdown) {
     activeDropdown.remove();
     activeDropdown = null;
   }
 
-  // Create the dropdown menu
   const dropdown = document.createElement('div');
   dropdown.className = 'sphynx-dropdown';
   dropdown.style.display = 'block';
 
-  // Request credentials entries from background service worker
   chrome.runtime.sendMessage({ type: 'GET_ENTRIES' }, (response) => {
     if (!response || !response.success) {
-      // Locked or not synced state
       dropdown.innerHTML = `
         <div class="sphynx-dropdown-empty">
           🔒 Vault is locked.<br>
-          Please open the <strong>Sphynx extension</strong> in your toolbar to unlock.
+          Open the <strong>Sphynx extension</strong> to unlock.
         </div>
       `;
     } else {
       const entries = response.data || [];
       const currentHost = window.location.hostname.toLowerCase();
 
-      // Filter entries relevant to current domain
       const relevantEntries = entries.filter((e: any) => {
         const label = e.label.toLowerCase();
-        const username = e.username.toLowerCase();
-        return label.includes(currentHost) || currentHost.includes(label) || label.includes(currentHost.split('.')[0]);
+        const url = (e.url || '').toLowerCase();
+        return label.includes(currentHost) || currentHost.includes(label.split('.')[0]) || url.includes(currentHost);
       });
 
       const displayEntries = relevantEntries.length > 0 ? relevantEntries : entries;
@@ -242,17 +500,17 @@ function showAutofillDropdown(passwordInput: HTMLInputElement, shadow: ShadowRoo
         dropdown.innerHTML = `
           <div class="sphynx-dropdown-title">Sphynx Vault</div>
           <div class="sphynx-dropdown-empty">
-            No entries found in your vault.<br>
+            No entries found.<br>
             <a href="http://localhost:3000/dashboard" target="_blank">Add credentials</a>
           </div>
         `;
       } else {
         dropdown.innerHTML = `<div class="sphynx-dropdown-title">Select Account</div>`;
-        
+
         displayEntries.forEach((entry: any) => {
           const item = document.createElement('div');
           item.className = 'sphynx-dropdown-item';
-          
+
           const label = document.createElement('span');
           label.className = 'sphynx-item-label';
           label.textContent = entry.label;
@@ -280,7 +538,6 @@ function showAutofillDropdown(passwordInput: HTMLInputElement, shadow: ShadowRoo
   shadow.appendChild(dropdown);
   activeDropdown = dropdown;
 
-  // Click-away listener to close dropdown
   const dismissDropdown = (e: MouseEvent) => {
     if (activeDropdown && !dropdown.contains(e.target as Node)) {
       dropdown.remove();
@@ -291,9 +548,6 @@ function showAutofillDropdown(passwordInput: HTMLInputElement, shadow: ShadowRoo
   document.addEventListener('click', dismissDropdown);
 }
 
-/**
- * Requests specific credentials from background, fills form inputs, and executes auto-login
- */
 function performSecureAutofill(passwordInput: HTMLInputElement, entryId: string) {
   chrome.runtime.sendMessage({
     type: 'GET_CREDENTIALS',
@@ -309,14 +563,12 @@ function performSecureAutofill(passwordInput: HTMLInputElement, entryId: string)
 
     const { username, password } = response.data;
 
-    // 1. Locate username/email input inside the same form hierarchy
     let usernameInput: HTMLInputElement | null = null;
     const parentForm = passwordInput.closest('form');
 
     if (parentForm) {
       usernameInput = parentForm.querySelector('input[type="text"], input[type="email"], input:not([type])') as HTMLInputElement;
     } else {
-      // Fallback search nearby in DOM
       const inputs = Array.from(document.querySelectorAll('input'));
       const idx = inputs.indexOf(passwordInput);
       if (idx > 0) {
@@ -327,45 +579,109 @@ function performSecureAutofill(passwordInput: HTMLInputElement, entryId: string)
       }
     }
 
-    // 2. Autofill fields using React/JS framework-safe custom events
     if (usernameInput && username) {
-      usernameInput.value = username;
-      usernameInput.dispatchEvent(new Event('input', { bubbles: true }));
-      usernameInput.dispatchEvent(new Event('change', { bubbles: true }));
+      setNativeValue(usernameInput, username);
     }
 
-    passwordInput.value = password;
-    passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
-    passwordInput.dispatchEvent(new Event('change', { bubbles: true }));
+    setNativeValue(passwordInput, password);
 
-    console.log('Sphynx: Credentials successfully filled.');
+    console.log('[Sphynx] Credentials filled successfully.');
 
-    // 3. SECURELY PURGE plaintext password from content script memory instantly
+    // Purge plaintext from response
     response.data.password = '';
     response.data.username = '';
-
-    // 4. Handle Optional Auto-Login / Submission
-    // Trigger submission after a small safety delay so the user sees the fill
-    setTimeout(() => {
-      if (parentForm) {
-        const submitBtn = parentForm.querySelector('button[type="submit"], input[type="submit"]') as HTMLElement;
-        if (submitBtn) {
-          submitBtn.click();
-        } else {
-          parentForm.submit();
-        }
-        console.log('Sphynx: Triggered auto-login form submission.');
-      }
-    }, 600);
   });
 }
 
-// Start observing the page immediately
+/**
+ * Sets input value in a way that triggers React/Vue/Angular change detection.
+ */
+function setNativeValue(input: HTMLInputElement, value: string) {
+  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype, 'value'
+  )?.set;
+
+  if (nativeInputValueSetter) {
+    nativeInputValueSetter.call(input, value);
+  } else {
+    input.value = value;
+  }
+
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// ============================================================
+// FORM SUBMIT LISTENERS
+// ============================================================
+
+/**
+ * Attaches submit listeners to all forms on the page.
+ */
+function attachFormListeners() {
+  const forms = document.querySelectorAll('form');
+  forms.forEach((form) => {
+    if (!(form as any).__sphynxListenerAttached) {
+      form.addEventListener('submit', handleFormSubmit, true);
+      (form as any).__sphynxListenerAttached = true;
+    }
+  });
+
+  // Also listen for button clicks that might submit without form.submit()
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const button = target.closest('button[type="submit"], input[type="submit"]');
+    if (button) {
+      const form = button.closest('form');
+      if (form) {
+        const passwordInputs = form.querySelectorAll('input[type="password"]');
+        if (passwordInputs.length > 0) {
+          for (const pw of passwordInputs) {
+            const input = pw as HTMLInputElement;
+            if (input.value) {
+              const captured = captureCredentials(input);
+              if (captured) {
+                lastCapturedCredential = captured;
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+  }, true);
+
+  // Capture on Enter key in password fields
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const target = e.target as HTMLInputElement;
+      if (target && target.type === 'password' && target.value) {
+        const captured = captureCredentials(target);
+        if (captured) {
+          lastCapturedCredential = captured;
+        }
+      }
+    }
+  }, true);
+}
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+
+// Start autofill badge scanning
 scanForPasswordInputs();
 
-// Set up MutationObserver to detect dynamically loaded forms (SPA support)
+// Attach form submit listeners
+attachFormListeners();
+
+// Setup SPA navigation detection
+setupNavigationDetection();
+
+// MutationObserver for dynamically loaded forms
 const observer = new MutationObserver(() => {
   scanForPasswordInputs();
+  attachFormListeners();
 });
 observer.observe(document.body, { childList: true, subtree: true });
 
@@ -380,15 +696,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ success: false, error: 'No password input fields detected on this page.' });
     }
   }
-  return true; // Keep response channel open
+  return true;
 });
 
 // Broadcast extension ID to Sphynx frontend for auto-syncing
 if (window.location.origin === 'http://localhost:3000') {
-  // Wait slightly to ensure page listeners are ready
   setTimeout(() => {
     window.postMessage({ type: 'SPHYNX_EXTENSION_DETECTED', extensionId: chrome.runtime.id }, '*');
   }, 1000);
 }
 
-console.log('Sphynx content script active: Form scanning initiated.');
+console.log('[Sphynx] Content script active: Form scanning + credential capture initialized.');

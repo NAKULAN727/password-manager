@@ -2,6 +2,7 @@ export interface EncryptedVaultEntry {
   id: string;
   label: string;
   username: string;
+  url?: string;
   iv: string;         // Base64
   ciphertext: string; // Base64
   tag: string;        // Base64
@@ -14,6 +15,7 @@ export interface DecryptedVaultEntry {
   id: string;
   label: string;
   username: string;
+  url?: string;
   plaintext: string; // Plaintext password/secret
 }
 
@@ -31,9 +33,14 @@ export type ExtensionMessage =
   | { type: 'LOCK_VAULT' }
   | { type: 'GET_ENTRIES' }
   | { type: 'GET_CREDENTIALS'; payload: { entryId: string; hostname: string } }
+  | { type: 'CHECK_SAVE_CREDENTIAL'; payload: { hostname: string; username: string } }
+  | { type: 'SAVE_CREDENTIAL'; payload: { hostname: string; username: string; password: string; label?: string } }
+  | { type: 'UPDATE_CREDENTIAL'; payload: { entryId: string; password: string } }
+  | { type: 'IGNORE_DOMAIN'; payload: { hostname: string } }
+  | { type: 'FILL_ACTIVE_TAB'; entryId: string }
   | { type: 'DETECTED_FORM_LOGIN'; payload: { hasLoginForm: boolean } }
   | { type: 'REQUEST_AUTOFILL'; payload: { entryId: string } };
 
 export type ExtensionResponse =
-  | { success: true; data: any }
+  | { success: true; data?: any; message?: string }
   | { success: false; error: string };
