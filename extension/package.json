@@ -1,12 +1,15 @@
 {
   "name": "sphynx-extension",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "build:css": "npx tailwindcss -i src/popup/index.css -o public/dist/popup.css",
     "build:js": "node build.js",
+    "build:prod": "node build.js --production",
     "build": "npm run build:css && npm run build:js",
-    "watch": "node build.js --watch"
+    "build:production": "npm run build:css && npm run build:prod",
+    "watch": "node build.js --watch",
+    "icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
     "framer-motion": "^12.4.0",

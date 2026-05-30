@@ -3,37 +3,27 @@
 @tailwind utilities;
 
 @layer utilities {
-  .glassmorphism {
-    background: rgba(9, 13, 22, 0.65);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(212, 175, 55, 0.12);
-  }
-  
-  .glow-input {
-    transition: all 0.3s ease;
-  }
-  
-  .glow-input:focus {
-    border-color: rgba(212, 175, 55, 0.45);
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out forwards;
   }
 }
 
-/* Custom scrollbar to keep it sleek */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Custom scrollbar — warm amber */
 ::-webkit-scrollbar {
   width: 4px;
 }
-
 ::-webkit-scrollbar-track {
-  background: rgba(9, 13, 22, 0.5);
+  background: #0A0806;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgba(232, 160, 32, 0.2);
   border-radius: 2px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 175, 55, 0.6);
+  background: rgba(232, 160, 32, 0.4);
 }

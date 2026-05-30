@@ -2,18 +2,23 @@ import { decryptEntry, deriveVaultKey } from '../lib/crypto';
 import { encryptCredential } from '../lib/encrypt';
 import { normalizeDomain, isDuplicate } from '../lib/domain';
 import { isDomainIgnored, addIgnoredDomain } from '../lib/ignorelist';
+import { getSettings } from '../lib/settings';
+import { initAutoLock, resetAutoLockTimer, stopAutoLockTimer } from '../lib/autolock';
+import { recordUsage, getRecentCredentials } from '../lib/activity';
+import { CONFIG } from '../lib/config';
 import { EncryptedVaultEntry, ExtensionSession } from '../types';
 
 // In-memory key caches (never persisted to storage)
 let kVault: CryptoKey | null = null;
 let kIntegrity: CryptoKey | null = null;
 
-// Target API endpoint
-const BASE_URL = 'http://localhost:5000/api';
+// API base URL from config
+const BASE_URL = CONFIG.API_URL;
 
-/**
- * Helper to fetch session configuration safely from memory storage
- */
+// ============================================================
+// SESSION MANAGEMENT
+// ============================================================
+
 async function getSession(): Promise<ExtensionSession> {
   const data = await chrome.storage.session.get(['address', 'derivationSignature', 'token', 'isUnlocked']);
   return {
@@ -24,96 +29,96 @@ async function getSession(): Promise<ExtensionSession> {
   };
 }
 
-/**
- * Save session state to session-only storage (in-memory)
- */
 async function saveSession(session: Partial<ExtensionSession>) {
   await chrome.storage.session.set(session);
 }
 
-/**
- * Completely wipe cryptographic keys and session parameters
- */
 async function clearSession() {
   kVault = null;
   kIntegrity = null;
+  stopAutoLockTimer();
   await chrome.storage.session.remove(['address', 'derivationSignature', 'token', 'isUnlocked']);
-  console.log('Sphynx session locked and keys cleared from memory.');
+  console.log('[Sphynx] Session locked and keys cleared from memory.');
 }
 
-/**
- * Core API caller using the JWT token in memory
- */
+// Initialize auto-lock with clearSession as the lock callback
+initAutoLock(clearSession);
+
+// ============================================================
+// API HELPERS WITH ERROR RESILIENCE
+// ============================================================
+
 async function apiGet(path: string, token: string) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    }
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      await clearSession();
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) await clearSession();
+      throw new Error(`API Error ${res.status}`);
     }
-    throw new Error(`API Error ${res.status}: Request failed.`);
+    return res.json();
+  } finally {
+    clearTimeout(timeout);
   }
-  return res.json();
 }
 
-/**
- * API POST caller
- */
 async function apiPost(path: string, token: string, body: object) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify(body)
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      await clearSession();
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) await clearSession();
+      throw new Error(`API Error ${res.status}`);
     }
-    throw new Error(`API Error ${res.status}: Request failed.`);
+    return res.json();
+  } finally {
+    clearTimeout(timeout);
   }
-  return res.json();
 }
 
-/**
- * API PUT caller
- */
 async function apiPut(path: string, token: string, body: object) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify(body)
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      await clearSession();
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) await clearSession();
+      throw new Error(`API Error ${res.status}`);
     }
-    throw new Error(`API Error ${res.status}: Request failed.`);
+    return res.json();
+  } finally {
+    clearTimeout(timeout);
   }
-  return res.json();
 }
 
-/**
- * Handle incoming external sync requests from Next.js Frontend
- */
-chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
-  console.log('Received external message from:', sender.url, message);
+// ============================================================
+// EXTERNAL MESSAGES (from web app)
+// ============================================================
 
-  // Validate sender URL
-  if (!sender.url || !sender.url.startsWith('http://localhost:3000')) {
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+  if (!sender.url || !sender.url.startsWith(CONFIG.WEB_APP_URL)) {
     sendResponse({ success: false, error: 'Unauthorized sender origin.' });
     return;
   }
@@ -148,13 +153,19 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
   }
 });
 
-/**
- * Handle internal messaging (Popup & Content Script requests)
- */
+// ============================================================
+// INTERNAL MESSAGES (popup & content scripts)
+// ============================================================
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const type = message.type;
 
-  // 1. GET_VAULT_STATUS
+  // Reset auto-lock timer on any activity
+  if (kVault) {
+    resetAutoLockTimer();
+  }
+
+  // --- GET_VAULT_STATUS ---
   if (type === 'GET_VAULT_STATUS') {
     getSession().then((session) => {
       sendResponse({ success: true, data: { address: session.address, isUnlocked: session.isUnlocked } });
@@ -162,7 +173,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // 2. UNLOCK_VAULT
+  // --- UNLOCK_VAULT ---
   if (type === 'UNLOCK_VAULT') {
     const { masterPassword } = message.payload;
     getSession().then(async (session) => {
@@ -170,21 +181,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         throw new Error('No active wallet session synced. Please open the Sphynx site and connect your wallet.');
       }
 
-      console.log('Deriving keys for address:', session.address);
       const keys = await deriveVaultKey(masterPassword, session.address, session.derivationSignature);
       kVault = keys.kVault;
       kIntegrity = keys.kIntegrity;
 
       await saveSession({ isUnlocked: true });
+      await resetAutoLockTimer();
       sendResponse({ success: true });
     }).catch((err) => {
-      console.error('Extension unlock failure:', err);
       sendResponse({ success: false, error: err.message || 'Key derivation failed.' });
     });
     return true;
   }
 
-  // 3. LOCK_VAULT
+  // --- LOCK_VAULT ---
   if (type === 'LOCK_VAULT') {
     clearSession().then(() => {
       sendResponse({ success: true });
@@ -192,7 +202,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // 4. GET_ENTRIES (decrypted only in extension context)
+  // --- GET_ENTRIES ---
   if (type === 'GET_ENTRIES') {
     getSession().then(async (session) => {
       if (!session.isUnlocked || !kVault || !session.token) {
@@ -205,22 +215,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       for (const entry of encryptedEntries) {
         try {
           const plaintext = await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault);
-          decrypted.push({
-            id: entry.id,
-            label: entry.label,
-            username: entry.username,
-            url: entry.url,
-            plaintext
-          });
-        } catch (decErr) {
-          console.error('Decryption failed for entry ID:', entry.id, decErr);
-          decrypted.push({
-            id: entry.id,
-            label: entry.label,
-            username: entry.username,
-            url: entry.url,
-            plaintext: 'Decryption Error (Incorrect Key/Tampered)'
-          });
+          decrypted.push({ id: entry.id, label: entry.label, username: entry.username, url: entry.url, plaintext });
+        } catch {
+          decrypted.push({ id: entry.id, label: entry.label, username: entry.username, url: entry.url, plaintext: '[Decryption Error]' });
         }
       }
 
@@ -231,40 +228,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // 5. GET_CREDENTIALS (called by Content Script for autofill)
+  // --- GET_CREDENTIALS (autofill) ---
   if (type === 'GET_CREDENTIALS') {
     const { entryId, hostname } = message.payload;
 
     if (!sender.tab) {
-      sendResponse({ success: false, error: 'Request denied: Caller is not a content page.' });
+      sendResponse({ success: false, error: 'Request denied.' });
       return;
     }
 
     getSession().then(async (session) => {
       if (!session.isUnlocked || !kVault || !session.token) {
-        throw new Error('Sphynx Vault is locked. Unlock the extension to autofill.');
+        throw new Error('Vault is locked.');
       }
 
       const encryptedEntries: EncryptedVaultEntry[] = await apiGet('/vault/list', session.token);
       const entry = encryptedEntries.find(e => e.id === entryId);
-
-      if (!entry) {
-        throw new Error('Requested vault entry not found.');
-      }
+      if (!entry) throw new Error('Entry not found.');
 
       const plaintext = await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault);
 
-      sendResponse({
-        success: true,
-        data: { username: entry.username, password: plaintext }
-      });
+      // Track activity
+      await recordUsage(entry.id, entry.label);
+
+      sendResponse({ success: true, data: { username: entry.username, password: plaintext } });
     }).catch((err) => {
       sendResponse({ success: false, error: err.message });
     });
     return true;
   }
 
-  // 6. CHECK_SAVE_CREDENTIAL — Check if we should show save prompt
+  // --- CHECK_SAVE_CREDENTIAL ---
   if (type === 'CHECK_SAVE_CREDENTIAL') {
     const { hostname, username } = message.payload;
 
@@ -274,7 +268,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
       }
 
-      // Check ignore list
       const domain = normalizeDomain(hostname);
       const ignored = await isDomainIgnored(domain);
       if (ignored) {
@@ -282,30 +275,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
       }
 
-      // Fetch existing entries to check for duplicates
       const encryptedEntries: EncryptedVaultEntry[] = await apiGet('/vault/list', session.token);
-      const entries = encryptedEntries.map(e => ({
-        id: e.id,
-        label: e.label,
-        username: e.username,
-        url: e.url
-      }));
-
+      const entries = encryptedEntries.map(e => ({ id: e.id, label: e.label, username: e.username, url: e.url }));
       const duplicateCheck = isDuplicate(entries, hostname, username);
 
       if (duplicateCheck.isDuplicate) {
-        // Find the entry ID for update
-        const existingEntry = encryptedEntries.find(e =>
-          e.username.toLowerCase().trim() === username.toLowerCase().trim()
-        );
-        sendResponse({
-          success: true,
-          data: {
-            action: 'update',
-            existingEntryId: existingEntry?.id,
-            existingLabel: existingEntry?.label
-          }
-        });
+        const existingEntry = encryptedEntries.find(e => e.username.toLowerCase().trim() === username.toLowerCase().trim());
+        sendResponse({ success: true, data: { action: 'update', existingEntryId: existingEntry?.id, existingLabel: existingEntry?.label } });
       } else {
         sendResponse({ success: true, data: { action: 'save' } });
       }
@@ -315,75 +291,98 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // 7. SAVE_CREDENTIAL — Encrypt and save a new credential
+  // --- SAVE_CREDENTIAL ---
   if (type === 'SAVE_CREDENTIAL') {
     const { hostname, username, password, label } = message.payload;
 
     getSession().then(async (session) => {
-      if (!session.isUnlocked || !kVault || !session.token) {
-        throw new Error('Vault is locked. Cannot save credential.');
-      }
+      if (!session.isUnlocked || !kVault || !session.token) throw new Error('Vault is locked.');
 
-      // Encrypt the password locally
       const { ciphertext, iv } = await encryptCredential(password, kVault);
-
-      // Determine label
       const credLabel = label || normalizeDomain(hostname);
 
-      // Send encrypted payload to backend
       await apiPost('/vault/entries', session.token, {
-        label: credLabel,
-        username: username,
-        encryptedPassword: ciphertext,
-        iv: iv,
-        url: hostname
+        label: credLabel, username, encryptedPassword: ciphertext, iv, url: hostname
       });
 
-      console.log(`[Sphynx] Credential saved for ${credLabel} (${username})`);
       sendResponse({ success: true });
     }).catch((err) => {
-      console.error('[Sphynx] Save credential failed:', err);
       sendResponse({ success: false, error: err.message });
     });
     return true;
   }
 
-  // 8. UPDATE_CREDENTIAL — Encrypt and update an existing credential
+  // --- UPDATE_CREDENTIAL ---
   if (type === 'UPDATE_CREDENTIAL') {
     const { entryId, password } = message.payload;
 
     getSession().then(async (session) => {
-      if (!session.isUnlocked || !kVault || !session.token) {
-        throw new Error('Vault is locked. Cannot update credential.');
-      }
+      if (!session.isUnlocked || !kVault || !session.token) throw new Error('Vault is locked.');
 
-      // Encrypt the new password locally
       const { ciphertext, iv } = await encryptCredential(password, kVault);
+      await apiPut(`/vault/entries/${entryId}`, session.token, { encryptedPassword: ciphertext, iv });
 
-      // Update via API
-      await apiPut(`/vault/entries/${entryId}`, session.token, {
-        encryptedPassword: ciphertext,
-        iv: iv
-      });
-
-      console.log(`[Sphynx] Credential updated for entry ${entryId}`);
       sendResponse({ success: true });
     }).catch((err) => {
-      console.error('[Sphynx] Update credential failed:', err);
       sendResponse({ success: false, error: err.message });
     });
     return true;
   }
 
-  // 9. IGNORE_DOMAIN — Add domain to never-save list
+  // --- IGNORE_DOMAIN ---
   if (type === 'IGNORE_DOMAIN') {
     const { hostname } = message.payload;
-    const domain = normalizeDomain(hostname);
-    addIgnoredDomain(domain).then(() => {
-      console.log(`[Sphynx] Domain ignored: ${domain}`);
+    addIgnoredDomain(normalizeDomain(hostname)).then(() => {
       sendResponse({ success: true });
     }).catch((err) => {
       sendResponse({ success: false, error: err.message });
+    });
+    return true;
+  }
+
+  // --- GET_SETTINGS ---
+  if (type === 'GET_SETTINGS') {
+    getSettings().then((settings) => {
+      sendResponse({ success: true, data: settings });
+    });
+    return true;
+  }
+
+  // --- SAVE_SETTINGS ---
+  if (type === 'SAVE_SETTINGS') {
+    const { settings } = message.payload;
+    import('../lib/settings').then(async ({ saveSettings }) => {
+      const updated = await saveSettings(settings);
+      // Re-apply auto-lock timer with new settings
+      if (kVault) await resetAutoLockTimer();
+      sendResponse({ success: true, data: updated });
+    });
+    return true;
+  }
+
+  // --- GET_RECENT_ACTIVITY ---
+  if (type === 'GET_RECENT_ACTIVITY') {
+    getRecentCredentials().then((records) => {
+      sendResponse({ success: true, data: records });
+    });
+    return true;
+  }
+
+  // --- GET_IGNORED_DOMAINS ---
+  if (type === 'GET_IGNORED_DOMAINS') {
+    import('../lib/ignorelist').then(async ({ getIgnoredDomains }) => {
+      const domains = await getIgnoredDomains();
+      sendResponse({ success: true, data: domains });
+    });
+    return true;
+  }
+
+  // --- REMOVE_IGNORED_DOMAIN ---
+  if (type === 'REMOVE_IGNORED_DOMAIN') {
+    const { domain } = message.payload;
+    import('../lib/ignorelist').then(async ({ removeIgnoredDomain }) => {
+      await removeIgnoredDomain(domain);
+      sendResponse({ success: true });
     });
     return true;
   }

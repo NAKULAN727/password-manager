@@ -1,71 +1,67 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Lock, 
-  Unlock, 
-  Key, 
-  Shield, 
-  Search, 
-  Copy, 
-  Check, 
-  RefreshCw, 
-  Database,
-  SearchCode,
+import {
+  Lock,
+  Unlock,
+  Key,
+  Shield,
+  Search,
+  Copy,
+  Check,
+  RefreshCw,
   Globe,
-  AlertTriangle
+  AlertTriangle,
+  Settings as SettingsIcon,
+  Clock,
 } from 'lucide-react';
 import { DecryptedVaultEntry } from '../types';
+import { Settings } from './Settings';
+import { toUserError, UserError } from '../lib/errors';
+
+type View = 'main' | 'settings';
 
 export function Popup() {
-  // Session / Authentication state
+  const [view, setView] = useState<View>('main');
   const [address, setAddress] = useState<string | null>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [entries, setEntries] = useState<DecryptedVaultEntry[]>([]);
+  const [recentIds, setRecentIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Local form / UX states
   const [masterPassword, setMasterPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [userError, setUserError] = useState<UserError | null>(null);
   const [syncWarning, setSyncWarning] = useState(false);
-
-  // Clipboard secure purge states
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedType, setCopiedType] = useState<'user' | 'pass' | null>(null);
   const [clipboardTimer, setClipboardTimer] = useState<number | null>(null);
 
-  /**
-   * Sync popup state with background service worker on mount
-   */
-  useEffect(() => {
-    checkStatus();
-  }, []);
+  useEffect(() => { checkStatus(); }, []);
 
   const checkStatus = () => {
     chrome.runtime.sendMessage({ type: 'GET_VAULT_STATUS' }, (response) => {
-      if (response && response.success) {
+      if (response?.success) {
         setAddress(response.data.address);
         setIsUnlocked(response.data.isUnlocked);
-        if (response.data.address && !response.data.isUnlocked) {
-          setSyncWarning(false);
-        } else if (!response.data.address) {
-          setSyncWarning(true);
-        }
-        
-        if (response.data.isUnlocked) {
-          loadEntries();
-        }
+        setSyncWarning(!response.data.address);
+        if (response.data.isUnlocked) loadEntries();
       }
     });
   };
 
   const loadEntries = () => {
     setIsLoading(true);
+    setUserError(null);
     chrome.runtime.sendMessage({ type: 'GET_ENTRIES' }, (response) => {
       setIsLoading(false);
-      if (response && response.success) {
+      if (response?.success) {
         setEntries(response.data);
       } else {
-        setError(response?.error || 'Failed to fetch entries.');
+        setUserError(toUserError(response?.error || 'Failed to fetch entries.'));
+      }
+    });
+    // Load recent activity
+    chrome.runtime.sendMessage({ type: 'GET_RECENT_ACTIVITY' }, (response) => {
+      if (response?.success) {
+        setRecentIds(response.data.map((r: any) => r.entryId));
       }
     });
   };
@@ -73,56 +69,51 @@ export function Popup() {
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
     if (!masterPassword) return;
-
     setIsLoading(true);
-    setError(null);
+    setUserError(null);
 
-    chrome.runtime.sendMessage({
-      type: 'UNLOCK_VAULT',
-      payload: { masterPassword }
-    }, (response) => {
+    chrome.runtime.sendMessage({ type: 'UNLOCK_VAULT', payload: { masterPassword } }, (response) => {
       setIsLoading(false);
-      setMasterPassword(''); // instant purge
-      if (response && response.success) {
+      setMasterPassword('');
+      if (response?.success) {
         setIsUnlocked(true);
         loadEntries();
       } else {
-        setError(response?.error || 'Invalid password or unlock error.');
+        setUserError(toUserError(response?.error || 'Unlock failed.'));
       }
     });
   };
 
   const handleLock = () => {
     chrome.runtime.sendMessage({ type: 'LOCK_VAULT' }, (response) => {
-      if (response && response.success) {
+      if (response?.success) {
         setIsUnlocked(false);
         setEntries([]);
         setSearchQuery('');
-        setError(null);
+        setUserError(null);
       }
     });
   };
 
-  /**
-   * Secure Clipboard Purge Manager (30s)
-   */
+  const handleRetry = () => {
+    setUserError(null);
+    if (isUnlocked) loadEntries();
+    else checkStatus();
+  };
+
   const handleCopyToClipboard = (text: string, entryId: string, type: 'user' | 'pass') => {
     navigator.clipboard.writeText(text).then(() => {
       setCopiedId(entryId);
       setCopiedType(type);
       setClipboardTimer(30);
 
-      // Clear any existing timer
-      if (window.clipboardInterval) {
-        clearInterval(window.clipboardInterval);
-      }
+      if ((window as any).clipboardInterval) clearInterval((window as any).clipboardInterval);
 
-      // Start countdown
       const interval = setInterval(() => {
         setClipboardTimer((prev) => {
           if (prev !== null && prev <= 1) {
             clearInterval(interval);
-            navigator.clipboard.writeText(''); // Clear clipboard
+            navigator.clipboard.writeText('');
             setCopiedId(null);
             setCopiedType(null);
             return null;
@@ -130,266 +121,227 @@ export function Popup() {
           return prev !== null ? prev - 1 : null;
         });
       }, 1000);
-
-      window.clipboardInterval = interval;
+      (window as any).clipboardInterval = interval;
     });
   };
 
-  // Cleanup interval on unmount
   useEffect(() => {
-    return () => {
-      if (window.clipboardInterval) {
-        clearInterval(window.clipboardInterval);
-      }
-    };
+    return () => { if ((window as any).clipboardInterval) clearInterval((window as any).clipboardInterval); };
   }, []);
 
-  /**
-   * Triggers autofill in the active browser tab
-   */
   const handleAutofillActiveTab = (entryId: string) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const activeTab = tabs[0];
       if (activeTab?.id) {
-        chrome.tabs.sendMessage(activeTab.id, {
-          type: 'FILL_ACTIVE_TAB',
-          entryId
-        }, (response) => {
-          if (response && response.success) {
-            window.close(); // Close extension popup on successful autofill
-          } else {
-            setError(response?.error || 'Autofill is only active on form input fields.');
-          }
+        chrome.tabs.sendMessage(activeTab.id, { type: 'FILL_ACTIVE_TAB', entryId }, (response) => {
+          if (response?.success) window.close();
+          else setUserError(toUserError(response?.error || 'Autofill failed.'));
         });
       }
     });
   };
 
-  // Filter entries locally based on searchQuery
-  const filteredEntries = entries.filter(e => 
-    e.label.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  // Sort: recent first, then alphabetical
+  const sortedEntries = [...entries].sort((a, b) => {
+    const aRecent = recentIds.indexOf(a.id);
+    const bRecent = recentIds.indexOf(b.id);
+    if (aRecent !== -1 && bRecent === -1) return -1;
+    if (aRecent === -1 && bRecent !== -1) return 1;
+    if (aRecent !== -1 && bRecent !== -1) return aRecent - bRecent;
+    return a.label.localeCompare(b.label);
+  });
+
+  const filteredEntries = sortedEntries.filter(e =>
+    e.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
     e.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  return (
-    <div className="relative flex flex-col h-full bg-[#090D16] text-slate-100 select-none">
-      
-      {/* Background ambient gold aura */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -z-10 h-[250px] w-[250px] rounded-full bg-[#D4AF37]/5 blur-[60px]" />
+  // Settings view
+  if (view === 'settings') {
+    return (
+      <div className="relative flex flex-col h-full bg-[#0A0806] text-[#F0E6D0] select-none">
+        <Settings onBack={() => setView('main')} />
+      </div>
+    );
+  }
 
-      {/* Extension Header */}
-      <header className="flex items-center justify-between px-5 py-4 border-b border-[#D4AF37]/10 bg-[#090D16]/85 backdrop-blur-md z-10">
+  return (
+    <div className="relative flex flex-col h-full bg-[#0A0806] text-[#F0E6D0] select-none">
+
+      {/* Ambient glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 -z-10 h-[250px] w-[250px] rounded-full bg-[#E8A020]/[0.03] blur-[60px]" />
+
+      {/* Header */}
+      <header className="flex items-center justify-between px-5 py-4 border-b border-[#2A1E10] bg-[#141009]/90 backdrop-blur-md z-10">
         <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-gold shadow-[0_0_10px_rgba(212,175,55,0.4)]" />
-          <span className="font-sans font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-100 to-gold text-lg">
+          <Shield className="h-5 w-5 text-[#D4AF37]" style={{ filter: 'drop-shadow(0 0 6px rgba(212,175,55,0.4))' }} />
+          <span className="font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#F0E6D0] to-[#E8A020] text-base">
             SPHYNX
           </span>
         </div>
-        
-        {isUnlocked && (
-          <button 
-            onClick={handleLock}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 bg-gold/5 text-gold text-xs font-semibold hover:bg-gold/15 transition-all"
-          >
-            <Lock className="h-3 w-3" />
-            Lock Vault
-          </button>
-        )}
+
+        <div className="flex items-center gap-2">
+          {isUnlocked && (
+            <>
+              <button onClick={() => setView('settings')} className="p-1.5 rounded-lg text-[#9A7D5A] hover:text-[#F0E6D0] hover:bg-[#1E160D] transition-all">
+                <SettingsIcon size={14} />
+              </button>
+              <button onClick={handleLock} className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#2A1E10] hover:border-[#E8A020]/30 text-[#E8A020] text-xs font-semibold transition-all">
+                <Lock size={11} />
+                Lock
+              </button>
+            </>
+          )}
+        </div>
       </header>
 
-      {/* Main Container */}
+      {/* Main */}
       <main className="flex-1 overflow-y-auto p-5 z-10">
-        
-        {/* Sync Warning State (Web site is locked/disconnected) */}
+
+        {/* Error Display */}
+        {userError && (
+          <div className="rounded-xl border border-[#CC4A3A]/20 bg-[#CC4A3A]/5 p-3 mb-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={12} className="text-[#CC4A3A] shrink-0" />
+              <span className="text-[11px] text-[#CC4A3A]">{userError.message}</span>
+            </div>
+            {userError.action && (
+              <button onClick={handleRetry} className="text-[10px] font-bold text-[#E8A020] shrink-0">
+                {userError.action}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Sync Warning */}
         {syncWarning && (
-          <div className="rounded-xl border border-gold/10 bg-gold/5 p-4 text-center leading-relaxed">
-            <AlertTriangle className="h-6 w-6 text-gold mx-auto mb-2 animate-bounce" />
-            <h3 className="text-xs font-bold text-gold uppercase tracking-wider mb-1">Session Not Synced</h3>
-            <p className="text-[11px] text-slate-400">
-              Sphynx is disconnected. Connect MetaMask and unlock your vault on the dashboard first.
-            </p>
-            <a 
-              href="http://localhost:3000" 
-              target="_blank" 
-              rel="noreferrer"
-              className="inline-block mt-3 px-4 py-2 rounded-lg bg-gold hover:bg-gold-dark text-[#05070B] text-xs font-bold transition-all shadow-[0_0_12px_rgba(212,175,55,0.35)]"
-            >
-              Open Sphynx Website
+          <div className="rounded-xl border border-[#E8A020]/10 bg-[#E8A020]/5 p-4 text-center">
+            <AlertTriangle className="h-6 w-6 text-[#E8A020] mx-auto mb-2" />
+            <h3 className="text-xs font-bold text-[#E8A020] uppercase tracking-wider mb-1">Not Connected</h3>
+            <p className="text-[11px] text-[#9A7D5A]">Open the Sphynx website and connect your wallet first.</p>
+            <a href="http://localhost:3000" target="_blank" rel="noreferrer"
+              className="inline-block mt-3 px-4 py-2 rounded-lg bg-gradient-to-br from-[#E8A020] to-[#B86A1A] text-[#0A0806] text-xs font-bold transition-all hover:shadow-[0_4px_15px_rgba(232,160,32,0.3)]">
+              Open Sphynx
             </a>
           </div>
         )}
 
-        {/* LOCKED STATE - Input Master Password */}
+        {/* Locked State */}
         {!syncWarning && !isUnlocked && (
           <div className="flex flex-col h-full justify-center py-4">
             <div className="text-center mb-6">
-              <div className="inline-flex rounded-xl bg-gold/5 p-3 border border-[#D4AF37]/20 mb-3 shadow-[inset_0_0_12px_rgba(212,175,55,0.05)]">
-                <Lock className="h-6 w-6 text-gold" />
+              <div className="inline-flex rounded-xl bg-[#E8A020]/[0.08] p-3 border border-[#E8A020]/20 mb-3">
+                <Lock className="h-6 w-6 text-[#E8A020]" />
               </div>
-              <h2 className="text-base font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Unlock Sanctuary</h2>
-              <p className="text-xs text-slate-400 mt-1 max-w-[240px] mx-auto">
-                Derive AES-256-GCM credentials key for wallet:
-              </p>
-              <span className="font-mono text-[10px] text-gold mt-1.5 block truncate max-w-[260px] mx-auto bg-gold/5 px-2.5 py-1 rounded-md border border-[#D4AF37]/10">
+              <h2 className="text-base font-bold text-[#F0E6D0]">Unlock Vault</h2>
+              <span className="font-mono text-[10px] text-[#9A7D5A] mt-1.5 block truncate max-w-[260px] mx-auto bg-[#1E160D] px-2.5 py-1 rounded-md border border-[#2A1E10]">
                 {address}
               </span>
             </div>
 
             <form onSubmit={handleUnlock} className="flex flex-col gap-4">
-              {error && (
-                <div className="rounded-lg border border-red-500/10 bg-red-500/5 p-3 text-red-400 text-xs font-medium leading-relaxed">
-                  {error}
-                </div>
-              )}
-
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                  Master Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="Enter master password"
-                  value={masterPassword}
-                  onChange={(e) => setMasterPassword(e.target.value)}
-                  className="glow-input w-full rounded-lg border border-white/5 bg-white/[0.02] px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-gradient-to-r from-amber-600 to-gold text-[#05070B] text-xs font-extrabold shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-              >
-                {isLoading ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Key className="h-3.5 w-3.5" />
-                    Derive Keys & Access
-                  </>
-                )}
+              <input
+                type="password"
+                required
+                placeholder="Enter master password"
+                value={masterPassword}
+                onChange={(e) => setMasterPassword(e.target.value)}
+                className="w-full rounded-lg border border-[#2A1E10] bg-[#1E160D] px-3.5 py-2.5 text-xs text-[#F0E6D0] placeholder-[#9A7D5A]/50 focus:outline-none focus:border-[#E8A020]/30"
+              />
+              <button type="submit" disabled={isLoading}
+                className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-gradient-to-br from-[#E8A020] to-[#B86A1A] text-[#0A0806] text-xs font-bold hover:shadow-[0_4px_15px_rgba(232,160,32,0.3)] active:scale-[0.98] transition-all disabled:opacity-50">
+                {isLoading ? <RefreshCw size={14} className="animate-spin" /> : <><Key size={13} /> Unlock</>}
               </button>
             </form>
           </div>
         )}
 
-        {/* UNLOCKED STATE - Search & Credential Cards */}
+        {/* Unlocked State */}
         {isUnlocked && (
           <div className="flex flex-col gap-4">
-            
-            {/* Search inputs */}
+            {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9A7D5A]" />
               <input
                 type="text"
-                placeholder="Search secrets..."
+                placeholder="Search credentials..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-lg border border-white/5 bg-white/[0.02] text-xs text-white placeholder-white/20 focus:outline-none glow-input"
+                className="w-full pl-9 pr-4 py-2 rounded-lg border border-[#2A1E10] bg-[#1E160D] text-xs text-[#F0E6D0] placeholder-[#9A7D5A]/50 focus:outline-none focus:border-[#E8A020]/30"
               />
             </div>
 
-            {/* Error notifications */}
-            {error && (
-              <div className="rounded-lg border border-red-500/10 bg-red-500/5 p-2 text-red-400 text-[10px]">
-                {error}
-              </div>
-            )}
-
-            {/* Clipboard timers */}
+            {/* Clipboard timer */}
             {clipboardTimer !== null && (
-              <div className="rounded-lg border border-gold/10 bg-[#090D16]/50 p-2.5 text-[11px] leading-none flex items-center justify-between select-none">
-                <span className="text-slate-400">Clipboard Purge Timer:</span>
-                <span className="font-mono text-gold font-bold">{clipboardTimer}s</span>
+              <div className="rounded-lg border border-[#E8A020]/10 bg-[#141009] p-2.5 text-[11px] flex items-center justify-between">
+                <span className="text-[#9A7D5A]">Clipboard purge in:</span>
+                <span className="font-mono text-[#E8A020] font-bold">{clipboardTimer}s</span>
               </div>
             )}
 
-            {/* Credentials locker */}
-            <div className="flex flex-col gap-3 min-h-[220px]">
+            {/* Entries */}
+            <div className="flex flex-col gap-2.5 min-h-[220px]">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center flex-1 py-12">
-                  <RefreshCw className="h-6 w-6 text-gold animate-spin mb-2" />
-                  <span className="text-xs text-slate-400">Decrypting vault...</span>
+                  <RefreshCw size={20} className="text-[#E8A020] animate-spin mb-2" />
+                  <span className="text-xs text-[#9A7D5A]">Decrypting vault...</span>
                 </div>
               ) : filteredEntries.length === 0 ? (
                 <div className="flex flex-col items-center justify-center flex-1 py-12 text-center">
-                  <Globe className="h-8 w-8 text-white/5 mb-2" />
-                  <span className="text-xs text-slate-400 font-bold">No credentials found</span>
-                  <span className="text-[10px] text-white/20 mt-1 max-w-[200px]">
-                    Create a secret on the Sphynx site to populate your locker.
+                  <Globe size={24} className="text-[#2A1E10] mb-2" />
+                  <span className="text-xs text-[#9A7D5A] font-semibold">No credentials found</span>
+                  <span className="text-[10px] text-[#9A7D5A]/60 mt-1 max-w-[200px]">
+                    {searchQuery ? 'Try a different search term.' : 'Add credentials on the Sphynx dashboard.'}
                   </span>
                 </div>
               ) : (
-                filteredEntries.map((entry) => (
-                  <div 
-                    key={entry.id}
-                    className="glassmorphism rounded-xl p-3.5 hover:border-[#D4AF37]/35 transition-all flex flex-col gap-2.5 shadow-md"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-col truncate max-w-[170px]">
-                        <span className="text-xs font-bold text-white truncate">{entry.label}</span>
-                        <span className="text-[10px] text-slate-400 truncate">{entry.username || 'no username'}</span>
+                filteredEntries.map((entry) => {
+                  const isRecent = recentIds.includes(entry.id);
+                  return (
+                    <div key={entry.id} className="rounded-xl border border-[#2A1E10] bg-[#141009] p-3.5 hover:border-[#E8A020]/20 transition-all">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-col truncate max-w-[170px]">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-[#F0E6D0] truncate">{entry.label}</span>
+                            {isRecent && <Clock size={9} className="text-[#E8A020] shrink-0" />}
+                          </div>
+                          <span className="text-[10px] text-[#9A7D5A] truncate">{entry.username || 'no username'}</span>
+                        </div>
+                        <button onClick={() => handleAutofillActiveTab(entry.id)}
+                          className="px-2.5 py-1 rounded-lg bg-[#E8A020]/10 hover:bg-[#E8A020]/20 border border-[#E8A020]/20 text-[#E8A020] text-[10px] font-bold transition-all">
+                          Autofill
+                        </button>
                       </div>
-                      
-                      <button
-                        onClick={() => handleAutofillActiveTab(entry.id)}
-                        className="px-2.5 py-1 rounded bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/25 text-[#D4AF37] text-[10px] font-bold transition-all"
-                      >
-                        Autofill
-                      </button>
-                    </div>
 
-                    <div className="flex items-center gap-1.5 border-t border-white/5 pt-2.5">
-                      <button
-                        onClick={() => handleCopyToClipboard(entry.username, entry.id, 'user')}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-1 rounded bg-white/[0.02] hover:bg-white/[0.06] text-slate-400 hover:text-white text-[10px] font-medium transition-all"
-                      >
-                        {copiedId === entry.id && copiedType === 'user' ? (
-                          <Check className="h-3 w-3 text-gold" />
-                        ) : (
-                          <Copy className="h-3 w-3" />
-                        )}
-                        Copy User
-                      </button>
-
-                      <button
-                        onClick={() => handleCopyToClipboard(entry.plaintext, entry.id, 'pass')}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-1 rounded bg-white/[0.02] hover:bg-white/[0.06] text-slate-400 hover:text-white text-[10px] font-medium transition-all"
-                      >
-                        {copiedId === entry.id && copiedType === 'pass' ? (
-                          <Check className="h-3 w-3 text-gold" />
-                        ) : (
-                          <Copy className="h-3 w-3" />
-                        )}
-                        Copy Pass
-                      </button>
+                      <div className="flex items-center gap-1.5 border-t border-[#2A1E10] pt-2.5">
+                        <button onClick={() => handleCopyToClipboard(entry.username, entry.id, 'user')}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-1 rounded-lg bg-[#1E160D] hover:bg-[#2A1E10] text-[#9A7D5A] hover:text-[#F0E6D0] text-[10px] font-medium transition-all">
+                          {copiedId === entry.id && copiedType === 'user' ? <Check size={10} className="text-[#5EAA7A]" /> : <Copy size={10} />}
+                          User
+                        </button>
+                        <button onClick={() => handleCopyToClipboard(entry.plaintext, entry.id, 'pass')}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-1 rounded-lg bg-[#1E160D] hover:bg-[#2A1E10] text-[#9A7D5A] hover:text-[#F0E6D0] text-[10px] font-medium transition-all">
+                          {copiedId === entry.id && copiedType === 'pass' ? <Check size={10} className="text-[#5EAA7A]" /> : <Copy size={10} />}
+                          Pass
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
         )}
-
       </main>
 
-      {/* Extension Footer status */}
-      <footer className="px-5 py-3 border-t border-white/5 bg-[#090D16]/50 flex items-center justify-between text-[10px] text-slate-400 select-none">
+      {/* Footer */}
+      <footer className="px-5 py-2.5 border-t border-[#2A1E10] bg-[#0A0806] flex items-center justify-between text-[9px] text-[#9A7D5A]/60">
         <span className="flex items-center gap-1">
-          <Database className="h-3 w-3 text-gold" />
-          ZK Isolated Flow
+          <Shield size={9} className="text-[#E8A020]/40" />
+          Zero-Knowledge
         </span>
-        <span className="font-mono text-[9px] opacity-40">v1.0.0</span>
+        <span className="font-mono">v1.0.0</span>
       </footer>
-
     </div>
   );
-}
-
-// Support global object window.clipboardInterval for TypeScript
-declare global {
-  interface Window {
-    clipboardInterval?: any;
-  }
 }
