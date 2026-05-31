@@ -49,32 +49,38 @@ function checkDomSync() {
   if (window.location.hostname !== 'localhost') return;
 
   const syncEl = document.getElementById('__sphynx_sync__');
-  if (!syncEl) return;
+  if (!syncEl) {
+    // Try alternative: check if data is in any element with data-session
+    return;
+  }
 
   const raw = syncEl.getAttribute('data-session');
-  if (!raw) return;
+  if (!raw) { return; }
 
   try {
     const payload = JSON.parse(raw);
     if (payload.address && payload.token) {
-      console.log('[Sphynx] Session found in DOM:', payload.address);
+      console.log('[Sphynx] DOM SYNC FOUND:', payload.address, 'hasKey:', !!payload.keyMaterial);
       syncCompleted = true;
       relaySyncToBackground(payload);
     }
   } catch (e) {
-    // Invalid JSON, ignore
+    console.warn('[Sphynx] DOM sync parse error');
   }
 }
 
 if (window.location.hostname === 'localhost') {
   console.log('[Sphynx] Starting DOM sync polling on localhost');
 
-  // Poll immediately and then every 2 seconds
+  // Poll immediately and then every 1 second
   checkDomSync();
+  let pollCount = 0;
   const syncInterval = setInterval(() => {
+    pollCount++;
+    if (pollCount <= 5) console.log('[Sphynx] DOM poll #' + pollCount + ', syncEl exists:', !!document.getElementById('__sphynx_sync__'));
     checkDomSync();
     if (syncCompleted) clearInterval(syncInterval);
-  }, 2000);
+  }, 1000);
 
   // Also listen for postMessage and custom events as backup
   window.addEventListener('message', (event) => {
@@ -102,12 +108,32 @@ if (window.location.hostname === 'localhost') {
 function relaySyncToBackground(payload: any) {
   if (!payload?.address || !payload?.token) return;
   if (!isContextValid()) { console.log('[Sphynx] Context invalid'); return; }
+  console.log('[Sphynx] Relaying sync to background:', payload.address, 'hasKey:', !!payload.keyMaterial);
+
+  // Write session to chrome.storage.local directly (content scripts have access)
+  // This ensures the popup can read it even if runtime.sendMessage fails
+  chrome.storage.local.set({
+    sphynx_session: {
+      address: payload.address.toLowerCase(),
+      token: payload.token,
+      keyMaterial: payload.keyMaterial || '',
+      syncedAt: Date.now()
+    }
+  }, () => {
+    if (chrome.runtime.lastError) {
+      console.warn('[Sphynx] storage.local write failed:', chrome.runtime.lastError.message);
+    } else {
+      console.log('[Sphynx] Session written to chrome.storage.local');
+    }
+  });
+
+  // Also send to background for kVault import
   chrome.runtime.sendMessage({ type: 'SYNC_SESSION_INTERNAL', payload }, (response) => {
     if (chrome.runtime.lastError) {
-      console.warn('[Sphynx] SYNC failed:', chrome.runtime.lastError.message);
+      console.warn('[Sphynx] SYNC to background failed:', chrome.runtime.lastError.message);
     } else {
-      console.log('[Sphynx] SYNC SUCCESS:', response);
-      syncCompleted = true;
+      console.log('[Sphynx] SYNC to background SUCCESS:', response);
+      window.postMessage({ type: 'SPHYNX_SYNC_COMPLETE', success: true }, '*');
     }
   });
 }

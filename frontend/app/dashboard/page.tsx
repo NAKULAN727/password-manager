@@ -103,12 +103,12 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!address || !token) return;
 
-    const payload = JSON.stringify({
+    const payload = {
       address,
       derivationSignature: derivationSignature || '',
       token,
       keyMaterial: extensionKeyMaterial || '',
-    });
+    };
 
     // Write to a hidden DOM element the content script can read
     let syncEl = document.getElementById('__sphynx_sync__');
@@ -118,13 +118,33 @@ export default function DashboardPage() {
       syncEl.style.display = 'none';
       document.body.appendChild(syncEl);
     }
-    syncEl.setAttribute('data-session', payload);
+    syncEl.setAttribute('data-session', JSON.stringify(payload));
 
-    // Also dispatch events for any listeners
-    window.postMessage({ type: 'SPHYNX_SYNC_SESSION', payload: JSON.parse(payload) }, '*');
-    document.dispatchEvent(new CustomEvent('sphynx-sync-session', { detail: JSON.parse(payload) }));
+    // Post message repeatedly until extension confirms receipt
+    let confirmed = false;
+    const handleConfirm = (event: MessageEvent) => {
+      if (event.data?.type === 'SPHYNX_SYNC_COMPLETE') {
+        confirmed = true;
+        console.log('[Sphynx Sync] Extension confirmed receipt');
+      }
+    };
+    window.addEventListener('message', handleConfirm);
 
-    console.log('[Sphynx Sync] Session data written to DOM', { hasKeyMaterial: !!extensionKeyMaterial });
+    // Post immediately and every 2 seconds until confirmed
+    const post = () => {
+      if (confirmed) return;
+      window.postMessage({ type: 'SPHYNX_SYNC_SESSION', payload }, '*');
+      document.dispatchEvent(new CustomEvent('sphynx-sync-session', { detail: payload }));
+    };
+    post();
+    const interval = setInterval(post, 2000);
+
+    console.log('[Sphynx Sync] Session sync started', { hasKeyMaterial: !!extensionKeyMaterial });
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('message', handleConfirm);
+    };
   }, [address, token, derivationSignature, extensionKeyMaterial]);
 
   // Trigger atomic logout
