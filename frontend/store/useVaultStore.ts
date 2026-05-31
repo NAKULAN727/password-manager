@@ -10,6 +10,7 @@ import {
   importVEKasCryptoKey,
   EncryptedVEKEnvelope,
 } from '../lib/crypto/sanctuary';
+import { exportVaultKeyForExtension } from '../lib/crypto/extensionHandoff';
 import { ethers } from 'ethers';
 
 export interface EncryptedVaultEntry {
@@ -28,6 +29,7 @@ interface VaultState {
   kVault: CryptoKey | null;
   kIntegrity: CryptoKey | null;
   derivationSignature: string | null;
+  extensionKeyMaterial: string | null; // Base64 raw key bytes for extension handoff
   isUnlocked: boolean;
   // Sanctuary / VEK state
   sanctuaryStatus: 'idle' | 'checking' | 'new_user' | 'returning_user' | 'active';
@@ -58,6 +60,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
   kVault: null,
   kIntegrity: null,
   derivationSignature: null,
+  extensionKeyMaterial: null,
   isUnlocked: false,
   sanctuaryStatus: 'idle',
   vaultEntries: [],
@@ -120,10 +123,15 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         derivationSignature
       );
 
+      // Export key material for extension handoff
+      const vekHex = Array.from(vekBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      const extKeyMaterial = await exportVaultKeyForExtension(vekHex, address, derivationSignature);
+
       set({
         kVault,
         kIntegrity,
         derivationSignature,
+        extensionKeyMaterial: extKeyMaterial,
         isUnlocked: true,
         sanctuaryStatus: 'active',
         integrityViolations: {},
@@ -179,10 +187,15 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         derivationSignature
       );
 
+      // Export key material for extension handoff
+      const vekHex = Array.from(vekBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      const extKeyMaterial = await exportVaultKeyForExtension(vekHex, address, derivationSignature);
+
       set({
         kVault,
         kIntegrity,
         derivationSignature,
+        extensionKeyMaterial: extKeyMaterial,
         isUnlocked: true,
         sanctuaryStatus: 'active',
         integrityViolations: {},
@@ -263,6 +276,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       kVault: null,
       kIntegrity: null,
       derivationSignature: null,
+      extensionKeyMaterial: null,
       isUnlocked: false,
       sanctuaryStatus: 'idle',
       vaultEntries: [],

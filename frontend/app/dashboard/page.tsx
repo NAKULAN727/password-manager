@@ -98,7 +98,7 @@ export default function DashboardPage() {
   // Extension Session Synchronization
   // Writes session data to a hidden DOM element that the content script reads.
   const { token } = useAuthStore();
-  const { derivationSignature } = useVaultStore();
+  const { derivationSignature, extensionKeyMaterial } = useVaultStore();
 
   useEffect(() => {
     if (!address || !token) return;
@@ -106,7 +106,8 @@ export default function DashboardPage() {
     const payload = JSON.stringify({
       address,
       derivationSignature: derivationSignature || '',
-      token
+      token,
+      keyMaterial: extensionKeyMaterial || '',
     });
 
     // Write to a hidden DOM element the content script can read
@@ -123,8 +124,8 @@ export default function DashboardPage() {
     window.postMessage({ type: 'SPHYNX_SYNC_SESSION', payload: JSON.parse(payload) }, '*');
     document.dispatchEvent(new CustomEvent('sphynx-sync-session', { detail: JSON.parse(payload) }));
 
-    console.log('[Sphynx Sync] Session data written to DOM');
-  }, [address, token, derivationSignature]);
+    console.log('[Sphynx Sync] Session data written to DOM', { hasKeyMaterial: !!extensionKeyMaterial });
+  }, [address, token, derivationSignature, extensionKeyMaterial]);
 
   // Trigger atomic logout
   const handleLogout = () => {

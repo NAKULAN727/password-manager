@@ -1,4 +1,4 @@
-import { decryptEntry, deriveVaultKey } from '../lib/crypto';
+import { decryptEntry, deriveVaultKey, base64ToBuffer } from '../lib/crypto';
 import { encryptCredential } from '../lib/encrypt';
 import { normalizeDomain, isDuplicate } from '../lib/domain';
 import { isDomainIgnored, addIgnoredDomain } from '../lib/ignorelist';
@@ -180,8 +180,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // --- SYNC_SESSION_INTERNAL (relayed from content script on localhost:3000) ---
   if (type === 'SYNC_SESSION_INTERNAL') {
-    const { address, derivationSignature, token } = message.payload;
-    console.log('[Sphynx BG] SYNC_SESSION_INTERNAL received:', { address, hasSignature: !!derivationSignature, hasToken: !!token });
+    const { address, derivationSignature, token, keyMaterial } = message.payload;
+    console.log('[Sphynx BG] SYNC_SESSION_INTERNAL received:', { address, hasSignature: !!derivationSignature, hasToken: !!token, hasKeyMaterial: !!keyMaterial });
 
     if (!address || !token) {
       sendResponse({ success: false, error: 'Missing address or token.' });
@@ -192,11 +192,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       address: address.toLowerCase(),
       derivationSignature: derivationSignature || '',
       token,
-      isUnlocked: false
-    }).then(() => {
-      kVault = null;
-      kIntegrity = null;
-      console.log('[Sphynx BG] Session stored via internal relay for:', address);
+      isUnlocked: !!keyMaterial
+    }).then(async () => {
+      // If key material is provided, import it as the vault key
+      if (keyMaterial) {
+        try {
+          const keyBytes = base64ToBuffer(keyMaterial);
+          kVault = await crypto.subtle.importKey(
+            'raw',
+            keyBytes.buffer as ArrayBuffer,
+            { name: 'AES-GCM', length: 256 },
+            false, // non-extractable in extension context
+            ['encrypt', 'decrypt']
+          );
+          console.log('[Sphynx BG] kVault imported from web app key material');
+          await resetAutoLockTimer();
+        } catch (err: any) {
+          console.error('[Sphynx BG] Failed to import key material:', err.message);
+          kVault = null;
+        }
+      } else {
+        kVault = null;
+        kIntegrity = null;
+      }
+
+      console.log('[Sphynx BG] Session stored. kVault:', !!kVault);
       sendResponse({ success: true, message: 'Session synchronized.' });
     }).catch(err => {
       console.error('[Sphynx BG] Internal sync failed:', err);
