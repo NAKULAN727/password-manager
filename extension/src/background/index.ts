@@ -74,18 +74,24 @@ async function apiPost(path: string, token: string, body: object) {
   const timeout = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const url = `${BASE_URL}${path}`;
+    console.log('[Sphynx BG] API POST:', url);
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
 
+    const responseBody = await res.json().catch(() => ({}));
+
     if (!res.ok) {
       if (res.status === 401 || res.status === 403) await clearSession();
-      throw new Error(`API Error ${res.status}`);
+      const errMsg = responseBody?.error || `API Error ${res.status}`;
+      console.error('[Sphynx BG] API POST failed:', res.status, errMsg);
+      throw new Error(errMsg);
     }
-    return res.json();
+    return responseBody;
   } finally {
     clearTimeout(timeout);
   }
@@ -170,6 +176,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Reset auto-lock timer on any activity
   if (kVault) {
     resetAutoLockTimer();
+  }
+
+  // --- SYNC_SESSION_INTERNAL (relayed from content script on localhost:3000) ---
+  if (type === 'SYNC_SESSION_INTERNAL') {
+    const { address, derivationSignature, token } = message.payload;
+    console.log('[Sphynx BG] SYNC_SESSION_INTERNAL received:', { address, hasSignature: !!derivationSignature, hasToken: !!token });
+
+    if (!address || !token) {
+      sendResponse({ success: false, error: 'Missing address or token.' });
+      return true;
+    }
+
+    saveSession({
+      address: address.toLowerCase(),
+      derivationSignature: derivationSignature || '',
+      token,
+      isUnlocked: false
+    }).then(() => {
+      kVault = null;
+      kIntegrity = null;
+      console.log('[Sphynx BG] Session stored via internal relay for:', address);
+      sendResponse({ success: true, message: 'Session synchronized.' });
+    }).catch(err => {
+      console.error('[Sphynx BG] Internal sync failed:', err);
+      sendResponse({ success: false, error: err.message });
+    });
+    return true;
   }
 
   // --- STORE_PENDING_CREDENTIAL (from content script) ---
@@ -324,19 +357,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // --- SAVE_CREDENTIAL ---
   if (type === 'SAVE_CREDENTIAL') {
     const { hostname, username, password, label } = message.payload;
+    console.log('[Sphynx BG] SAVE_CREDENTIAL received:', { hostname, username, password_length: password?.length });
 
     getSession().then(async (session) => {
-      if (!session.isUnlocked || !kVault || !session.token) throw new Error('Vault is locked.');
+      console.log('[Sphynx BG] Session state: address=', session.address, 'token=', !!session.token, 'kVault=', !!kVault, 'isUnlocked=', session.isUnlocked);
 
-      const { ciphertext, iv } = await encryptCredential(password, kVault);
+      if (!kVault || !session.token) {
+        throw new Error('Vault is locked. Please unlock the extension first, then try saving again.');
+      }
+
+      console.log('[Sphynx BG] Encrypting credential...');
+      const { ciphertext, iv, tag } = await encryptCredential(password, kVault);
+      console.log('[Sphynx BG] Encryption OK — ciphertext:', ciphertext.length, 'chars, iv:', iv.length, 'chars, tag:', tag.length, 'chars');
+
       const credLabel = label || normalizeDomain(hostname);
+      const body = { label: credLabel, username: username || '', ciphertext, iv, tag };
+      console.log('[Sphynx BG] POST /vault/add —', JSON.stringify({ label: credLabel, username: username || '', bodySize: JSON.stringify(body).length }));
 
-      await apiPost('/vault/entries', session.token, {
-        label: credLabel, username, encryptedPassword: ciphertext, iv, url: hostname
-      });
+      const result = await apiPost('/vault/add', session.token, body);
+      console.log('[Sphynx BG] API response:', JSON.stringify(result));
+      console.log('[Sphynx BG] ✓ Credential saved successfully');
 
-      sendResponse({ success: true });
+      sendResponse({ success: true, message: 'Credential saved.' });
     }).catch((err) => {
+      console.error('[Sphynx BG] SAVE_CREDENTIAL FAILED:', err.message);
       sendResponse({ success: false, error: err.message });
     });
     return true;
@@ -344,13 +388,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // --- UPDATE_CREDENTIAL ---
   if (type === 'UPDATE_CREDENTIAL') {
-    const { entryId, password } = message.payload;
+    const { entryId, password, label, username } = message.payload;
 
     getSession().then(async (session) => {
       if (!session.isUnlocked || !kVault || !session.token) throw new Error('Vault is locked.');
 
-      const { ciphertext, iv } = await encryptCredential(password, kVault);
-      await apiPut(`/vault/entries/${entryId}`, session.token, { encryptedPassword: ciphertext, iv });
+      const { ciphertext, iv, tag } = await encryptCredential(password, kVault);
+      await apiPut(`/vault/${entryId}`, session.token, {
+        label: label || 'Updated',
+        username: username || '',
+        ciphertext, iv, tag
+      });
 
       sendResponse({ success: true });
     }).catch((err) => {

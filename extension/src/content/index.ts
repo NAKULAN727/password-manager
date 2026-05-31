@@ -1,5 +1,7 @@
 import { showSavePrompt } from './savePrompt';
 
+console.log('[Sphynx] Content script LOADING on:', window.location.origin, window.location.pathname);
+
 // ============================================================
 // EXTENSION CONTEXT GUARD
 // ============================================================
@@ -36,63 +38,130 @@ let lastNavigationUrl: string = window.location.href;
 let savePromptShownForCredential: string | null = null;
 
 // ============================================================
-// CREDENTIAL PERSISTENCE (via background worker message passing)
-// Content scripts cannot access chrome.storage.session directly.
+// SESSION SYNC — Reads session data from a hidden DOM element
+// written by the Sphynx dashboard. Polls every 2 seconds.
 // ============================================================
 
-/**
- * Store captured credential via background worker.
- * Background has access to chrome.storage.session.
- */
-function storePendingCredential(cred: CapturedCredential): void {
-  if (!isContextValid()) return;
-  chrome.runtime.sendMessage({
-    type: 'STORE_PENDING_CREDENTIAL',
-    payload: cred
-  }, () => {
-    if (chrome.runtime.lastError) {
-      console.warn('[Sphynx] Failed to store pending credential:', chrome.runtime.lastError.message);
-      return;
+let syncCompleted = false;
+
+function checkDomSync() {
+  if (syncCompleted) return;
+  if (window.location.hostname !== 'localhost') return;
+
+  const syncEl = document.getElementById('__sphynx_sync__');
+  if (!syncEl) return;
+
+  const raw = syncEl.getAttribute('data-session');
+  if (!raw) return;
+
+  try {
+    const payload = JSON.parse(raw);
+    if (payload.address && payload.token) {
+      console.log('[Sphynx] Session found in DOM:', payload.address);
+      syncCompleted = true;
+      relaySyncToBackground(payload);
     }
-    console.log('[Sphynx] Pending credential stored:', cred.hostname, cred.username);
+  } catch (e) {
+    // Invalid JSON, ignore
+  }
+}
+
+if (window.location.hostname === 'localhost') {
+  console.log('[Sphynx] Starting DOM sync polling on localhost');
+
+  // Poll immediately and then every 2 seconds
+  checkDomSync();
+  const syncInterval = setInterval(() => {
+    checkDomSync();
+    if (syncCompleted) clearInterval(syncInterval);
+  }, 2000);
+
+  // Also listen for postMessage and custom events as backup
+  window.addEventListener('message', (event) => {
+    if (event.data?.type === 'SPHYNX_SYNC_SESSION' && event.data.payload) {
+      console.log('[Sphynx] SYNC via postMessage:', event.data.payload.address);
+      relaySyncToBackground(event.data.payload);
+    }
+    if (event.data?.type === 'SPHYNX_PING_EXTENSION') {
+      window.postMessage({ type: 'SPHYNX_EXTENSION_DETECTED', extensionId: chrome.runtime.id }, '*');
+    }
+  });
+
+  document.addEventListener('sphynx-sync-session', ((event: CustomEvent) => {
+    console.log('[Sphynx] SYNC via DOM event:', event.detail?.address);
+    relaySyncToBackground(event.detail);
+  }) as EventListener);
+
+  // MutationObserver to detect when the sync element appears
+  const syncObserver = new MutationObserver(() => { checkDomSync(); });
+  syncObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-session'] });
+
+  document.documentElement.setAttribute('data-sphynx-extension', chrome.runtime.id);
+}
+
+function relaySyncToBackground(payload: any) {
+  if (!payload?.address || !payload?.token) return;
+  if (!isContextValid()) { console.log('[Sphynx] Context invalid'); return; }
+  chrome.runtime.sendMessage({ type: 'SYNC_SESSION_INTERNAL', payload }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.warn('[Sphynx] SYNC failed:', chrome.runtime.lastError.message);
+    } else {
+      console.log('[Sphynx] SYNC SUCCESS:', response);
+      syncCompleted = true;
+    }
   });
 }
 
-/**
- * Retrieve pending credential from background worker.
- * Called on new page load to check if credentials were captured before navigation.
- */
+// ============================================================
+// CREDENTIAL PERSISTENCE (via background worker message passing)
+// ============================================================
+
+function storePendingCredential(cred: CapturedCredential): void {
+  if (!isContextValid()) { console.log('[Sphynx] storePendingCredential: context invalid'); return; }
+  console.log('[Sphynx] STORE_PENDING_CREDENTIAL sent:', cred.hostname, cred.username);
+  chrome.runtime.sendMessage({ type: 'STORE_PENDING_CREDENTIAL', payload: cred }, () => {
+    if (chrome.runtime.lastError) {
+      console.warn('[Sphynx] STORE_PENDING_CREDENTIAL failed:', chrome.runtime.lastError.message);
+    } else {
+      console.log('[Sphynx] Pending credential stored successfully');
+    }
+  });
+}
+
 function checkPendingCredential(): void {
-  if (!isContextValid()) return;
+  if (!isContextValid()) { console.log('[Sphynx] checkPendingCredential: context invalid'); return; }
+  console.log('[Sphynx] GET_PENDING_CREDENTIAL sent');
   chrome.runtime.sendMessage({ type: 'GET_PENDING_CREDENTIAL' }, (response) => {
     if (chrome.runtime.lastError) {
-      console.warn('[Sphynx] Failed to get pending credential:', chrome.runtime.lastError.message);
+      console.warn('[Sphynx] GET_PENDING_CREDENTIAL failed:', chrome.runtime.lastError.message);
       return;
     }
-    if (!response?.success || !response.data) return;
+    console.log('[Sphynx] GET_PENDING_CREDENTIAL response:', response);
+    if (!response?.success || !response.data) {
+      console.log('[Sphynx] No pending credential found');
+      return;
+    }
 
     const pending = response.data as CapturedCredential;
     console.log('[Sphynx] Pending credential restored:', pending.hostname, pending.username);
 
-    // Only process if captured recently (within 60 seconds)
     const age = Date.now() - pending.timestamp;
     if (age > 60000) {
       console.log('[Sphynx] Pending credential expired (age:', age, 'ms)');
       return;
     }
 
-    // Detect successful login: check if we navigated away from login page
     const currentPath = window.location.pathname.toLowerCase();
     const loginIndicators = ['/login', '/signin', '/sign-in', '/auth', '/authenticate'];
     const stillOnLoginPage = window.location.hostname === pending.hostname &&
       loginIndicators.some(ind => currentPath.includes(ind));
 
     if (stillOnLoginPage) {
-      console.log('[Sphynx] Still on login page, likely failed login. Skipping prompt.');
+      console.log('[Sphynx] Still on login page, skipping prompt. Path:', currentPath);
       return;
     }
 
-    console.log('[Sphynx] Login success detected — navigated away from login page');
+    console.log('[Sphynx] Login success detected — showing save prompt');
     lastCapturedCredential = pending;
     checkForSuccessfulLogin();
   });
@@ -103,66 +172,12 @@ function checkPendingCredential(): void {
 // ============================================================
 
 const SHADOW_STYLE = `
-  .sphynx-badge-trigger {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    background: linear-gradient(135deg, #E8A020 0%, #B86A1A 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 8px rgba(232, 160, 32, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .sphynx-badge-trigger:hover {
-    transform: scale(1.15);
-    box-shadow: 0 0 12px rgba(232, 160, 32, 0.7);
-  }
-  .sphynx-badge-icon {
-    width: 10px;
-    height: 10px;
-    border: 1.5px solid #0A0806;
-    border-bottom: 0;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    position: relative;
-    top: -1px;
-  }
-  .sphynx-badge-icon::after {
-    content: '';
-    position: absolute;
-    width: 6px;
-    height: 5px;
-    background-color: #0A0806;
-    bottom: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-radius: 1px;
-  }
-  .sphynx-dropdown {
-    position: absolute;
-    width: 250px;
-    max-height: 200px;
-    overflow-y: auto;
-    background: rgba(20, 16, 9, 0.95);
-    backdrop-filter: blur(12px);
-    border: 1.5px solid rgba(232, 160, 32, 0.2);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(232, 160, 32, 0.05);
-    z-index: 2147483647;
-    margin-top: 5px;
-    display: none;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: #F0E6D0;
-    padding: 6px;
-    animation: slideDown 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .sphynx-badge-trigger { width: 20px; height: 20px; cursor: pointer; background: linear-gradient(135deg, #E8A020 0%, #B86A1A 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(232, 160, 32, 0.4); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1); }
+  .sphynx-badge-trigger:hover { transform: scale(1.15); box-shadow: 0 0 12px rgba(232, 160, 32, 0.7); }
+  .sphynx-badge-icon { width: 10px; height: 10px; border: 1.5px solid #0A0806; border-bottom: 0; border-top-left-radius: 5px; border-top-right-radius: 5px; position: relative; top: -1px; }
+  .sphynx-badge-icon::after { content: ''; position: absolute; width: 6px; height: 5px; background-color: #0A0806; bottom: -5px; left: 50%; transform: translateX(-50%); border-radius: 1px; }
+  .sphynx-dropdown { position: absolute; width: 250px; max-height: 200px; overflow-y: auto; background: rgba(20, 16, 9, 0.95); backdrop-filter: blur(12px); border: 1.5px solid rgba(232, 160, 32, 0.2); border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); z-index: 2147483647; margin-top: 5px; display: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #F0E6D0; padding: 6px; animation: slideDown 0.2s ease; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
   .sphynx-dropdown-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(232, 160, 32, 0.65); padding: 6px 8px; border-bottom: 1px solid rgba(42, 30, 16, 0.5); }
   .sphynx-dropdown-item { padding: 8px 10px; font-size: 12px; border-radius: 6px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; transition: background 0.15s ease; }
   .sphynx-dropdown-item:hover { background: rgba(232, 160, 32, 0.1); }
@@ -178,55 +193,97 @@ const SHADOW_STYLE = `
 
 function isUsernameField(input: HTMLInputElement): boolean {
   const type = input.type.toLowerCase();
-  if (type === 'email' || type === 'text' || type === 'tel') {
-    const indicators = ['user', 'email', 'login', 'account', 'name', 'id', 'phone'];
-    const fieldStr = `${input.name} ${input.id} ${input.placeholder} ${input.autocomplete}`.toLowerCase();
-    return indicators.some(ind => fieldStr.includes(ind)) || type === 'email';
+  if (type === 'email') return true;
+  if (type === 'text' || type === 'tel') {
+    const indicators = ['user', 'email', 'login', 'account', 'name', 'id', 'phone', 'identifier', 'handle'];
+    const fieldStr = `${input.name} ${input.id} ${input.placeholder} ${input.autocomplete} ${input.className} ${input.getAttribute('aria-label') || ''}`.toLowerCase();
+    return indicators.some(ind => fieldStr.includes(ind));
   }
   return false;
 }
 
 function findAssociatedUsername(passwordInput: HTMLInputElement): HTMLInputElement | null {
   const form = passwordInput.closest('form');
+  const candidates: HTMLInputElement[] = [];
+
   if (form) {
-    const inputs = Array.from(form.querySelectorAll('input'));
+    const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"])')) as HTMLInputElement[];
+
+    // Priority 1: Explicit username/email fields
     for (const input of inputs) {
-      if (input !== passwordInput && isUsernameField(input as HTMLInputElement)) {
-        return input as HTMLInputElement;
+      if (input !== passwordInput && input.type !== 'password' && isUsernameField(input)) {
+        console.log('[Sphynx] Username candidate found (explicit match):', input.name || input.id, 'value:', input.value);
+        if (input.value) return input;
+        candidates.push(input);
       }
     }
+
+    // Priority 2: Any visible text/email/tel input in the form (not password)
     for (const input of inputs) {
-      if (input === passwordInput) break;
-      const type = (input as HTMLInputElement).type.toLowerCase();
-      if (type === 'text' || type === 'email') return input as HTMLInputElement;
+      if (input === passwordInput || input.type === 'password') continue;
+      if (input.type === 'text' || input.type === 'email' || input.type === 'tel' || input.type === '') {
+        console.log('[Sphynx] Username candidate found (text/email in form):', input.name || input.id, 'value:', input.value);
+        if (input.value) return input;
+        candidates.push(input);
+      }
     }
   }
-  const allInputs = Array.from(document.querySelectorAll('input'));
+
+  // Priority 3: Search nearby inputs in DOM (no form context)
+  const allInputs = Array.from(document.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="password"]):not([type="button"]):not([type="checkbox"]):not([type="radio"])')) as HTMLInputElement[];
   const pwIdx = allInputs.indexOf(passwordInput);
-  if (pwIdx > 0) {
-    for (let i = pwIdx - 1; i >= Math.max(0, pwIdx - 3); i--) {
-      const input = allInputs[i] as HTMLInputElement;
-      if (isUsernameField(input) || input.type === 'text' || input.type === 'email') return input;
+
+  // Look backwards from password field
+  if (pwIdx === -1) {
+    // passwordInput not in allInputs (it's filtered out), find its position relative to all inputs
+    const everyInput = Array.from(document.querySelectorAll('input')) as HTMLInputElement[];
+    const realIdx = everyInput.indexOf(passwordInput);
+    for (let i = realIdx - 1; i >= Math.max(0, realIdx - 5); i--) {
+      const input = everyInput[i];
+      if (input.type === 'text' || input.type === 'email' || input.type === 'tel' || input.type === '') {
+        console.log('[Sphynx] Username candidate found (nearby DOM):', input.name || input.id, 'value:', input.value);
+        if (input.value) return input;
+        candidates.push(input);
+      }
     }
   }
+
+  // Return first candidate even if empty
+  if (candidates.length > 0) {
+    console.log('[Sphynx] Username field selected (best candidate):', candidates[0].name || candidates[0].id);
+    return candidates[0];
+  }
+
+  console.log('[Sphynx] No username field found anywhere');
   return null;
 }
 
 function captureCredentials(passwordInput: HTMLInputElement): CapturedCredential | null {
   const password = passwordInput.value;
-  if (!password || password.length < 1) return null;
+  console.log('[Sphynx] captureCredentials — password length:', password?.length || 0);
+
+  if (!password || password.length < 1) {
+    console.log('[Sphynx] captureCredentials — no password value');
+    return null;
+  }
 
   const usernameInput = findAssociatedUsername(passwordInput);
   const username = usernameInput?.value || '';
-  if (!username) return null;
+  console.log('[Sphynx] captureCredentials — username:', JSON.stringify(username), 'from field:', usernameInput?.name || usernameInput?.id || 'none');
 
+  // DO NOT abort if username is missing — still capture the credential
   const form = passwordInput.closest('form');
   if (form) {
     const passwordFields = form.querySelectorAll('input[type="password"]');
-    if (passwordFields.length > 2) return null;
+    if (passwordFields.length > 2) {
+      console.log('[Sphynx] captureCredentials — too many password fields, likely registration');
+      return null;
+    }
   }
 
-  return { username, password, hostname: window.location.hostname, timestamp: Date.now() };
+  const cred = { username, password, hostname: window.location.hostname, timestamp: Date.now() };
+  console.log('[Sphynx] Credential captured:', cred.hostname, cred.username || '(no username)');
+  return cred;
 }
 
 // ============================================================
@@ -234,22 +291,22 @@ function captureCredentials(passwordInput: HTMLInputElement): CapturedCredential
 // ============================================================
 
 function handleFormSubmit(event: Event) {
+  console.log('[Sphynx] Submit event fired on form');
   const form = event.target as HTMLFormElement;
   const passwordInputs = form.querySelectorAll('input[type="password"]');
-  if (passwordInputs.length === 0) return;
+  if (passwordInputs.length === 0) { console.log('[Sphynx] Submit — no password fields in form'); return; }
 
   let targetPassword: HTMLInputElement | null = null;
   for (const pw of passwordInputs) {
     const input = pw as HTMLInputElement;
-    if (input.value && input.offsetParent !== null) { targetPassword = input; break; }
+    if (input.value) { targetPassword = input; break; }
   }
-  if (!targetPassword) return;
+  if (!targetPassword) { console.log('[Sphynx] Submit — password field empty'); return; }
 
   const captured = captureCredentials(targetPassword);
   if (captured) {
     lastCapturedCredential = captured;
     storePendingCredential(captured);
-    console.log('[Sphynx] Form submitted — credentials captured:', captured.hostname, captured.username);
   }
 }
 
@@ -258,22 +315,21 @@ function handleFormSubmit(event: Event) {
 // ============================================================
 
 function checkForSuccessfulLogin() {
+  console.log('[Sphynx] checkForSuccessfulLogin — lastCaptured:', !!lastCapturedCredential);
   if (!lastCapturedCredential) return;
 
   const age = Date.now() - lastCapturedCredential.timestamp;
-  if (age > 60000) {
-    lastCapturedCredential = null;
-    return;
-  }
+  if (age > 60000) { console.log('[Sphynx] Credential too old'); lastCapturedCredential = null; return; }
 
   const credKey = `${lastCapturedCredential.hostname}:${lastCapturedCredential.username}`;
-  if (savePromptShownForCredential === credKey) return;
+  if (savePromptShownForCredential === credKey) { console.log('[Sphynx] Prompt already shown for this credential'); return; }
   savePromptShownForCredential = credKey;
 
   const credential = lastCapturedCredential;
-  console.log('[Sphynx] Checking save prompt for:', credential.hostname, credential.username);
+  console.log('[Sphynx] CHECK_SAVE sent for:', credential.hostname, credential.username);
 
   if (!isContextValid()) {
+    console.log('[Sphynx] Context invalid, showing prompt directly');
     triggerSavePrompt(credential, 'save', undefined, undefined);
     return;
   }
@@ -282,52 +338,58 @@ function checkForSuccessfulLogin() {
     type: 'CHECK_SAVE_CREDENTIAL',
     payload: { hostname: credential.hostname, username: credential.username }
   }, (response) => {
+    console.log('[Sphynx] CHECK_SAVE response:', response);
     if (chrome.runtime.lastError || !response?.success) {
+      console.log('[Sphynx] CHECK_SAVE failed, showing prompt anyway');
       triggerSavePrompt(credential, 'save', undefined, undefined);
       return;
     }
-
     const { action, existingEntryId, existingLabel } = response.data;
-    if (action === 'ignored') {
-      console.log('[Sphynx] Domain ignored, skipping.');
-      return;
-    }
+    if (action === 'ignored') { console.log('[Sphynx] Domain ignored'); return; }
     triggerSavePrompt(credential, action, existingEntryId, existingLabel);
   });
 }
 
 function triggerSavePrompt(credential: CapturedCredential, action: string, existingEntryId?: string, existingLabel?: string) {
-  console.log('[Sphynx] Save prompt displayed:', credential.hostname, credential.username, 'mode:', action);
-
+  console.log('[Sphynx] Save prompt rendered:', credential.hostname, credential.username, 'mode:', action);
   showSavePrompt({
     hostname: credential.hostname,
     username: credential.username,
     password: credential.password,
     mode: action === 'update' ? 'update' : 'save',
-    existingEntryId,
-    existingLabel,
+    existingEntryId, existingLabel,
     onSave: () => {
-      if (!isContextValid()) return;
-      chrome.runtime.sendMessage({
-        type: 'SAVE_CREDENTIAL',
-        payload: { hostname: credential.hostname, username: credential.username, password: credential.password, label: credential.hostname }
-      }, (res) => { console.log('[Sphynx] Save result:', res?.success ? 'OK' : res?.error); });
+      console.log('[Sphynx] Save button clicked — sending SAVE_CREDENTIAL');
+      if (!isContextValid()) { console.log('[Sphynx] Context invalid, cannot save'); return; }
+      chrome.runtime.sendMessage({ type: 'SAVE_CREDENTIAL', payload: { hostname: credential.hostname, username: credential.username, password: credential.password, label: credential.hostname } },
+        (res) => {
+          if (chrome.runtime.lastError) { console.error('[Sphynx] Save sendMessage error:', chrome.runtime.lastError.message); return; }
+          if (res?.success) {
+            console.log('[Sphynx] Save result: SUCCESS — credential stored');
+          } else {
+            console.error('[Sphynx] Save result: FAILED —', res?.error || 'unknown error');
+          }
+        });
     },
     onUpdate: () => {
+      console.log('[Sphynx] Update button clicked — sending UPDATE_CREDENTIAL');
       if (!isContextValid() || !existingEntryId) return;
-      chrome.runtime.sendMessage({
-        type: 'UPDATE_CREDENTIAL',
-        payload: { entryId: existingEntryId, password: credential.password }
-      }, (res) => { console.log('[Sphynx] Update result:', res?.success ? 'OK' : res?.error); });
+      chrome.runtime.sendMessage({ type: 'UPDATE_CREDENTIAL', payload: { entryId: existingEntryId, password: credential.password } },
+        (res) => {
+          if (chrome.runtime.lastError) { console.error('[Sphynx] Update sendMessage error:', chrome.runtime.lastError.message); return; }
+          if (res?.success) {
+            console.log('[Sphynx] Update result: SUCCESS');
+          } else {
+            console.error('[Sphynx] Update result: FAILED —', res?.error || 'unknown error');
+          }
+        });
     },
-    onDismiss: () => { console.log('[Sphynx] Save prompt dismissed.'); },
+    onDismiss: () => { console.log('[Sphynx] Prompt dismissed'); },
     onNeverForSite: () => {
       if (!isContextValid()) return;
       chrome.runtime.sendMessage({ type: 'IGNORE_DOMAIN', payload: { hostname: credential.hostname } });
-      console.log('[Sphynx] Domain ignored:', credential.hostname);
     }
   });
-
   lastCapturedCredential = null;
 }
 
@@ -338,22 +400,15 @@ function triggerSavePrompt(credential: CapturedCredential, action: string, exist
 function setupNavigationDetection() {
   const originalPushState = history.pushState;
   const originalReplaceState = history.replaceState;
-
-  history.pushState = function (...args) {
-    originalPushState.apply(this, args);
-    onNavigationChange();
-  };
-  history.replaceState = function (...args) {
-    originalReplaceState.apply(this, args);
-    onNavigationChange();
-  };
+  history.pushState = function (...args) { originalPushState.apply(this, args); onNavigationChange(); };
+  history.replaceState = function (...args) { originalReplaceState.apply(this, args); onNavigationChange(); };
   window.addEventListener('popstate', onNavigationChange);
-  window.addEventListener('load', () => { setTimeout(checkForSuccessfulLogin, 500); });
 }
 
 function onNavigationChange() {
   const currentUrl = window.location.href;
   if (currentUrl !== lastNavigationUrl) {
+    console.log('[Sphynx] SPA navigation detected:', currentUrl);
     lastNavigationUrl = currentUrl;
     setTimeout(checkForSuccessfulLogin, 800);
   }
@@ -376,12 +431,10 @@ function injectAutofillBadge(passwordInput: HTMLInputElement) {
   const badgeContainer = document.createElement('div');
   badgeContainer.style.cssText = 'position:absolute;z-index:2147483646;pointer-events:none;';
   document.body.appendChild(badgeContainer);
-
   const shadow = badgeContainer.attachShadow({ mode: 'closed' });
   const styleTag = document.createElement('style');
   styleTag.textContent = SHADOW_STYLE;
   shadow.appendChild(styleTag);
-
   const badge = document.createElement('div');
   badge.className = 'sphynx-badge-trigger';
   badge.style.pointerEvents = 'auto';
@@ -389,19 +442,16 @@ function injectAutofillBadge(passwordInput: HTMLInputElement) {
   icon.className = 'sphynx-badge-icon';
   badge.appendChild(icon);
   shadow.appendChild(badge);
-
   const reposition = () => {
     if (!document.body.contains(passwordInput)) { badgeContainer.remove(); activeBadgeContainers.delete(passwordInput); return; }
     const rect = passwordInput.getBoundingClientRect();
     badgeContainer.style.left = `${rect.left + window.scrollX + rect.width - 28}px`;
     badgeContainer.style.top = `${rect.top + window.scrollY + (rect.height - 20) / 2}px`;
   };
-
   reposition();
   activeBadgeContainers.set(passwordInput, badgeContainer);
   window.addEventListener('resize', reposition);
   document.addEventListener('scroll', reposition, true);
-
   badge.addEventListener('click', (e) => { e.stopPropagation(); showAutofillDropdown(passwordInput, shadow); });
 }
 
@@ -410,31 +460,27 @@ function showAutofillDropdown(passwordInput: HTMLInputElement, shadow: ShadowRoo
   const dropdown = document.createElement('div');
   dropdown.className = 'sphynx-dropdown';
   dropdown.style.display = 'block';
-
   chrome.runtime.sendMessage({ type: 'GET_ENTRIES' }, (response) => {
     if (!response?.success) {
-      dropdown.innerHTML = '<div class="sphynx-dropdown-empty">🔒 Vault is locked.<br>Open the <strong>Sphynx extension</strong> to unlock.</div>';
+      dropdown.innerHTML = '<div class="sphynx-dropdown-empty">🔒 Vault locked. Open extension to unlock.</div>';
     } else {
       const entries = response.data || [];
       const host = window.location.hostname.toLowerCase();
       const relevant = entries.filter((e: any) => { const l = e.label.toLowerCase(); const u = (e.url || '').toLowerCase(); return l.includes(host) || host.includes(l.split('.')[0]) || u.includes(host); });
       const display = relevant.length > 0 ? relevant : entries;
-
-      if (display.length === 0) {
-        dropdown.innerHTML = '<div class="sphynx-dropdown-title">Sphynx Vault</div><div class="sphynx-dropdown-empty">No entries found.</div>';
-      } else {
+      if (display.length === 0) { dropdown.innerHTML = '<div class="sphynx-dropdown-title">Sphynx</div><div class="sphynx-dropdown-empty">No entries.</div>'; }
+      else {
         dropdown.innerHTML = '<div class="sphynx-dropdown-title">Select Account</div>';
         display.forEach((entry: any) => {
           const item = document.createElement('div');
           item.className = 'sphynx-dropdown-item';
-          item.innerHTML = `<span class="sphynx-item-label">${entry.label}</span><span class="sphynx-item-sub">${entry.username || 'No username'}</span>`;
+          item.innerHTML = `<span class="sphynx-item-label">${entry.label}</span><span class="sphynx-item-sub">${entry.username || ''}</span>`;
           item.addEventListener('click', (ev) => { ev.stopPropagation(); performSecureAutofill(passwordInput, entry.id); dropdown.remove(); activeDropdown = null; });
           dropdown.appendChild(item);
         });
       }
     }
   });
-
   shadow.appendChild(dropdown);
   activeDropdown = dropdown;
   const dismiss = (e: MouseEvent) => { if (activeDropdown && !dropdown.contains(e.target as Node)) { dropdown.remove(); activeDropdown = null; document.removeEventListener('click', dismiss); } };
@@ -450,9 +496,7 @@ function performSecureAutofill(passwordInput: HTMLInputElement, entryId: string)
     if (form) usernameInput = form.querySelector('input[type="text"], input[type="email"]') as HTMLInputElement;
     if (usernameInput && username) setNativeValue(usernameInput, username);
     setNativeValue(passwordInput, password);
-    console.log('[Sphynx] Credentials filled.');
-    response.data.password = '';
-    response.data.username = '';
+    response.data.password = ''; response.data.username = '';
   });
 }
 
@@ -468,55 +512,113 @@ function setNativeValue(input: HTMLInputElement, value: string) {
 // ============================================================
 
 function attachFormListeners() {
-  document.querySelectorAll('form').forEach((form) => {
+  const forms = document.querySelectorAll('form');
+  console.log('[Sphynx] attachFormListeners — found', forms.length, 'forms');
+  forms.forEach((form) => {
     if (!(form as any).__sphynxAttached) {
       form.addEventListener('submit', handleFormSubmit, true);
       (form as any).__sphynxAttached = true;
+      console.log('[Sphynx] Form listener attached:', form.action || form.id || 'unnamed');
     }
   });
 }
 
-// Global button click capture
+// Global click capture — catches submit buttons and any clickable login triggers
 document.addEventListener('click', (e) => {
   const target = e.target as HTMLElement;
-  const button = target.closest('button[type="submit"], input[type="submit"], button:not([type])');
-  if (button) {
-    const form = button.closest('form');
-    if (form) {
-      const pws = form.querySelectorAll('input[type="password"]');
-      for (const pw of pws) {
-        const input = pw as HTMLInputElement;
-        if (input.value) {
-          const captured = captureCredentials(input);
-          if (captured) { lastCapturedCredential = captured; storePendingCredential(captured); console.log('[Sphynx] Button click — captured:', captured.hostname, captured.username); }
-          break;
-        }
+
+  // Match: submit buttons, buttons without type (default to submit in forms), and elements with submit-like text
+  const button = target.closest('button, input[type="submit"], [role="button"]') as HTMLElement;
+  if (!button) return;
+
+  // Find the closest form
+  const form = button.closest('form');
+  if (!form) return;
+
+  const pws = form.querySelectorAll('input[type="password"]');
+  if (pws.length === 0) return;
+
+  console.log('[Sphynx] Submit button clicked in form with password field');
+
+  for (const pw of pws) {
+    const input = pw as HTMLInputElement;
+    if (input.value) {
+      const captured = captureCredentials(input);
+      if (captured) {
+        lastCapturedCredential = captured;
+        storePendingCredential(captured);
       }
+      break;
     }
   }
 }, true);
 
-// Global Enter key capture
+// Global Enter key capture in any input within a form that has a password field
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    const target = e.target as HTMLInputElement;
-    if (target?.type === 'password' && target.value) {
-      const captured = captureCredentials(target);
-      if (captured) { lastCapturedCredential = captured; storePendingCredential(captured); console.log('[Sphynx] Enter key — captured:', captured.hostname, captured.username); }
+  if (e.key !== 'Enter') return;
+  const target = e.target as HTMLInputElement;
+  if (!target || !target.closest) return;
+
+  const form = target.closest('form');
+  if (!form) return;
+
+  const pws = form.querySelectorAll('input[type="password"]');
+  if (pws.length === 0) return;
+
+  console.log('[Sphynx] Enter key pressed in form with password field');
+
+  for (const pw of pws) {
+    const input = pw as HTMLInputElement;
+    if (input.value) {
+      const captured = captureCredentials(input);
+      if (captured) {
+        lastCapturedCredential = captured;
+        storePendingCredential(captured);
+      }
+      break;
     }
   }
 }, true);
+
+// beforeunload — last-resort capture before page navigates away
+window.addEventListener('beforeunload', () => {
+  // If we already captured, the storePendingCredential was already called.
+  // This is a fallback for cases where submit/click handlers didn't fire.
+  if (lastCapturedCredential) return; // Already captured
+
+  const pws = document.querySelectorAll('input[type="password"]');
+  for (const pw of pws) {
+    const input = pw as HTMLInputElement;
+    if (input.value) {
+      const captured = captureCredentials(input);
+      if (captured) {
+        console.log('[Sphynx] beforeunload — last-resort capture:', captured.hostname, captured.username);
+        lastCapturedCredential = captured;
+        // Use sendMessage synchronously-ish (best effort before unload)
+        if (isContextValid()) {
+          chrome.runtime.sendMessage({ type: 'STORE_PENDING_CREDENTIAL', payload: captured });
+        }
+      }
+      break;
+    }
+  }
+});
 
 // ============================================================
 // INITIALIZATION
 // ============================================================
+
+console.log('[Sphynx] Initializing on:', window.location.href);
 
 scanForPasswordInputs();
 attachFormListeners();
 setupNavigationDetection();
 
 // Check for pending credentials from previous page navigation
-setTimeout(checkPendingCredential, 800);
+setTimeout(() => {
+  console.log('[Sphynx] Checking for pending credentials (post-navigation)...');
+  checkPendingCredential();
+}, 800);
 
 // MutationObserver for dynamic forms
 const observer = new MutationObserver(() => {
@@ -531,7 +633,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'FILL_ACTIVE_TAB') {
     const pws = document.querySelectorAll('input[type="password"]');
     if (pws.length > 0) { performSecureAutofill(pws[0] as HTMLInputElement, message.entryId); sendResponse({ success: true }); }
-    else sendResponse({ success: false, error: 'No password fields found.' });
+    else sendResponse({ success: false, error: 'No password fields.' });
   }
   return true;
 });
@@ -543,7 +645,6 @@ if (window.location.origin === 'http://localhost:3000') {
   let lastUrl = window.location.href;
   const navObs = new MutationObserver(() => { if (window.location.href !== lastUrl) { lastUrl = window.location.href; setTimeout(broadcast, 300); } });
   navObs.observe(document.body, { childList: true, subtree: true });
-  window.addEventListener('message', (event) => { if (event.data?.type === 'SPHYNX_PING_EXTENSION') broadcast(); });
 }
 
 console.log('[Sphynx] Content script active: Form scanning + credential capture initialized.');

@@ -96,55 +96,35 @@ export default function DashboardPage() {
   }, [isAuthenticated]);
 
   // Extension Session Synchronization
-  const [extensionId, setExtensionId] = useState<string | null>(null);
+  // Writes session data to a hidden DOM element that the content script reads.
   const { token } = useAuthStore();
   const { derivationSignature } = useVaultStore();
 
   useEffect(() => {
-    const handleExtensionDetected = (event: MessageEvent) => {
-      if (event.data && event.data.type === 'SPHYNX_EXTENSION_DETECTED' && event.data.extensionId) {
-        console.log('Sphynx extension detected:', event.data.extensionId);
-        setExtensionId(event.data.extensionId);
-      }
-    };
-    window.addEventListener('message', handleExtensionDetected);
+    if (!address || !token) return;
 
-    // Actively ping the content script to re-broadcast its extension ID.
-    // This handles the case where the content script loaded before this component mounted.
-    window.postMessage({ type: 'SPHYNX_PING_EXTENSION' }, '*');
+    const payload = JSON.stringify({
+      address,
+      derivationSignature: derivationSignature || '',
+      token
+    });
 
-    return () => {
-      window.removeEventListener('message', handleExtensionDetected);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!extensionId || !address || !token) {
-      console.log('[Sphynx Sync] Waiting — extensionId:', extensionId, 'address:', address, 'token:', !!token, 'derivationSignature:', !!derivationSignature);
-      return;
+    // Write to a hidden DOM element the content script can read
+    let syncEl = document.getElementById('__sphynx_sync__');
+    if (!syncEl) {
+      syncEl = document.createElement('div');
+      syncEl.id = '__sphynx_sync__';
+      syncEl.style.display = 'none';
+      document.body.appendChild(syncEl);
     }
+    syncEl.setAttribute('data-session', payload);
 
-    const chromeObj = (window as any).chrome;
-    if (!chromeObj?.runtime?.sendMessage) {
-      console.warn('[Sphynx Sync] chrome.runtime.sendMessage not available');
-      return;
-    }
+    // Also dispatch events for any listeners
+    window.postMessage({ type: 'SPHYNX_SYNC_SESSION', payload: JSON.parse(payload) }, '*');
+    document.dispatchEvent(new CustomEvent('sphynx-sync-session', { detail: JSON.parse(payload) }));
 
-    const payload = { address, derivationSignature: derivationSignature || '', token };
-    console.log('[Sphynx Sync] Sending SYNC_SESSION to extension:', extensionId);
-    chromeObj.runtime.sendMessage(
-      extensionId,
-      { type: 'SYNC_SESSION', payload },
-      (response: any) => {
-        const lastError = chromeObj.runtime.lastError;
-        if (lastError) {
-          console.warn('[Sphynx Sync] Failed:', lastError.message);
-        } else {
-          console.log('[Sphynx Sync] Success:', response);
-        }
-      }
-    );
-  }, [extensionId, address, derivationSignature, token]);
+    console.log('[Sphynx Sync] Session data written to DOM');
+  }, [address, token, derivationSignature]);
 
   // Trigger atomic logout
   const handleLogout = () => {

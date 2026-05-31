@@ -2,13 +2,13 @@ import { bufferToBase64 } from './crypto';
 
 /**
  * Encrypts a plaintext password using the derived kVault (AES-256-GCM).
- * Returns base64-encoded ciphertext and IV for storage.
- * Plaintext never leaves the local context.
+ * Returns base64-encoded ciphertext, IV, and auth tag separately
+ * (matching the backend's expected schema: { ciphertext, iv, tag }).
  */
 export async function encryptCredential(
   plaintext: string,
   kVault: CryptoKey
-): Promise<{ ciphertext: string; iv: string }> {
+): Promise<{ ciphertext: string; iv: string; tag: string }> {
   const enc = new TextEncoder();
   const subtle = crypto.subtle;
 
@@ -22,10 +22,15 @@ export async function encryptCredential(
     enc.encode(plaintext)
   );
 
-  // The Web Crypto API appends the 16-byte auth tag to the ciphertext
-  // We store the full buffer as ciphertext (includes tag)
+  // Web Crypto AES-GCM output = [ciphertext bytes] + [16-byte auth tag]
+  const fullBytes = new Uint8Array(encryptedBuffer);
+  const tagLength = 16; // GCM default tag length
+  const ciphertextBytes = fullBytes.slice(0, fullBytes.length - tagLength);
+  const tagBytes = fullBytes.slice(fullBytes.length - tagLength);
+
   return {
-    ciphertext: bufferToBase64(encryptedBuffer),
+    ciphertext: bufferToBase64(ciphertextBytes),
     iv: bufferToBase64(iv),
+    tag: bufferToBase64(tagBytes),
   };
 }
