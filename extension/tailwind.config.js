@@ -2,6 +2,7 @@
 module.exports = {
   content: [
     "./src/popup/**/*.{js,ts,jsx,tsx}",
+    "./src/popup/Settings.tsx",
     "./public/index.html"
   ],
   theme: {

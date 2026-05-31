@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build:css": "npx tailwindcss -i src/popup/index.css -o public/dist/popup.css",
+    "build:css": "npx tailwindcss -i src/popup/index.css -o public/dist/popup.css --minify",
     "build:js": "node build.js",
     "build:prod": "node build.js --production",
     "build": "npm run build:css && npm run build:js",
     "build:production": "npm run build:css && npm run build:prod",
     "watch": "node build.js --watch",
+    "watch:css": "npx tailwindcss -i src/popup/index.css -o public/dist/popup.css --watch",
     "icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
