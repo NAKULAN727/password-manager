@@ -86,12 +86,12 @@ setInterval(() => {
 }, 5 * 60 * 1000); // GC every 5 minutes
 
 // Apply Rate Limiter
-// Development: 1000 requests per hour (effectively disabled)
+// Development: no effective limit
 // Production: 100 requests per 15 minutes
 const isDev = process.env.NODE_ENV !== 'production';
 const apiLimiter = isDev
-  ? rateLimiter(1000, 60 * 60 * 1000)   // Dev: 1000 req/hour
-  : rateLimiter(100, 15 * 60 * 1000);   // Prod: 100 req/15min
+  ? rateLimiter(100000, 60 * 60 * 1000)  // Dev: 100k req/hour (effectively unlimited)
+  : rateLimiter(100, 15 * 60 * 1000);    // Prod: 100 req/15min
 
 // Routes Bindings
 app.use('/api/auth', apiLimiter, authRoutes);
