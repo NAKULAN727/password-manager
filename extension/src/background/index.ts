@@ -6,6 +6,7 @@ import { getSettings } from '../lib/settings';
 import { initAutoLock, resetAutoLockTimer, stopAutoLockTimer } from '../lib/autolock';
 import { recordUsage, getRecentCredentials } from '../lib/activity';
 import { CONFIG } from '../lib/config';
+import { persistVaultState, readVaultState } from '../lib/vaultState';
 import { EncryptedVaultEntry, ExtensionSession } from '../types';
 
 // In-memory key caches (never persisted to storage)
@@ -35,17 +36,32 @@ async function saveSession(session: Partial<ExtensionSession>) {
   await chrome.storage.session.set(session);
 }
 
-function broadcastVaultStatusToWebTabs(isUnlocked: boolean) {
+async function syncAndBroadcastVaultState(address?: string | null) {
+  const session = await getSession();
+  const isUnlocked = !!(session.isUnlocked && kVault);
+  const stored = await persistVaultState({
+    isUnlocked,
+    address: address ?? session.address,
+    hasKeyMaterial: isUnlocked,
+  });
+
+  console.log('[Extension Status] storage state:', stored);
+  console.log('[Extension Status] background kVault:', !!kVault, 'session.isUnlocked:', session.isUnlocked);
+
   const payload = {
     type: 'SPHYNX_VAULT_STATUS_BROADCAST',
     extensionId: chrome.runtime.id,
     isUnlocked,
   };
+  console.log('[Extension Status] sync payload:', payload);
+
   chrome.tabs.query({ url: `${CONFIG.WEB_APP_URL}/*` }, (tabs) => {
     tabs.forEach((tab) => {
       if (tab.id) chrome.tabs.sendMessage(tab.id, payload).catch(() => {});
     });
   });
+
+  return isUnlocked;
 }
 
 async function clearSession() {
@@ -61,7 +77,8 @@ async function clearSession() {
   stopAutoLockTimer();
   await chrome.storage.session.remove(['address', 'derivationSignature', 'token', 'isUnlocked']);
   console.log('[Sphynx] Session locked and keys cleared from memory.');
-  broadcastVaultStatusToWebTabs(false);
+  await persistVaultState({ isUnlocked: false, address: null, hasKeyMaterial: false });
+  await syncAndBroadcastVaultState(null);
 }
 
 // Initialize auto-lock with clearSession as the lock callback
@@ -285,8 +302,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         kIntegrity = null;
       }
 
+      await saveSession({ isUnlocked: !!kVault });
       console.log('[Sphynx BG] Session stored. kVault:', !!kVault);
-      broadcastVaultStatusToWebTabs(!!kVault);
+      await syncAndBroadcastVaultState(address.toLowerCase());
       sendResponse({ success: true, message: 'Session synchronized.' });
     }).catch(err => {
       console.error('[Sphynx BG] Internal sync failed:', err);
@@ -320,8 +338,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // --- GET_VAULT_STATUS ---
   if (type === 'GET_VAULT_STATUS') {
-    getSession().then((session) => {
-      sendResponse({ success: true, data: { address: session.address, isUnlocked: session.isUnlocked } });
+    getSession().then(async (session) => {
+      const isUnlocked = !!(session.isUnlocked && kVault);
+      const stored = await readVaultState();
+      const isLocked = !isUnlocked;
+      console.log('[Extension Status] popup state:', isLocked);
+      console.log('[Extension Status] storage state:', stored);
+      if (!stored || stored.isUnlocked !== isUnlocked) {
+        await persistVaultState({
+          isUnlocked,
+          address: session.address,
+          hasKeyMaterial: isUnlocked,
+        });
+      }
+      sendResponse({
+        success: true,
+        data: { address: session.address, isUnlocked },
+      });
     });
     return true;
   }

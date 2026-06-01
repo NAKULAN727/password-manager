@@ -37,8 +37,10 @@ export function Popup() {
 
   useEffect(() => {
     checkStatus();
-    const handleStorageChange = (_changes: { [key: string]: chrome.storage.StorageChange }, area: string) => {
-      if (area === 'session') checkStatus();
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, area: string) => {
+      if (area === 'session' || (area === 'local' && changes.sphynx_vault_state)) {
+        checkStatus();
+      }
     };
     chrome.storage.onChanged.addListener(handleStorageChange);
     return () => { chrome.storage.onChanged.removeListener(handleStorageChange); };
@@ -47,6 +49,11 @@ export function Popup() {
   const checkStatus = () => {
     chrome.runtime.sendMessage({ type: 'GET_VAULT_STATUS' }, (response) => {
       if (response?.success && response.data.address) {
+        const isLocked = !response.data.isUnlocked;
+        console.log('[Extension Status] popup state:', isLocked);
+        chrome.storage.local.get(['sphynx_vault_state'], (data) => {
+          console.log('[Extension Status] storage state:', data.sphynx_vault_state ?? null);
+        });
         setAddress(response.data.address);
         setIsUnlocked(response.data.isUnlocked);
         setSyncWarning(false);

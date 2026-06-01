@@ -8,7 +8,7 @@ const BADGE: Record<
   { label: string; dot: string; border: string; bg: string; text: string }
 > = {
   connected: {
-    label: 'Extension Connected',
+    label: 'Extension Unlocked',
     dot: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]',
     border: 'border-emerald-500/25',
     bg: 'bg-emerald-500/8',
@@ -32,6 +32,9 @@ const BADGE: Record<
 
 export function ExtensionStatusBadge() {
   const status = useExtensionStatusStore((s) => s.status);
+
+  if (status === 'unavailable') return null;
+
   const style = BADGE[status];
 
   return (

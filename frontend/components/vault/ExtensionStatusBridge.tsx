@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 import { useExtensionStatusStore } from '../../store/useExtensionStatusStore';
 import { useDialogStore } from '../../store/useDialogStore';
 
-const PING_INTERVAL_MS = 3000;
-const UNAVAILABLE_AFTER_MS = 10000;
+const PING_INTERVAL_MS = 1500;
+const UNAVAILABLE_AFTER_MS = 8000;
 
 /**
  * Listens for extension postMessage pings and vault status updates.
@@ -25,7 +25,6 @@ export function ExtensionStatusBridge() {
         lastPingAt = Date.now();
         setFromPing({
           extensionId: event.data.extensionId,
-          isUnlocked: event.data.isUnlocked,
         });
       }
 

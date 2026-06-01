@@ -2,6 +2,10 @@ import { showSavePrompt } from './savePrompt';
 
 console.log('[Sphynx] Content script LOADING on:', window.location.origin, window.location.pathname);
 
+if (isContextValid()) {
+  document.documentElement.setAttribute('data-sphynx-extension', chrome.runtime.id);
+}
+
 // ============================================================
 // EXTENSION CONTEXT GUARD
 // ============================================================
@@ -31,6 +35,8 @@ interface CapturedCredential {
 
 let activeBadgeContainers = new Map<HTMLInputElement, HTMLDivElement>();
 let activeDropdown: HTMLDivElement | null = null;
+/** True when extension vault is locked — floating lock badges only render in this state (never on Sphynx web app). */
+let extensionVaultLocked = true;
 
 /** Sphynx web app pages must not show floating autofill badges or dropdowns. */
 function isSphynxWebApp(): boolean {
@@ -65,18 +71,62 @@ function notifyAutofillLocked() {
   }
 }
 
+function postVaultStatusToPage(isUnlocked: boolean) {
+  const payload = {
+    type: 'SPHYNX_VAULT_STATUS',
+    extensionId: chrome.runtime.id,
+    isUnlocked,
+  };
+  console.log('[Extension Status] sync payload:', payload);
+  window.postMessage(payload, '*');
+  applyVaultLockState(isUnlocked);
+}
+
+function applyVaultLockState(isUnlocked: boolean) {
+  extensionVaultLocked = !isUnlocked;
+  console.log(
+    '[Extension Status] content script — extensionLocked:',
+    extensionVaultLocked,
+    'isSphynxWebApp:',
+    isSphynxWebApp()
+  );
+
+  if (isSphynxWebApp() || extensionVaultLocked) {
+    removeAllAutofillBadges();
+    return;
+  }
+
+  scanForPasswordInputsOnExternalSites();
+}
+
 function broadcastExtensionStatus() {
   if (!isContextValid()) return;
-  chrome.runtime.sendMessage({ type: 'GET_VAULT_STATUS' }, (response) => {
-    if (chrome.runtime.lastError) return;
-    window.postMessage(
-      {
-        type: 'SPHYNX_VAULT_STATUS',
-        extensionId: chrome.runtime.id,
-        isUnlocked: response?.success ? !!response.data?.isUnlocked : false,
-      },
-      '*'
-    );
+
+  chrome.storage.local.get(['sphynx_vault_state'], (data) => {
+    const storedLockState = data.sphynx_vault_state ?? null;
+    console.log('[Extension Status] storage state:', storedLockState);
+
+    if (storedLockState && typeof storedLockState.isUnlocked === 'boolean') {
+      postVaultStatusToPage(storedLockState.isUnlocked);
+      return;
+    }
+
+    chrome.runtime.sendMessage({ type: 'GET_VAULT_STATUS' }, (response) => {
+      if (chrome.runtime.lastError) return;
+      const isUnlocked = response?.success ? !!response.data?.isUnlocked : false;
+      postVaultStatusToPage(isUnlocked);
+    });
+  });
+}
+
+function setupVaultStateStorageListener() {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local' || !changes.sphynx_vault_state) return;
+    const state = changes.sphynx_vault_state.newValue;
+    console.log('[Extension Status] storage state:', state);
+    if (state && typeof state.isUnlocked === 'boolean') {
+      postVaultStatusToPage(state.isUnlocked);
+    }
   });
 }
 
@@ -138,7 +188,10 @@ if (window.location.hostname === 'localhost') {
     }
     if (event.data?.type === 'SPHYNX_PING_EXTENSION') {
       window.postMessage(
-        { type: 'SPHYNX_EXTENSION_DETECTED', extensionId: chrome.runtime.id },
+        {
+          type: 'SPHYNX_EXTENSION_DETECTED',
+          extensionId: chrome.runtime.id,
+        },
         '*'
       );
       broadcastExtensionStatus();
@@ -159,38 +212,49 @@ if (window.location.hostname === 'localhost') {
   const syncObserver = new MutationObserver(() => { checkDomSync(); });
   syncObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-session'] });
 
-  document.documentElement.setAttribute('data-sphynx-extension', chrome.runtime.id);
 }
 
 function relaySyncToBackground(payload: any) {
   if (!payload?.address || !payload?.token) return;
   if (!isContextValid()) { console.log('[Sphynx] Context invalid'); return; }
+
+  console.log('[Extension Status] sync payload:', payload);
   console.log('[Sphynx] Relaying sync to background:', payload.address, 'hasKey:', !!payload.keyMaterial);
 
-  // Write session to chrome.storage.local directly (content scripts have access)
-  // This ensures the popup can read it even if runtime.sendMessage fails
+  const isUnlocked = !!payload.keyMaterial;
+
   chrome.storage.local.set({
     sphynx_session: {
       address: payload.address.toLowerCase(),
       token: payload.token,
       keyMaterial: payload.keyMaterial || '',
-      syncedAt: Date.now()
-    }
+      derivationSignature: payload.derivationSignature || '',
+      isUnlocked,
+      syncedAt: Date.now(),
+    },
+    sphynx_vault_state: {
+      isUnlocked,
+      address: payload.address.toLowerCase(),
+      hasKeyMaterial: isUnlocked,
+      updatedAt: Date.now(),
+    },
   }, () => {
     if (chrome.runtime.lastError) {
       console.warn('[Sphynx] storage.local write failed:', chrome.runtime.lastError.message);
     } else {
+      console.log('[Extension Status] storage state:', { isUnlocked, address: payload.address });
       console.log('[Sphynx] Session written to chrome.storage.local');
+      postVaultStatusToPage(isUnlocked);
     }
   });
 
-  // Also send to background for kVault import
   chrome.runtime.sendMessage({ type: 'SYNC_SESSION_INTERNAL', payload }, (response) => {
     if (chrome.runtime.lastError) {
       console.warn('[Sphynx] SYNC to background failed:', chrome.runtime.lastError.message);
     } else {
       console.log('[Sphynx] SYNC to background SUCCESS:', response);
       window.postMessage({ type: 'SPHYNX_SYNC_COMPLETE', success: true }, '*');
+      broadcastExtensionStatus();
     }
   });
 }
@@ -501,9 +565,9 @@ function onNavigationChange() {
 // AUTOFILL BADGE SYSTEM
 // ============================================================
 
-function scanForPasswordInputs() {
+function scanForPasswordInputsOnExternalSites() {
   if (!isContextValid()) return;
-  if (isSphynxWebApp()) {
+  if (isSphynxWebApp() || extensionVaultLocked) {
     removeAllAutofillBadges();
     return;
   }
@@ -512,6 +576,11 @@ function scanForPasswordInputs() {
     const input = element as HTMLInputElement;
     if (!activeBadgeContainers.has(input)) injectAutofillBadge(input);
   });
+}
+
+function scanForPasswordInputs() {
+  if (!isContextValid()) return;
+  applyVaultLockState(!extensionVaultLocked);
 }
 
 function injectAutofillBadge(passwordInput: HTMLInputElement) {
@@ -722,7 +791,17 @@ window.addEventListener('beforeunload', () => {
 
 console.log('[Sphynx] Initializing on:', window.location.href);
 
-scanForPasswordInputs();
+setupVaultStateStorageListener();
+chrome.storage.local.get(['sphynx_vault_state'], (data) => {
+  const stored = data.sphynx_vault_state;
+  console.log('[Extension Status] storage state:', stored ?? null);
+  if (stored && typeof stored.isUnlocked === 'boolean') {
+    applyVaultLockState(stored.isUnlocked);
+  } else {
+    broadcastExtensionStatus();
+  }
+});
+
 attachFormListeners();
 setupNavigationDetection();
 
@@ -743,14 +822,8 @@ observer.observe(document.body, { childList: true, subtree: true });
 // Listen for autofill requests from popup
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'SPHYNX_VAULT_STATUS_BROADCAST') {
-    window.postMessage(
-      {
-        type: 'SPHYNX_VAULT_STATUS',
-        extensionId: message.extensionId,
-        isUnlocked: message.isUnlocked,
-      },
-      '*'
-    );
+    console.log('[Extension Status] sync payload:', message);
+    postVaultStatusToPage(!!message.isUnlocked);
     sendResponse({ success: true });
     return true;
   }
@@ -762,10 +835,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   return true;
 });
 
-// Extension ID broadcast for Sphynx frontend
-if (window.location.origin === 'http://localhost:3000') {
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
   const broadcast = () => {
-    window.postMessage({ type: 'SPHYNX_EXTENSION_DETECTED', extensionId: chrome.runtime.id }, '*');
     broadcastExtensionStatus();
     if (isSphynxWebApp()) removeAllAutofillBadges();
   };
