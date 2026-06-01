@@ -68,7 +68,7 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
         }
       }
 
-      const plaintext = await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry.debugKeyFingerprint);
+      const plaintext = await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry);
       setDecryptedCache(prev => ({ ...prev, [entry.id]: plaintext }));
     } catch (err) {
       console.error('Local decryption failed:', err);
@@ -106,7 +106,7 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
 
       // Decrypt locally on the fly
       const plaintext = decryptedCache[entry.id] || 
-                        await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry.debugKeyFingerprint);
+                        await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry);
 
       // Write plaintext to clipboard
       await navigator.clipboard.writeText(plaintext);
@@ -162,7 +162,7 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
       }
 
       const decryptedPassword = decryptedCache[entry.id] || 
-                                await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry.debugKeyFingerprint);
+                                await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry);
       
       onEditClick({ ...entry, decryptedPassword });
     } catch (err) {

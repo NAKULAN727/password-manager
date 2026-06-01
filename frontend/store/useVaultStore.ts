@@ -23,7 +23,7 @@ export interface EncryptedVaultEntry {
   checksum?: string;  // Base64 HMAC
   createdAt: string;
   updatedAt: string;
-  debugKeyFingerprint?: string;
+  keyFingerprint?: string;
 }
 
 interface VaultState {
@@ -348,17 +348,17 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       set({ isLoading: true, error: null });
       const entries = await api.get('/vault/list');
       const mappedEntries = entries.map((entry: any) => {
-        let debugKeyFingerprint = undefined;
+        let keyFingerprint = entry.keyFingerprint;
         let cleanChecksum = entry.checksum;
-        if (entry.checksum && entry.checksum.includes(':')) {
+        if (!keyFingerprint && entry.checksum && entry.checksum.includes(':')) {
           const parts = entry.checksum.split(':');
           cleanChecksum = parts[0];
-          debugKeyFingerprint = parts[1];
+          keyFingerprint = parts[1];
         }
         return {
           ...entry,
           checksum: cleanChecksum,
-          debugKeyFingerprint
+          keyFingerprint,
         };
       });
       set({ vaultEntries: mappedEntries });
@@ -396,14 +396,22 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       );
 
       // 3. Post encrypted payload with checksum to Express Backend
-      await api.post('/vault/add', {
+      const payload = {
         label,
         username,
         ciphertext: encrypted.ciphertext,
         iv: encrypted.iv,
         tag: encrypted.tag,
-        checksum: `${checksum}:${encrypted.debugKeyFingerprint}`
-      });
+        checksum,
+        keyFingerprint: encrypted.keyFingerprint,
+      };
+
+      console.log(
+        '[Sphynx Debug] CREATE payload fingerprint:',
+        payload.keyFingerprint
+      );
+
+      await api.post('/vault/add', payload);
 
       // 4. Refresh encrypted list
       await get().fetchEntries();
@@ -463,7 +471,8 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         ciphertext: encrypted.ciphertext,
         iv: encrypted.iv,
         tag: encrypted.tag,
-        checksum: `${checksum}:${encrypted.debugKeyFingerprint}`
+        checksum,
+        keyFingerprint: encrypted.keyFingerprint,
       });
 
       // 4. Refresh encrypted list

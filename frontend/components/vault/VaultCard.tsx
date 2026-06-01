@@ -70,7 +70,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
         }
       }
 
-      const plaintext = await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry.debugKeyFingerprint);
+      const plaintext = await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry);
       setDecryptedText(plaintext);
     } catch (err) {
       console.error('Local decryption failed:', err);
@@ -105,7 +105,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
       }
 
       const plaintext = decryptedText || 
-                        await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry.debugKeyFingerprint);
+                        await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry);
 
       await navigator.clipboard.writeText(plaintext);
       
@@ -159,7 +159,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
       }
 
       const decryptedPassword = decryptedText || 
-                                await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry.debugKeyFingerprint);
+                                await decryptEntry(entry.ciphertext, entry.iv, entry.tag, kVault, entry);
       
       onEditClick({ ...entry, decryptedPassword });
     } catch (err) {

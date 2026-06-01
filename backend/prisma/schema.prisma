@@ -67,6 +67,7 @@ model VaultEntry {
   iv         String   @db.VarChar(64)
   tag        String   @db.VarChar(64)
   checksum   String?  @db.Text    // Base64 HMAC-SHA256 integrity checksum
+  keyFingerprint String? @db.VarChar(32) // Hex fingerprint of kVault at encryption time
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

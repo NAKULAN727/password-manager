@@ -173,7 +173,7 @@ export interface EncryptedPayload {
   ciphertext: string; // Base64
   iv: string;         // Base64
   tag: string;        // Base64
-  debugKeyFingerprint?: string;
+  keyFingerprint: string;
 }
 
 export let currentKeySource = 'UNKNOWN';
@@ -197,11 +197,11 @@ export async function encryptEntry(
     currentKeySource
   );
 
-  const fingerprint = await getKeyFingerprint(kVault);
+  const keyFingerprint = await getKeyFingerprint(kVault);
 
   console.log(
-    "[Sphynx Debug] ENCRYPT fingerprint:",
-    fingerprint
+    '[Sphynx Debug] ENCRYPT fingerprint:',
+    keyFingerprint
   );
 
   // Generate a cryptographically random, unique 96-bit (12 bytes) Initialization Vector
@@ -226,7 +226,7 @@ export async function encryptEntry(
     ciphertext: bufferToBase64(ciphertextBytes),
     iv: bufferToBase64(iv),
     tag: bufferToBase64(tagBytes),
-    debugKeyFingerprint: fingerprint,
+    keyFingerprint,
   };
 }
 
@@ -239,7 +239,7 @@ export async function decryptEntry(
   ivBase64: string,
   tagBase64: string,
   kVault: CryptoKey,
-  debugKeyFingerprint?: string
+  entry?: { keyFingerprint?: string }
 ): Promise<string> {
   const dec = new TextDecoder();
 
@@ -263,17 +263,14 @@ export async function decryptEntry(
   const ciphertext = base64ToBuffer(ciphertextBase64);
   const tag = base64ToBuffer(tagBase64);
 
-  const currentFingerprint =
-    await getKeyFingerprint(kVault);
-
   console.log(
-    "[Sphynx Debug] DECRYPT fingerprint:",
-    currentFingerprint
+    '[Sphynx Debug] DECRYPT fingerprint:',
+    await getKeyFingerprint(kVault)
   );
 
   console.log(
-    "[Sphynx Debug] ENTRY fingerprint:",
-    debugKeyFingerprint
+    '[Sphynx Debug] ENTRY fingerprint:',
+    entry?.keyFingerprint
   );
 
   console.log('[Sphynx Debug] decryptEntry — Ciphertext bytes:', ciphertext.length, '| IV bytes:', iv.length, '| Tag bytes:', tag.length);

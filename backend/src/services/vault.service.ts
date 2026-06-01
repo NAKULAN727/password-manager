@@ -77,8 +77,14 @@ export class VaultService {
     iv: string;
     tag: string;
     checksum?: string;
+    keyFingerprint?: string;
   }) {
-    return prisma.vaultEntry.create({
+    console.log(
+      '[Sphynx Debug] Prisma saving fingerprint:',
+      data.keyFingerprint
+    );
+
+    const entry = await prisma.vaultEntry.create({
       data: {
         userId,
         label: data.label,
@@ -87,8 +93,16 @@ export class VaultService {
         iv: data.iv,
         tag: data.tag,
         checksum: data.checksum || null,
+        keyFingerprint: data.keyFingerprint || null,
       },
     });
+
+    console.log(
+      '[Sphynx Debug] Prisma saved entry:',
+      entry.keyFingerprint
+    );
+
+    return entry;
   }
 
   /**
@@ -111,6 +125,7 @@ export class VaultService {
     iv: string;
     tag: string;
     checksum?: string;
+    keyFingerprint?: string;
   }) {
     return prisma.vaultEntry.updateMany({
       where: { id: entryId, userId },
@@ -121,6 +136,7 @@ export class VaultService {
         iv: data.iv,
         tag: data.tag,
         checksum: data.checksum || null,
+        keyFingerprint: data.keyFingerprint || null,
         updatedAt: new Date(),
       },
     });
