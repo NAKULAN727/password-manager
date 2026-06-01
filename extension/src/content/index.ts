@@ -32,6 +32,54 @@ interface CapturedCredential {
 let activeBadgeContainers = new Map<HTMLInputElement, HTMLDivElement>();
 let activeDropdown: HTMLDivElement | null = null;
 
+/** Sphynx web app pages must not show floating autofill badges or dropdowns. */
+function isSphynxWebApp(): boolean {
+  const { hostname, port } = window.location;
+  if (
+    (hostname === 'localhost' || hostname === '127.0.0.1') &&
+    (port === '3000' || port === '')
+  ) {
+    return true;
+  }
+  if (document.documentElement.hasAttribute('data-sphynx-extension')) return true;
+  if (document.getElementById('__sphynx_sync__')) return true;
+  return false;
+}
+
+function removeAllAutofillBadges() {
+  activeBadgeContainers.forEach((container) => container.remove());
+  activeBadgeContainers.clear();
+  if (activeDropdown) {
+    activeDropdown.remove();
+    activeDropdown = null;
+  }
+}
+
+function notifyAutofillLocked() {
+  if (isSphynxWebApp()) {
+    window.postMessage({ type: 'SPHYNX_AUTOFILL_LOCKED' }, '*');
+    return;
+  }
+  if (isContextValid()) {
+    chrome.runtime.sendMessage({ type: 'OPEN_EXTENSION_POPUP' });
+  }
+}
+
+function broadcastExtensionStatus() {
+  if (!isContextValid()) return;
+  chrome.runtime.sendMessage({ type: 'GET_VAULT_STATUS' }, (response) => {
+    if (chrome.runtime.lastError) return;
+    window.postMessage(
+      {
+        type: 'SPHYNX_VAULT_STATUS',
+        extensionId: chrome.runtime.id,
+        isUnlocked: response?.success ? !!response.data?.isUnlocked : false,
+      },
+      '*'
+    );
+  });
+}
+
 // Save-password detection state
 let lastCapturedCredential: CapturedCredential | null = null;
 let lastNavigationUrl: string = window.location.href;
@@ -89,7 +137,16 @@ if (window.location.hostname === 'localhost') {
       relaySyncToBackground(event.data.payload);
     }
     if (event.data?.type === 'SPHYNX_PING_EXTENSION') {
-      window.postMessage({ type: 'SPHYNX_EXTENSION_DETECTED', extensionId: chrome.runtime.id }, '*');
+      window.postMessage(
+        { type: 'SPHYNX_EXTENSION_DETECTED', extensionId: chrome.runtime.id },
+        '*'
+      );
+      broadcastExtensionStatus();
+    }
+    if (event.data?.type === 'SPHYNX_OPEN_EXTENSION') {
+      if (isContextValid()) {
+        chrome.runtime.sendMessage({ type: 'OPEN_EXTENSION_POPUP' });
+      }
     }
   });
 
@@ -446,6 +503,10 @@ function onNavigationChange() {
 
 function scanForPasswordInputs() {
   if (!isContextValid()) return;
+  if (isSphynxWebApp()) {
+    removeAllAutofillBadges();
+    return;
+  }
   const inputs = document.querySelectorAll('input[type="password"]');
   inputs.forEach((element) => {
     const input = element as HTMLInputElement;
@@ -483,39 +544,64 @@ function injectAutofillBadge(passwordInput: HTMLInputElement) {
 
 function showAutofillDropdown(passwordInput: HTMLInputElement, shadow: ShadowRoot) {
   if (activeDropdown) { activeDropdown.remove(); activeDropdown = null; }
-  const dropdown = document.createElement('div');
-  dropdown.className = 'sphynx-dropdown';
-  dropdown.style.display = 'block';
+
   chrome.runtime.sendMessage({ type: 'GET_ENTRIES' }, (response) => {
     if (!response?.success) {
-      dropdown.innerHTML = '<div class="sphynx-dropdown-empty">🔒 Vault locked. Open extension to unlock.</div>';
-    } else {
-      const entries = response.data || [];
-      const host = window.location.hostname.toLowerCase();
-      const relevant = entries.filter((e: any) => { const l = e.label.toLowerCase(); const u = (e.url || '').toLowerCase(); return l.includes(host) || host.includes(l.split('.')[0]) || u.includes(host); });
-      const display = relevant.length > 0 ? relevant : entries;
-      if (display.length === 0) { dropdown.innerHTML = '<div class="sphynx-dropdown-title">Sphynx</div><div class="sphynx-dropdown-empty">No entries.</div>'; }
-      else {
-        dropdown.innerHTML = '<div class="sphynx-dropdown-title">Select Account</div>';
-        display.forEach((entry: any) => {
-          const item = document.createElement('div');
-          item.className = 'sphynx-dropdown-item';
-          item.innerHTML = `<span class="sphynx-item-label">${entry.label}</span><span class="sphynx-item-sub">${entry.username || ''}</span>`;
-          item.addEventListener('click', (ev) => { ev.stopPropagation(); performSecureAutofill(passwordInput, entry.id); dropdown.remove(); activeDropdown = null; });
-          dropdown.appendChild(item);
-        });
-      }
+      notifyAutofillLocked();
+      return;
     }
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'sphynx-dropdown';
+    dropdown.style.display = 'block';
+
+    const entries = response.data || [];
+    const host = window.location.hostname.toLowerCase();
+    const relevant = entries.filter((e: any) => {
+      const l = e.label.toLowerCase();
+      const u = (e.url || '').toLowerCase();
+      return l.includes(host) || host.includes(l.split('.')[0]) || u.includes(host);
+    });
+    const display = relevant.length > 0 ? relevant : entries;
+
+    if (display.length === 0) {
+      dropdown.innerHTML =
+        '<div class="sphynx-dropdown-title">Sphynx</div><div class="sphynx-dropdown-empty">No entries.</div>';
+    } else {
+      dropdown.innerHTML = '<div class="sphynx-dropdown-title">Select Account</div>';
+      display.forEach((entry: any) => {
+        const item = document.createElement('div');
+        item.className = 'sphynx-dropdown-item';
+        item.innerHTML = `<span class="sphynx-item-label">${entry.label}</span><span class="sphynx-item-sub">${entry.username || ''}</span>`;
+        item.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          performSecureAutofill(passwordInput, entry.id);
+          dropdown.remove();
+          activeDropdown = null;
+        });
+        dropdown.appendChild(item);
+      });
+    }
+
+    shadow.appendChild(dropdown);
+    activeDropdown = dropdown;
+    const dismiss = (e: MouseEvent) => {
+      if (activeDropdown && !dropdown.contains(e.target as Node)) {
+        dropdown.remove();
+        activeDropdown = null;
+        document.removeEventListener('click', dismiss);
+      }
+    };
+    document.addEventListener('click', dismiss);
   });
-  shadow.appendChild(dropdown);
-  activeDropdown = dropdown;
-  const dismiss = (e: MouseEvent) => { if (activeDropdown && !dropdown.contains(e.target as Node)) { dropdown.remove(); activeDropdown = null; document.removeEventListener('click', dismiss); } };
-  document.addEventListener('click', dismiss);
 }
 
 function performSecureAutofill(passwordInput: HTMLInputElement, entryId: string) {
   chrome.runtime.sendMessage({ type: 'GET_CREDENTIALS', payload: { entryId, hostname: window.location.hostname } }, (response) => {
-    if (!response?.success || !response.data) return;
+    if (!response?.success || !response.data) {
+      notifyAutofillLocked();
+      return;
+    }
     const { username, password } = response.data;
     const form = passwordInput.closest('form');
     let usernameInput: HTMLInputElement | null = null;
@@ -656,6 +742,18 @@ observer.observe(document.body, { childList: true, subtree: true });
 
 // Listen for autofill requests from popup
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message.type === 'SPHYNX_VAULT_STATUS_BROADCAST') {
+    window.postMessage(
+      {
+        type: 'SPHYNX_VAULT_STATUS',
+        extensionId: message.extensionId,
+        isUnlocked: message.isUnlocked,
+      },
+      '*'
+    );
+    sendResponse({ success: true });
+    return true;
+  }
   if (message.type === 'FILL_ACTIVE_TAB') {
     const pws = document.querySelectorAll('input[type="password"]');
     if (pws.length > 0) { performSecureAutofill(pws[0] as HTMLInputElement, message.entryId); sendResponse({ success: true }); }
@@ -666,10 +764,19 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 // Extension ID broadcast for Sphynx frontend
 if (window.location.origin === 'http://localhost:3000') {
-  const broadcast = () => { window.postMessage({ type: 'SPHYNX_EXTENSION_DETECTED', extensionId: chrome.runtime.id }, '*'); };
+  const broadcast = () => {
+    window.postMessage({ type: 'SPHYNX_EXTENSION_DETECTED', extensionId: chrome.runtime.id }, '*');
+    broadcastExtensionStatus();
+    if (isSphynxWebApp()) removeAllAutofillBadges();
+  };
   setTimeout(broadcast, 500);
   let lastUrl = window.location.href;
-  const navObs = new MutationObserver(() => { if (window.location.href !== lastUrl) { lastUrl = window.location.href; setTimeout(broadcast, 300); } });
+  const navObs = new MutationObserver(() => {
+    if (window.location.href !== lastUrl) {
+      lastUrl = window.location.href;
+      setTimeout(broadcast, 300);
+    }
+  });
   navObs.observe(document.body, { childList: true, subtree: true });
 }
 

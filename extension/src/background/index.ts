@@ -35,6 +35,19 @@ async function saveSession(session: Partial<ExtensionSession>) {
   await chrome.storage.session.set(session);
 }
 
+function broadcastVaultStatusToWebTabs(isUnlocked: boolean) {
+  const payload = {
+    type: 'SPHYNX_VAULT_STATUS_BROADCAST',
+    extensionId: chrome.runtime.id,
+    isUnlocked,
+  };
+  chrome.tabs.query({ url: `${CONFIG.WEB_APP_URL}/*` }, (tabs) => {
+    tabs.forEach((tab) => {
+      if (tab.id) chrome.tabs.sendMessage(tab.id, payload).catch(() => {});
+    });
+  });
+}
+
 async function clearSession() {
   console.log(
     '[Sphynx Debug] kVault ASSIGNED',
@@ -48,6 +61,7 @@ async function clearSession() {
   stopAutoLockTimer();
   await chrome.storage.session.remove(['address', 'derivationSignature', 'token', 'isUnlocked']);
   console.log('[Sphynx] Session locked and keys cleared from memory.');
+  broadcastVaultStatusToWebTabs(false);
 }
 
 // Initialize auto-lock with clearSession as the lock callback
@@ -272,6 +286,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
 
       console.log('[Sphynx BG] Session stored. kVault:', !!kVault);
+      broadcastVaultStatusToWebTabs(!!kVault);
       sendResponse({ success: true, message: 'Session synchronized.' });
     }).catch(err => {
       console.error('[Sphynx BG] Internal sync failed:', err);
@@ -308,6 +323,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     getSession().then((session) => {
       sendResponse({ success: true, data: { address: session.address, isUnlocked: session.isUnlocked } });
     });
+    return true;
+  }
+
+  // --- OPEN_EXTENSION_POPUP ---
+  if (type === 'OPEN_EXTENSION_POPUP') {
+    chrome.action.openPopup().catch(() => {
+      chrome.tabs.create({ url: chrome.runtime.getURL('public/index.html') });
+    });
+    sendResponse({ success: true });
     return true;
   }
 

@@ -11,6 +11,7 @@ import {
   EncryptedVEKEnvelope,
 } from '../lib/crypto/sanctuary';
 import { exportVaultKeyForExtension } from '../lib/crypto/extensionHandoff';
+import { toast } from './useToastStore';
 import { ethers } from 'ethers';
 
 export interface EncryptedVaultEntry {
@@ -319,6 +320,8 @@ export const useVaultStore = create<VaultState>((set, get) => ({
    * Wipes all key material and credential lists from client memory.
    */
   lockVault: () => {
+    const wasUnlocked = get().isUnlocked;
+
     console.log(
       '[Sphynx Debug] kVault ASSIGNED',
       {
@@ -338,6 +341,10 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       error: null,
       activeClipboardTimer: null,
     });
+
+    if (wasUnlocked) {
+      toast.info('🔒 Vault Locked', 'Open the extension to unlock your vault.');
+    }
   },
 
   /**
@@ -415,6 +422,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
 
       // 4. Refresh encrypted list
       await get().fetchEntries();
+      toast.success('✓ Secret Saved');
     } catch (err: any) {
       console.error('Failed to encrypt/add secret:', err);
       set({ error: err.message || 'Failed to encrypt and store secret.' });
@@ -431,6 +439,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       set({ isLoading: true, error: null });
       await api.delete(`/vault/${id}`);
       await get().fetchEntries();
+      toast.success('✓ Secret Deleted');
     } catch (err: unknown) {
       console.error('Failed to purge secret:', err);
       const message =
@@ -480,6 +489,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
 
       // 4. Refresh encrypted list
       await get().fetchEntries();
+      toast.success('✓ Secret Updated');
     } catch (err: any) {
       console.error('Failed to encrypt/edit secret:', err);
       set({ error: err.message || 'Failed to encrypt and update secret.' });

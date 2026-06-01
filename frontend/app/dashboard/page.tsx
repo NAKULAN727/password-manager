@@ -21,6 +21,7 @@ import { VaultCard } from '../../components/vault/VaultCard';
 import { ClipboardPurgeBar } from '../../components/vault/ClipboardPurgeBar';
 import { TamperAlarm } from '../../components/vault/TamperAlarm';
 import { SanctuaryGate } from '../../components/vault/SanctuaryGate';
+import { ExtensionStatusBadge } from '../../components/vault/ExtensionStatusBadge';
 
 import { 
   Shield, 
@@ -268,7 +269,8 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3.5">
-            <div className="hidden sm:flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs font-mono text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.05)] select-none">
+            <ExtensionStatusBadge />
+            <div className="hidden md:flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs font-mono text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.05)] select-none">
               <Unlock size={12} className="animate-pulse" />
               Integrity Verified
             </div>

@@ -7,12 +7,21 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useVaultStore } from '../../store/useVaultStore';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { KeyDerivationAnimation } from './KeyDerivationAnimation';
+import { VaultUnlockSequence, VAULT_UNLOCK_MIN_MS } from './VaultUnlockSequence';
 import {
   evaluatePhraseStrength,
   generateSanctuaryPhrase,
 } from '../../lib/crypto/sanctuary';
-import { Key, RefreshCw, Eye, EyeOff, ShieldAlert, Sparkles } from 'lucide-react';
+import { Key, Eye, EyeOff, ShieldAlert, Sparkles } from 'lucide-react';
+
+async function runUnlockCeremony(unlock: () => Promise<void>) {
+  const started = Date.now();
+  await unlock();
+  const remaining = VAULT_UNLOCK_MIN_MS - (Date.now() - started);
+  if (remaining > 0) {
+    await new Promise<void>((resolve) => setTimeout(resolve, remaining));
+  }
+}
 
 // ─── Strength Bar ────────────────────────────────────────────────────────────
 
@@ -91,11 +100,12 @@ function PhraseInput({
 
 function CreateSanctuary() {
   const { address } = useAuthStore();
-  const { initializeSanctuary, isLoading, error, setError } = useVaultStore();
+  const { initializeSanctuary, error, setError } = useVaultStore();
 
   const [phrase, setPhrase] = useState('');
   const [confirm, setConfirm] = useState('');
   const [mismatch, setMismatch] = useState(false);
+  const [showUnlockCeremony, setShowUnlockCeremony] = useState(false);
 
   const handleGenerate = useCallback(() => {
     const generated = generateSanctuaryPhrase(5);
@@ -117,18 +127,39 @@ function CreateSanctuary() {
       return;
     }
 
-    await initializeSanctuary(phrase);
-    // Clear sensitive inputs from DOM memory
+    setShowUnlockCeremony(true);
+    try {
+      await runUnlockCeremony(() => initializeSanctuary(phrase));
+    } finally {
+      setShowUnlockCeremony(false);
+    }
     setPhrase('');
     setConfirm('');
   };
 
   return (
+    <>
+      <AnimatePresence>
+        {showUnlockCeremony && (
+          <motion.div
+            key="unlock-ceremony"
+            className="fixed inset-0 z-[200]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <VaultUnlockSequence />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     <motion.div
       initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: showUnlockCeremony ? 0.4 : 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 80, damping: 16 }}
       className="w-full max-w-md"
+      aria-hidden={showUnlockCeremony}
     >
       {/* Header */}
       <div className="mb-8 flex flex-col items-center text-center">
@@ -150,83 +181,77 @@ function CreateSanctuary() {
         </p>
       </div>
 
-      {isLoading ? (
-        <KeyDerivationAnimation />
-      ) : (
-        <Card className="border-[#D4AF37]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <Card className="border-[#f5b942]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-            {/* Error banner */}
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="rounded-xl border border-red-500/15 bg-red-500/5 p-4 text-red-400 text-xs leading-relaxed"
-                >
-                  {error}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Wallet salt display */}
-            <div className="rounded-xl border border-white/5 bg-[#090D16]/80 p-3.5 text-xs flex flex-col gap-1">
-              <span className="text-[10px] text-white/30 uppercase tracking-widest font-semibold">
-                Vault Salt (Wallet Address)
-              </span>
-              <span className="font-mono text-[#D4AF37] break-all text-[11px]">{address}</span>
-            </div>
-
-            {/* Phrase generator */}
-            <button
-              type="button"
-              onClick={handleGenerate}
-              className="flex items-center gap-2 text-xs text-[#D4AF37]/70 hover:text-[#D4AF37] transition-colors font-semibold self-start"
-            >
-              <Sparkles size={13} />
-              Generate secure phrase suggestion
-            </button>
-
-            <PhraseInput
-              label="Sanctuary Phrase"
-              value={phrase}
-              onChange={setPhrase}
-              showStrength
-              placeholder="Create a strong sanctuary phrase"
-            />
-
-            <PhraseInput
-              label="Confirm Sanctuary Phrase"
-              value={confirm}
-              onChange={setConfirm}
-              placeholder="Repeat your sanctuary phrase"
-            />
-
-            {mismatch && (
-              <p className="text-xs text-red-400 font-mono -mt-2">
-                Phrases do not match.
-              </p>
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="rounded-xl border border-red-500/15 bg-red-500/5 p-4 text-red-400 text-xs leading-relaxed"
+              >
+                {error}
+              </motion.div>
             )}
+          </AnimatePresence>
 
-            {/* Warning */}
-            <div className="rounded-xl border border-amber-500/10 bg-amber-950/10 p-3.5 flex gap-2.5 text-xs text-amber-300/70 leading-relaxed">
-              <ShieldAlert size={14} className="shrink-0 mt-0.5 text-amber-400" />
-              If your sanctuary phrase is lost, your encrypted sanctuary cannot be recovered.
-            </div>
+          <div className="rounded-xl border border-white/5 bg-[#090D16]/80 p-3.5 text-xs flex flex-col gap-1">
+            <span className="text-[10px] text-white/30 uppercase tracking-widest font-semibold">
+              Vault Salt (Wallet Address)
+            </span>
+            <span className="font-mono text-[#f5b942] break-all text-[11px]">{address}</span>
+          </div>
 
-            <Button
-              variant="primary"
-              type="submit"
-              className="w-full gap-2 py-3.5 text-sm font-semibold"
-            >
-              <Key size={16} />
-              Initialize Sanctuary
-            </Button>
-          </form>
-        </Card>
-      )}
+          <button
+            type="button"
+            onClick={handleGenerate}
+            className="flex items-center gap-2 text-xs text-[#f5b942]/70 hover:text-[#f5b942] transition-colors font-semibold self-start"
+          >
+            <Sparkles size={13} />
+            Generate secure phrase suggestion
+          </button>
+
+          <PhraseInput
+            label="Sanctuary Phrase"
+            value={phrase}
+            onChange={setPhrase}
+            showStrength
+            placeholder="Create a strong sanctuary phrase"
+          />
+
+          <PhraseInput
+            label="Confirm Sanctuary Phrase"
+            value={confirm}
+            onChange={setConfirm}
+            placeholder="Repeat your sanctuary phrase"
+          />
+
+          {mismatch && (
+            <p className="text-xs text-red-400 font-mono -mt-2">
+              Phrases do not match.
+            </p>
+          )}
+
+          <div className="rounded-xl border border-amber-500/10 bg-amber-950/10 p-3.5 flex gap-2.5 text-xs text-amber-300/70 leading-relaxed">
+            <ShieldAlert size={14} className="shrink-0 mt-0.5 text-amber-400" />
+            If your sanctuary phrase is lost, your encrypted sanctuary cannot be recovered.
+          </div>
+
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={showUnlockCeremony}
+            className="w-full gap-2 py-3.5 text-sm font-semibold"
+          >
+            <Key size={16} />
+            Initialize Sanctuary
+          </Button>
+        </form>
+      </Card>
     </motion.div>
+    </>
   );
 }
 
@@ -234,24 +259,47 @@ function CreateSanctuary() {
 
 function UnlockSanctuary() {
   const { address } = useAuthStore();
-  const { unlockSanctuary, isLoading, error, setError } = useVaultStore();
+  const { unlockSanctuary, error, setError } = useVaultStore();
 
   const [phrase, setPhrase] = useState('');
+  const [showUnlockCeremony, setShowUnlockCeremony] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     if (!phrase) return;
-    await unlockSanctuary(phrase);
+    setShowUnlockCeremony(true);
+    try {
+      await runUnlockCeremony(() => unlockSanctuary(phrase));
+    } finally {
+      setShowUnlockCeremony(false);
+    }
     setPhrase('');
   };
 
   return (
+    <>
+      <AnimatePresence>
+        {showUnlockCeremony && (
+          <motion.div
+            key="unlock-ceremony"
+            className="fixed inset-0 z-[200]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <VaultUnlockSequence />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     <motion.div
       initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: showUnlockCeremony ? 0.4 : 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 80, damping: 16 }}
       className="w-full max-w-md"
+      aria-hidden={showUnlockCeremony}
     >
       {/* Header */}
       <div className="mb-8 flex flex-col items-center text-center">
@@ -273,55 +321,53 @@ function UnlockSanctuary() {
         </p>
       </div>
 
-      {isLoading ? (
-        <KeyDerivationAnimation />
-      ) : (
-        <Card className="border-[#D4AF37]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <Card className="border-[#f5b942]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="rounded-xl border border-red-500/15 bg-red-500/5 p-4 text-red-400 text-xs leading-relaxed"
-                >
-                  {error}
-                </motion.div>
-              )}
-            </AnimatePresence>
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="rounded-xl border border-red-500/15 bg-red-500/5 p-4 text-red-400 text-xs leading-relaxed"
+              >
+                {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            <div className="rounded-xl border border-white/5 bg-[#090D16]/80 p-3.5 text-xs flex flex-col gap-1">
-              <span className="text-[10px] text-white/30 uppercase tracking-widest font-semibold">
-                Vault Salt (Wallet Address)
-              </span>
-              <span className="font-mono text-[#D4AF37] break-all text-[11px]">{address}</span>
-            </div>
+          <div className="rounded-xl border border-white/5 bg-[#090D16]/80 p-3.5 text-xs flex flex-col gap-1">
+            <span className="text-[10px] text-white/30 uppercase tracking-widest font-semibold">
+              Vault Salt (Wallet Address)
+            </span>
+            <span className="font-mono text-[#f5b942] break-all text-[11px]">{address}</span>
+          </div>
 
-            <PhraseInput
-              label="Sanctuary Phrase"
-              value={phrase}
-              onChange={setPhrase}
-              placeholder="Enter your sanctuary phrase"
-            />
+          <PhraseInput
+            label="Sanctuary Phrase"
+            value={phrase}
+            onChange={setPhrase}
+            placeholder="Enter your sanctuary phrase"
+          />
 
-            <Button
-              variant="primary"
-              type="submit"
-              className="w-full gap-2 py-3.5 text-sm font-semibold"
-            >
-              <Key size={16} />
-              Unlock Sanctuary
-            </Button>
-          </form>
-        </Card>
-      )}
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={showUnlockCeremony}
+            className="w-full gap-2 py-3.5 text-sm font-semibold"
+          >
+            <Key size={16} />
+            Unlock Sanctuary
+          </Button>
+        </form>
+      </Card>
 
       <p className="mt-6 text-center text-xs text-slate-400 leading-relaxed max-w-xs mx-auto font-mono">
         MetaMask will verify account ownership. KEK derivation happens locally and never touches the network.
       </p>
     </motion.div>
+    </>
   );
 }
 
@@ -353,10 +399,24 @@ export function SanctuaryGate({ onLogout }: { onLogout: () => void }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-4 text-slate-400 text-sm font-mono"
+              className="flex flex-col items-center gap-5"
             >
-              <RefreshCw size={20} className="animate-spin text-[#D4AF37]" />
-              Verifying sanctuary status...
+              <div className="relative flex h-14 w-14 items-center justify-center">
+                <motion.div
+                  className="absolute inset-0 rounded-full border border-[#f5b942]/20"
+                  animate={{ scale: [1, 1.12, 1], opacity: [0.35, 0.7, 0.35] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                <motion.div
+                  className="h-1.5 w-1.5 rounded-full bg-[#f5b942]"
+                  style={{ boxShadow: '0 0 12px rgba(245,185,66,0.8)' }}
+                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                />
+              </div>
+              <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-white/35">
+                Establishing secure channel
+              </p>
             </motion.div>
           )}
 

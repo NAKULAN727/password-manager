@@ -3,6 +3,9 @@ import { Sora, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionInitializer } from "../components/auth/SessionInitializer";
 import { HydrationSafe } from "../components/ui/HydrationSafe";
+import { SphynxDialogProvider } from "../components/ui/SphynxDialogProvider";
+import { SphynxToastProvider } from "../components/ui/SphynxToastProvider";
+import { ExtensionStatusBridge } from "../components/vault/ExtensionStatusBridge";
 
 // Sora — Headlines / Display (weight 700)
 const sora = Sora({
@@ -83,7 +86,12 @@ export default function RootLayout({
       >
         <SessionInitializer />
         <HydrationSafe>
-          {children}
+          <SphynxDialogProvider>
+            <SphynxToastProvider>
+              <ExtensionStatusBridge />
+              {children}
+            </SphynxToastProvider>
+          </SphynxDialogProvider>
         </HydrationSafe>
       </body>
     </html>

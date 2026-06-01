@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useVaultStore, EncryptedVaultEntry } from '../../store/useVaultStore';
+import { useSphynxDialog } from '../../hooks/useSphynxDialog';
+import { toast } from '../../store/useToastStore';
 import { decryptEntry, verifyEntryHMAC } from '../../lib/crypto/vault';
 import { DecryptedPassword } from './DecryptedPassword';
 import { 
@@ -32,6 +34,7 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
     activeClipboardTimer,
     setActiveClipboardTimer 
   } = useVaultStore();
+  const { confirmDeleteSecret } = useSphynxDialog();
   
   // Local decrypted cache
   const [decryptedCache, setDecryptedCache] = useState<Record<string, string>>({});
@@ -72,6 +75,7 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
       setDecryptedCache(prev => ({ ...prev, [entry.id]: plaintext }));
     } catch (err) {
       console.error('Local decryption failed:', err);
+      toast.error('✕ Decryption Failed');
     } finally {
       setDecryptingId(null);
     }
@@ -132,6 +136,7 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
 
     } catch (err) {
       console.error('Copy/Decrypt failed:', err);
+      toast.error('✕ Decryption Failed');
     }
   };
 
@@ -167,16 +172,19 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
       onEditClick({ ...entry, decryptedPassword });
     } catch (err) {
       console.error('Failed to decrypt for edit:', err);
-      onEditClick(entry); // Fallback to raw if decryption fails
+      toast.error('✕ Decryption Failed');
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you absolutely sure you want to delete this secret? This action is irreversible.')) {
-      return;
-    }
+  const handleDelete = async (entry: EncryptedVaultEntry) => {
+    const confirmed = await confirmDeleteSecret({
+      serviceName: entry.label,
+      username: entry.username || '—',
+    });
+    if (!confirmed) return;
+
     try {
-      await deleteEntry(id);
+      await deleteEntry(entry.id);
     } catch {
       // Error message is set on the vault store and shown on the dashboard.
     }
@@ -298,7 +306,7 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
 
                     {/* Delete Button */}
                     <button
-                      onClick={() => handleDelete(entry.id)}
+                      onClick={() => handleDelete(entry)}
                       className="text-white/35 hover:text-red-400 transition-colors p-1.5 hover:bg-white/5 rounded-lg"
                       title="Delete secret"
                     >

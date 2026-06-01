@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useVaultStore, EncryptedVaultEntry } from '../../store/useVaultStore';
+import { useSphynxDialog } from '../../hooks/useSphynxDialog';
+import { toast } from '../../store/useToastStore';
 import { decryptEntry, verifyEntryHMAC } from '../../lib/crypto/vault';
 import { Card } from '../ui/Card';
 import { DecryptedPassword } from './DecryptedPassword';
@@ -35,6 +37,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
     activeClipboardTimer,
     setActiveClipboardTimer 
   } = useVaultStore();
+  const { confirmDeleteSecret } = useSphynxDialog();
 
   const [decryptedText, setDecryptedText] = useState<string | null>(null);
   const [isDecrypting, setIsDecrypting] = useState(false);
@@ -74,6 +77,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
       setDecryptedText(plaintext);
     } catch (err) {
       console.error('Local decryption failed:', err);
+      toast.error('✕ Decryption Failed');
     } finally {
       setIsDecrypting(false);
     }
@@ -130,6 +134,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
 
     } catch (err) {
       console.error('Copy failed:', err);
+      toast.error('✕ Decryption Failed');
     }
   };
 
@@ -164,13 +169,21 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
       onEditClick({ ...entry, decryptedPassword });
     } catch (err) {
       console.error('Failed to decrypt for edit:', err);
-      onEditClick(entry);
+      toast.error('✕ Decryption Failed');
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you absolutely sure you want to delete this secret? This action is irreversible.')) {
+    const confirmed = await confirmDeleteSecret({
+      serviceName: entry.label,
+      username: entry.username || '—',
+    });
+    if (!confirmed) return;
+
+    try {
       await deleteEntry(entry.id);
+    } catch {
+      // Error surfaced via vault store on dashboard.
     }
   };
 
