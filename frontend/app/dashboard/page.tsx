@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useVaultStore, EncryptedVaultEntry } from '../../store/useVaultStore';
-import { api } from '../../lib/api/client';
+import { api, getApiBaseUrl } from '../../lib/api/client';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 
@@ -109,7 +109,7 @@ export default function DashboardPage() {
       let activeToken = token;
       if (!activeToken) {
         try {
-          const data = await fetch('http://localhost:5000/api/auth/refresh', {
+          const data = await fetch(`${getApiBaseUrl()}/auth/refresh`, {
             method: 'POST',
             credentials: 'include',
           }).then(r => r.json());
@@ -229,6 +229,14 @@ export default function DashboardPage() {
 
       {/* Background inactivity monitoring trigger */}
       <SessionLock />
+
+      {vaultError && (
+        <div className="mx-auto max-w-7xl px-6 pt-4 sm:px-8">
+          <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            {vaultError}
+          </div>
+        </div>
+      )}
 
       {/* Unified password creation/edit modal */}
       <PasswordModal 

@@ -12,7 +12,22 @@ const cspHeader = `
   form-action 'self';
 `.replace(/\s{2,}/g, ' ').trim();
 
+const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
+
 const nextConfig: NextConfig = {
+  /**
+   * Proxy API calls through Next.js so the browser uses same-origin `/api/*`.
+   * Avoids cross-origin failures and interference from VPN/ad-block extensions.
+   */
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${backendUrl}/api/:path*`,
+      },
+    ];
+  },
+
   /**
    * Inject premium security headers across all frontend paths.
    */

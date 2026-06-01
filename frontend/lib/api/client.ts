@@ -1,6 +1,11 @@
 import { useAuthStore } from '../../store/useAuthStore';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+/** Same-origin proxy in dev (see next.config rewrites); override with NEXT_PUBLIC_API_URL in prod. */
+export function getApiBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_API_URL || '/api';
+}
+
+const BASE_URL = getApiBaseUrl();
 
 interface RequestOptions extends RequestInit {
   body?: any;
@@ -23,12 +28,23 @@ async function request(path: string, options: RequestOptions = {}) {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(url, {
-    ...options,
-    credentials: 'include', // CRITICAL! Enforces cross-origin attachment of secure HttpOnly cookies
-    headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      credentials: 'include', // CRITICAL! Enforces cross-origin attachment of secure HttpOnly cookies
+      headers,
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+  } catch (err) {
+    const hint =
+      'Could not reach the API. Start the backend (port 5000), confirm NEXT_PUBLIC_API_URL if set, ' +
+      'and try disabling VPN or ad-block extensions for this site.';
+    if (err instanceof TypeError) {
+      throw new Error(hint);
+    }
+    throw err;
+  }
 
   let data;
   try {

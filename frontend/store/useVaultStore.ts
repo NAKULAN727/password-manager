@@ -431,9 +431,12 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       set({ isLoading: true, error: null });
       await api.delete(`/vault/${id}`);
       await get().fetchEntries();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to purge secret:', err);
-      set({ error: err.message || 'Failed to delete vault entry.' });
+      const message =
+        err instanceof Error ? err.message : 'Failed to delete vault entry.';
+      set({ error: message });
+      throw err;
     } finally {
       set({ isLoading: false });
     }

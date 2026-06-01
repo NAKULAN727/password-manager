@@ -172,8 +172,13 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you absolutely sure you want to delete this secret? This action is irreversible.')) {
+    if (!window.confirm('Are you absolutely sure you want to delete this secret? This action is irreversible.')) {
+      return;
+    }
+    try {
       await deleteEntry(id);
+    } catch {
+      // Error message is set on the vault store and shown on the dashboard.
     }
   };
 
