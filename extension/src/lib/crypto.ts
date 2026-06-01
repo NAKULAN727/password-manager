@@ -115,6 +115,19 @@ export async function decryptEntry(
   const dec = new TextDecoder();
   const subtle = crypto.subtle;
 
+  const currentKeySource = (globalThis as any).currentKeySource || 'UNKNOWN';
+  console.log('[Sphynx Debug] Current Key Source:', currentKeySource);
+
+  console.log(
+    '[Sphynx Debug] decryptEntry kVault exists:',
+    !!kVault
+  );
+
+  console.log(
+    '[Sphynx Debug] decryptEntry key object:',
+    kVault
+  );
+
   // Convert Base64 strings back to binary buffers
   const iv = base64ToBuffer(ivBase64);
   const ciphertext = base64ToBuffer(ciphertextBase64);

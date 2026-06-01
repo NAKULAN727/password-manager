@@ -23,6 +23,23 @@ export function base64ToBuffer(base64: string): Uint8Array {
 }
 
 /**
+ * Diagnostic: returns an 8-byte hex fingerprint of a CryptoKey.
+ * Returns 'NON_EXPORTABLE' if the key is non-extractable.
+ */
+export async function getKeyFingerprint(key: CryptoKey): Promise<string> {
+  try {
+    const raw = await window.crypto.subtle.exportKey('raw', key);
+    const hash = await window.crypto.subtle.digest('SHA-256', raw);
+    return Array.from(new Uint8Array(hash))
+      .slice(0, 8)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  } catch {
+    return 'NON_EXPORTABLE';
+  }
+}
+
+/**
  * Derives the final secure K_vault AES-256-GCM key using PBKDF2, MetaMask Signature Hashing, and HKDF.
  * The derived CryptoKey has `extractable: false`, guaranteeing it cannot be extracted or leaked.
  */
@@ -81,7 +98,7 @@ export async function deriveVaultKey(
     },
     hkdfIkm,
     { name: 'AES-GCM', length: 256 },
-    false, // extractable: false -> Critical! Browser-enforced protection against memory leaks and XSS
+    true, // extractable: true -> Temporary for debug fingerprinting
     ['encrypt', 'decrypt']
   );
 
@@ -156,6 +173,13 @@ export interface EncryptedPayload {
   ciphertext: string; // Base64
   iv: string;         // Base64
   tag: string;        // Base64
+  debugKeyFingerprint?: string;
+}
+
+export let currentKeySource = 'UNKNOWN';
+
+export function setCurrentKeySource(source: string) {
+  currentKeySource = source;
 }
 
 /**
@@ -167,7 +191,19 @@ export async function encryptEntry(
   kVault: CryptoKey
 ): Promise<EncryptedPayload> {
   const enc = new TextEncoder();
-  
+
+  console.log(
+    '[Sphynx Debug] Encrypt Key Source:',
+    currentKeySource
+  );
+
+  const fingerprint = await getKeyFingerprint(kVault);
+
+  console.log(
+    "[Sphynx Debug] ENCRYPT fingerprint:",
+    fingerprint
+  );
+
   // Generate a cryptographically random, unique 96-bit (12 bytes) Initialization Vector
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
@@ -190,6 +226,7 @@ export async function encryptEntry(
     ciphertext: bufferToBase64(ciphertextBytes),
     iv: bufferToBase64(iv),
     tag: bufferToBase64(tagBytes),
+    debugKeyFingerprint: fingerprint,
   };
 }
 
@@ -201,14 +238,45 @@ export async function decryptEntry(
   ciphertextBase64: string,
   ivBase64: string,
   tagBase64: string,
-  kVault: CryptoKey
+  kVault: CryptoKey,
+  debugKeyFingerprint?: string
 ): Promise<string> {
   const dec = new TextDecoder();
+
+  console.log(
+    '[Sphynx Debug] Current Key Source:',
+    currentKeySource
+  );
+
+  console.log(
+    '[Sphynx Debug] decryptEntry kVault exists:',
+    !!kVault
+  );
+
+  console.log(
+    '[Sphynx Debug] decryptEntry key object:',
+    kVault
+  );
 
   // Convert Base64 strings back to binary buffers
   const iv = base64ToBuffer(ivBase64);
   const ciphertext = base64ToBuffer(ciphertextBase64);
   const tag = base64ToBuffer(tagBase64);
+
+  const currentFingerprint =
+    await getKeyFingerprint(kVault);
+
+  console.log(
+    "[Sphynx Debug] DECRYPT fingerprint:",
+    currentFingerprint
+  );
+
+  console.log(
+    "[Sphynx Debug] ENTRY fingerprint:",
+    debugKeyFingerprint
+  );
+
+  console.log('[Sphynx Debug] decryptEntry — Ciphertext bytes:', ciphertext.length, '| IV bytes:', iv.length, '| Tag bytes:', tag.length);
 
   // Re-assemble the standard SubtleCrypto unified buffer: [ciphertext] + [tag]
   const encryptedBytes = new Uint8Array(ciphertext.length + tag.length);

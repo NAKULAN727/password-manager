@@ -12,6 +12,9 @@ export async function encryptCredential(
   const enc = new TextEncoder();
   const subtle = crypto.subtle;
 
+  const currentKeySource = (globalThis as any).currentKeySource || 'UNKNOWN';
+  console.log('[Sphynx Debug] Encrypt Key Source:', currentKeySource);
+
   // Generate a unique 12-byte IV for this entry
   const iv = crypto.getRandomValues(new Uint8Array(12));
 

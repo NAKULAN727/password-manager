@@ -244,29 +244,20 @@ export function Popup() {
           </div>
         )}
 
-        {/* === LOCKED STATE === */}
+        {/* === LOCKED STATE — Direct to dashboard === */}
         {!syncWarning && !isUnlocked && (
           <div className="flex flex-col items-center py-8">
             <div className="w-14 h-14 rounded-2xl bg-[#E8A020]/[0.06] border border-[#E8A020]/15 flex items-center justify-center mb-4">
               <Fingerprint size={24} className="text-[#E8A020]/70" />
             </div>
-            <h3 className="text-sm font-bold text-[#F0E6D0] mb-1">Unlock Vault</h3>
-            <p className="text-[11px] text-[#9A7D5A] mb-5">Enter your master password to decrypt</p>
-
-            <form onSubmit={handleUnlock} className="w-full max-w-[280px] flex flex-col gap-3">
-              <input
-                type="password"
-                required
-                placeholder="Master password"
-                value={masterPassword}
-                onChange={(e) => setMasterPassword(e.target.value)}
-                className="w-full rounded-xl border border-[#2A1E10] bg-[#1E160D] px-4 py-2.5 text-xs text-[#F0E6D0] placeholder-[#9A7D5A]/40 focus:outline-none focus:border-[#E8A020]/30 transition-colors"
-              />
-              <button type="submit" disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-br from-[#E8A020] to-[#B86A1A] text-[#0A0806] text-xs font-bold transition-all hover:shadow-[0_4px_15px_rgba(232,160,32,0.25)] active:scale-[0.98] disabled:opacity-50">
-                {isLoading ? <RefreshCw size={13} className="animate-spin" /> : <><Key size={12} /> Unlock</>}
-              </button>
-            </form>
+            <h3 className="text-sm font-bold text-[#F0E6D0] mb-1">Vault Locked</h3>
+            <p className="text-[11px] text-[#9A7D5A] text-center max-w-[240px] mb-5 leading-relaxed">
+              Unlock your vault on the Sphynx dashboard. The extension syncs automatically.
+            </p>
+            <a href="http://localhost:3000/dashboard" target="_blank" rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-br from-[#E8A020] to-[#B86A1A] text-[#0A0806] text-xs font-bold transition-all hover:shadow-[0_4px_15px_rgba(232,160,32,0.25)]">
+              Open Dashboard <ExternalLink size={11} />
+            </a>
           </div>
         )}
 

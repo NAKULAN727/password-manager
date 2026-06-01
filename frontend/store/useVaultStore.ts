@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { useAuthStore } from './useAuthStore';
 import { api } from '../lib/api/client';
-import { deriveVaultKey, encryptEntry, decryptEntry, computeEntryHMAC } from '../lib/crypto/vault';
+import { deriveVaultKey, encryptEntry, decryptEntry, computeEntryHMAC, setCurrentKeySource, currentKeySource } from '../lib/crypto/vault';
 import {
   generateVEK,
   deriveKEK,
@@ -23,6 +23,7 @@ export interface EncryptedVaultEntry {
   checksum?: string;  // Base64 HMAC
   createdAt: string;
   updatedAt: string;
+  debugKeyFingerprint?: string;
 }
 
 interface VaultState {
@@ -127,6 +128,23 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       const vekHex = Array.from(vekBytes).map(b => b.toString(16).padStart(2, '0')).join('');
       const extKeyMaterial = await exportVaultKeyForExtension(vekHex, address, derivationSignature);
 
+      const keyMaterial = extKeyMaterial;
+      console.log(
+        '[Sphynx Debug] extensionKeyMaterial SET',
+        {
+          exists: !!keyMaterial,
+          length: keyMaterial?.length
+        }
+      );
+
+      console.log(
+        '[Sphynx Debug] kVault ASSIGNED',
+        {
+          source: 'initializeSanctuary',
+          stack: new Error().stack
+        }
+      );
+
       set({
         kVault,
         kIntegrity,
@@ -191,6 +209,23 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       const vekHex = Array.from(vekBytes).map(b => b.toString(16).padStart(2, '0')).join('');
       const extKeyMaterial = await exportVaultKeyForExtension(vekHex, address, derivationSignature);
 
+      const keyMaterial = extKeyMaterial;
+      console.log(
+        '[Sphynx Debug] extensionKeyMaterial SET',
+        {
+          exists: !!keyMaterial,
+          length: keyMaterial?.length
+        }
+      );
+
+      console.log(
+        '[Sphynx Debug] kVault ASSIGNED',
+        {
+          source: 'unlockSanctuary',
+          stack: new Error().stack
+        }
+      );
+
       set({
         kVault,
         kIntegrity,
@@ -244,6 +279,18 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       // Cryptographically derive dual keys (kVault and kIntegrity)
       const { kVault, kIntegrity } = await deriveVaultKey(masterPassword, address, derivationSignature);
 
+      setCurrentKeySource('UNLOCK_VAULT');
+      console.log('[Sphynx Debug] kVault set from UNLOCK_VAULT');
+      console.log('[Sphynx Debug] kVault overwritten by:', currentKeySource);
+
+      console.log(
+        '[Sphynx Debug] kVault ASSIGNED',
+        {
+          source: 'unlockVault',
+          stack: new Error().stack
+        }
+      );
+
        set({
         kVault,
         kIntegrity,
@@ -272,6 +319,13 @@ export const useVaultStore = create<VaultState>((set, get) => ({
    * Wipes all key material and credential lists from client memory.
    */
   lockVault: () => {
+    console.log(
+      '[Sphynx Debug] kVault ASSIGNED',
+      {
+        source: 'lockVault',
+        stack: new Error().stack
+      }
+    );
     set({
       kVault: null,
       kIntegrity: null,
@@ -293,7 +347,21 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       const entries = await api.get('/vault/list');
-      set({ vaultEntries: entries });
+      const mappedEntries = entries.map((entry: any) => {
+        let debugKeyFingerprint = undefined;
+        let cleanChecksum = entry.checksum;
+        if (entry.checksum && entry.checksum.includes(':')) {
+          const parts = entry.checksum.split(':');
+          cleanChecksum = parts[0];
+          debugKeyFingerprint = parts[1];
+        }
+        return {
+          ...entry,
+          checksum: cleanChecksum,
+          debugKeyFingerprint
+        };
+      });
+      set({ vaultEntries: mappedEntries });
     } catch (err: any) {
       console.error('Failed to fetch vault entries:', err);
       set({ error: err.message || 'Failed to retrieve encrypted vault.' });
@@ -334,7 +402,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         ciphertext: encrypted.ciphertext,
         iv: encrypted.iv,
         tag: encrypted.tag,
-        checksum
+        checksum: `${checksum}:${encrypted.debugKeyFingerprint}`
       });
 
       // 4. Refresh encrypted list
@@ -395,7 +463,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         ciphertext: encrypted.ciphertext,
         iv: encrypted.iv,
         tag: encrypted.tag,
-        checksum
+        checksum: `${checksum}:${encrypted.debugKeyFingerprint}`
       });
 
       // 4. Refresh encrypted list

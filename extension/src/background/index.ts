@@ -11,6 +11,8 @@ import { EncryptedVaultEntry, ExtensionSession } from '../types';
 // In-memory key caches (never persisted to storage)
 let kVault: CryptoKey | null = null;
 let kIntegrity: CryptoKey | null = null;
+let currentKeySource: string = 'UNKNOWN';
+(globalThis as any).currentKeySource = 'UNKNOWN';
 
 // API base URL from config
 const BASE_URL = CONFIG.API_URL;
@@ -34,6 +36,13 @@ async function saveSession(session: Partial<ExtensionSession>) {
 }
 
 async function clearSession() {
+  console.log(
+    '[Sphynx Debug] kVault ASSIGNED',
+    {
+      source: 'clearSession',
+      stack: new Error().stack
+    }
+  );
   kVault = null;
   kIntegrity = null;
   stopAutoLockTimer();
@@ -147,6 +156,13 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
       token,
       isUnlocked: false
     }).then(() => {
+      console.log(
+        '[Sphynx Debug] kVault ASSIGNED',
+        {
+          source: 'SYNC_SESSION',
+          stack: new Error().stack
+        }
+      );
       kVault = null;
       kIntegrity = null;
       console.log('[Sphynx BG] Session stored successfully for:', address);
@@ -198,6 +214,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (keyMaterial) {
         try {
           const keyBytes = base64ToBuffer(keyMaterial);
+
+          // Fingerprint BEFORE import (while still extractable)
+          const tempKey = await crypto.subtle.importKey(
+            'raw',
+            keyBytes.buffer as ArrayBuffer,
+            { name: 'AES-GCM', length: 256 },
+            true, // extractable for fingerprinting only
+            ['encrypt', 'decrypt']
+          );
+          const hash = await crypto.subtle.digest('SHA-256', keyBytes.buffer as ArrayBuffer);
+          const fingerprint = Array.from(new Uint8Array(hash)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+          console.log('[Sphynx Debug] IMPORT_EXTENSION_KEY — Fingerprint:', fingerprint);
+
+          console.log(
+            '[Sphynx Debug] kVault ASSIGNED',
+            {
+              source: 'IMPORT_EXTENSION_KEY',
+              stack: new Error().stack
+            }
+          );
+          // Now import as non-extractable for actual use
           kVault = await crypto.subtle.importKey(
             'raw',
             keyBytes.buffer as ArrayBuffer,
@@ -205,13 +242,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             false, // non-extractable in extension context
             ['encrypt', 'decrypt']
           );
+          currentKeySource = 'IMPORT_EXTENSION_KEY';
+          (globalThis as any).currentKeySource = 'IMPORT_EXTENSION_KEY';
+          console.log('[Sphynx Debug] kVault set from IMPORT_EXTENSION_KEY');
+          console.log('[Sphynx Debug] kVault overwritten by:', currentKeySource);
           console.log('[Sphynx BG] kVault imported from web app key material');
           await resetAutoLockTimer();
         } catch (err: any) {
           console.error('[Sphynx BG] Failed to import key material:', err.message);
+          console.log(
+            '[Sphynx Debug] kVault ASSIGNED',
+            {
+              source: 'SYNC_SESSION_INTERNAL_CATCH',
+              stack: new Error().stack
+            }
+          );
           kVault = null;
         }
       } else {
+        console.log(
+          '[Sphynx Debug] kVault ASSIGNED',
+          {
+            source: 'SYNC_SESSION_INTERNAL_ELSE',
+            stack: new Error().stack
+          }
+        );
         kVault = null;
         kIntegrity = null;
       }
@@ -257,23 +312,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   // --- UNLOCK_VAULT ---
+  // DISABLED: The extension no longer derives its own key.
+  // kVault is imported from the web app via SYNC_SESSION_INTERNAL.
   if (type === 'UNLOCK_VAULT') {
-    const { masterPassword } = message.payload;
-    getSession().then(async (session) => {
-      if (!session.address || !session.derivationSignature) {
-        throw new Error('No active wallet session synced. Please open the Sphynx site and connect your wallet.');
-      }
-
-      const keys = await deriveVaultKey(masterPassword, session.address, session.derivationSignature);
-      kVault = keys.kVault;
-      kIntegrity = keys.kIntegrity;
-
-      await saveSession({ isUnlocked: true });
-      await resetAutoLockTimer();
-      sendResponse({ success: true });
-    }).catch((err) => {
-      sendResponse({ success: false, error: err.message || 'Key derivation failed.' });
-    });
+    currentKeySource = 'UNLOCK_VAULT';
+    (globalThis as any).currentKeySource = 'UNLOCK_VAULT';
+    console.log('[Sphynx Debug] kVault set from UNLOCK_VAULT');
+    console.log('[Sphynx Debug] kVault overwritten by:', currentKeySource);
+    console.log('[Sphynx Debug] UNLOCK_VAULT called — DISABLED. Current key source:', currentKeySource);
+    sendResponse({ success: false, error: 'Please unlock the vault on the Sphynx dashboard. The extension syncs automatically.' });
     return true;
   }
 
@@ -387,6 +434,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
 
       console.log('[Sphynx BG] Encrypting credential...');
+      console.log('[Sphynx Debug] Encrypt Key Source:', currentKeySource);
+      const encHash = await crypto.subtle.digest('SHA-256', await (async () => {
+        try {
+          const raw = await crypto.subtle.exportKey('raw', kVault);
+          return raw;
+        } catch { return new ArrayBuffer(0); }
+      })());
+      const encFingerprint = Array.from(new Uint8Array(encHash)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+      console.log('[Sphynx Debug] SAVE_CREDENTIAL — Encrypt Key Fingerprint:', encFingerprint || 'NON_EXPORTABLE');
       const { ciphertext, iv, tag } = await encryptCredential(password, kVault);
       console.log('[Sphynx BG] Encryption OK — ciphertext:', ciphertext.length, 'chars, iv:', iv.length, 'chars, tag:', tag.length, 'chars');
 

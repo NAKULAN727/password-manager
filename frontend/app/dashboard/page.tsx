@@ -97,49 +97,85 @@ export default function DashboardPage() {
 
   // Extension Session Synchronization
   // Writes session data to a hidden DOM element that the content script reads.
+  // Works even when token is null (cookie-based auth) by fetching a fresh token.
   const { token } = useAuthStore();
   const { derivationSignature, extensionKeyMaterial } = useVaultStore();
 
   useEffect(() => {
-    if (!address || !token) return;
+    if (!address) return;
 
-    const payload = {
-      address,
-      derivationSignature: derivationSignature || '',
-      token,
-      keyMaterial: extensionKeyMaterial || '',
+    const syncToExtension = async () => {
+      // Get a fresh token if we don't have one in memory (cookie-based session)
+      let activeToken = token;
+      if (!activeToken) {
+        try {
+          const data = await fetch('http://localhost:5000/api/auth/refresh', {
+            method: 'POST',
+            credentials: 'include',
+          }).then(r => r.json());
+          activeToken = data.token || null;
+        } catch {
+          // Can't get token, skip sync
+          return;
+        }
+      }
+      if (!activeToken) return;
+
+      console.log(
+        '[Sphynx Debug] Sync Attempt',
+        {
+          hasKeyMaterial: !!extensionKeyMaterial,
+          keyLength: extensionKeyMaterial?.length
+        }
+      );
+
+      const keyMaterial = extensionKeyMaterial;
+      console.log(
+        '[Sphynx Debug] Sync Payload',
+        {
+          address,
+          token: activeToken,
+          hasKeyMaterial: !!keyMaterial,
+          keyMaterialLength: keyMaterial?.length
+        }
+      );
+
+      const payload = {
+        address,
+        derivationSignature: derivationSignature || '',
+        token: activeToken,
+        keyMaterial: extensionKeyMaterial || '',
+      };
+
+      // Write to a hidden DOM element the content script can read
+      let syncEl = document.getElementById('__sphynx_sync__');
+      if (!syncEl) {
+        syncEl = document.createElement('div');
+        syncEl.id = '__sphynx_sync__';
+        syncEl.style.display = 'none';
+        document.body.appendChild(syncEl);
+      }
+      syncEl.setAttribute('data-session', JSON.stringify(payload));
+
+      // Also post message
+      window.postMessage({ type: 'SPHYNX_SYNC_SESSION', payload }, '*');
+      document.dispatchEvent(new CustomEvent('sphynx-sync-session', { detail: payload }));
+
+      console.log('[Sphynx Sync] Session synced to extension', { hasKeyMaterial: !!extensionKeyMaterial, hasToken: !!activeToken });
     };
 
-    // Write to a hidden DOM element the content script can read
-    let syncEl = document.getElementById('__sphynx_sync__');
-    if (!syncEl) {
-      syncEl = document.createElement('div');
-      syncEl.id = '__sphynx_sync__';
-      syncEl.style.display = 'none';
-      document.body.appendChild(syncEl);
-    }
-    syncEl.setAttribute('data-session', JSON.stringify(payload));
+    // Sync immediately and every 3 seconds
+    syncToExtension();
+    const interval = setInterval(syncToExtension, 3000);
 
-    // Post message repeatedly until extension confirms receipt
-    let confirmed = false;
+    // Listen for confirmation
     const handleConfirm = (event: MessageEvent) => {
       if (event.data?.type === 'SPHYNX_SYNC_COMPLETE') {
-        confirmed = true;
         console.log('[Sphynx Sync] Extension confirmed receipt');
+        clearInterval(interval);
       }
     };
     window.addEventListener('message', handleConfirm);
-
-    // Post immediately and every 2 seconds until confirmed
-    const post = () => {
-      if (confirmed) return;
-      window.postMessage({ type: 'SPHYNX_SYNC_SESSION', payload }, '*');
-      document.dispatchEvent(new CustomEvent('sphynx-sync-session', { detail: payload }));
-    };
-    post();
-    const interval = setInterval(post, 2000);
-
-    console.log('[Sphynx Sync] Session sync started', { hasKeyMaterial: !!extensionKeyMaterial });
 
     return () => {
       clearInterval(interval);
