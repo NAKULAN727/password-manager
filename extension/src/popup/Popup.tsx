@@ -244,7 +244,7 @@ export function Popup() {
             <p className="text-[11px] text-[#9A7D5A] max-w-[220px] leading-relaxed mb-5">
               Open the Sphynx dashboard and connect your wallet to get started.
             </p>
-            <a href="https://password-manager-sigma-green.vercel.app" target="_blank" rel="noreferrer"
+            <a href="https://password-manager-lt64zoshi-nakulans-projects.vercel.app" target="_blank" rel="noreferrer"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-br from-[#E8A020] to-[#B86A1A] text-[#0A0806] text-xs font-bold transition-all hover:shadow-[0_4px_15px_rgba(232,160,32,0.25)]">
               Open Sphynx <ExternalLink size={11} />
             </a>
@@ -261,7 +261,7 @@ export function Popup() {
             <p className="text-[11px] text-[#9A7D5A] text-center max-w-[240px] mb-5 leading-relaxed">
               Unlock your vault on the Sphynx dashboard. The extension syncs automatically.
             </p>
-            <a href="https://password-manager-sigma-green.vercel.app/dashboard" target="_blank" rel="noreferrer"
+            <a href="https://password-manager-lt64zoshi-nakulans-projects.vercel.app/dashboard" target="_blank" rel="noreferrer"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-br from-[#E8A020] to-[#B86A1A] text-[#0A0806] text-xs font-bold transition-all hover:shadow-[0_4px_15px_rgba(232,160,32,0.25)]">
               Open Dashboard <ExternalLink size={11} />
             </a>
@@ -301,7 +301,7 @@ export function Popup() {
                     {searchQuery ? 'Try a different search term.' : 'Save passwords while browsing and they will appear here.'}
                   </p>
                   {!searchQuery && (
-                    <a href="https://password-manager-sigma-green.vercel.app/dashboard" target="_blank" rel="noreferrer"
+                    <a href="https://password-manager-lt64zoshi-nakulans-projects.vercel.app/dashboard" target="_blank" rel="noreferrer"
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#2A1E10] text-[10px] font-semibold text-[#9A7D5A] hover:text-[#F0E6D0] hover:border-[#E8A020]/30 transition-all">
                       Open Dashboard <ExternalLink size={9} />
                     </a>

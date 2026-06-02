@@ -7,11 +7,11 @@ const production = process.argv.includes('--production');
 // Environment configuration
 const envConfig = production
   ? {
-      WEB_APP_URL: 'https://password-manager-sigma-green.vercel.app',
+      WEB_APP_URL: 'https://password-manager-lt64zoshi-nakulans-projects.vercel.app',
       API_URL: 'https://password-manager-gg4l.onrender.com/api',
     }
   : {
-      WEB_APP_URL: 'http://localhost:3000',
+      WEB_APP_URL: 'https://password-manager-lt64zoshi-nakulans-projects.vercel.app',
       API_URL: 'http://localhost:5000/api',
     };
 

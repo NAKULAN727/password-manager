@@ -18,7 +18,7 @@
   ],
 
   "host_permissions": [
-    "https://password-manager-sigma-green.vercel.app/*",
+    "https://password-manager-lt64zoshi-nakulans-projects.vercel.app/*",
     "https://password-manager-gg4l.onrender.com/*"
   ],
 
@@ -47,7 +47,7 @@
 
   "externally_connectable": {
     "matches": [
-      "https://password-manager-sigma-green.vercel.app/*"
+      "https://password-manager-lt64zoshi-nakulans-projects.vercel.app/*"
     ]
   },
 

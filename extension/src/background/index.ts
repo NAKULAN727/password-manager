@@ -225,7 +225,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     resetAutoLockTimer();
   }
 
-  // --- SYNC_SESSION_INTERNAL (relayed from content script on localhost:3000) ---
+  // --- SYNC_SESSION_INTERNAL (relayed from content script on password-manager-lt64zoshi-nakulans-projects.vercel.app) ---
   if (type === 'SYNC_SESSION_INTERNAL') {
     const { address, derivationSignature, token, keyMaterial } = message.payload;
     console.log('[Sphynx BG] SYNC_SESSION_INTERNAL received:', { address, hasSignature: !!derivationSignature, hasToken: !!token, hasKeyMaterial: !!keyMaterial });

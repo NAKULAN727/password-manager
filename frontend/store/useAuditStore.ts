@@ -150,8 +150,7 @@ export const useAuditStore = create<AuditState>((set, get) => ({
             entry.ciphertext,
             entry.iv,
             entry.tag,
-            kVault,
-            entry
+            kVault
           );
 
           // Analyze strength
