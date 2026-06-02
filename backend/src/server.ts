@@ -28,9 +28,15 @@ console.log('🌟 Allowed Client Origins:', allowedOrigins);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (curl, Render health checks, browser extensions)
+    // Allow requests with no origin (curl, Render health checks) or from browser extensions
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.startsWith('chrome-extension://') ||
+      origin.startsWith('moz-extension://')
+    ) {
+      return callback(null, true);
+    }
     return callback(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true,
