@@ -59,25 +59,10 @@ export function Popup() {
         setSyncWarning(false);
         if (response.data.isUnlocked) loadEntries();
       } else {
-        // Fallback: read session from chrome.storage.local (written by content script)
+        // Read session metadata from chrome.storage.local to check connection
         chrome.storage.local.get('sphynx_session', (data) => {
           const session = data.sphynx_session;
-          if (session?.address && session?.keyMaterial) {
-            console.log('[Sphynx Popup] Found session in storage.local, syncing...');
-            setAddress(session.address);
-            setSyncWarning(false);
-            // Send to background to import the key
-            chrome.runtime.sendMessage({
-              type: 'SYNC_SESSION_INTERNAL',
-              payload: { address: session.address, token: session.token, keyMaterial: session.keyMaterial, derivationSignature: '' }
-            }, () => {
-              setTimeout(() => {
-                chrome.runtime.sendMessage({ type: 'GET_VAULT_STATUS' }, (r) => {
-                  if (r?.success) { setIsUnlocked(r.data.isUnlocked); if (r.data.isUnlocked) loadEntries(); }
-                });
-              }, 300);
-            });
-          } else if (session?.address) {
+          if (session?.address) {
             setAddress(session.address);
             setSyncWarning(false);
             setIsUnlocked(false);

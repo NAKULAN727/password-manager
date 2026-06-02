@@ -18,21 +18,53 @@ let currentKeySource: string = 'UNKNOWN';
 // API base URL from config
 const BASE_URL = CONFIG.API_URL;
 
-// ============================================================
-// SESSION MANAGEMENT
-// ============================================================
+function checkVaultUnlockState(session: any, key: any): boolean {
+  const hasToken = !!session.token;
+  const hasAddress = !!session.address;
+  const hasKey = !!key;
+  const hasSignature = !!session.derivationSignature;
+
+  console.log(`[SESSION CHECK] Authenticated session token: ${hasToken ? 'PRESENT' : 'MISSING'}`);
+  console.log(`[AUTH CHECK] Wallet address: ${hasAddress ? 'PRESENT' : 'MISSING'}`);
+  console.log(`[VAULT LOCK CHECK] Key in memory (K_VAULT): ${hasKey ? 'PRESENT' : 'MISSING'}`);
+  console.log(`[VAULT LOCK CHECK] Sanctuary phrase verified: ${hasSignature ? 'VERIFIED' : 'NOT VERIFIED'}`);
+
+  const allConditionsTrue = hasToken && hasAddress && hasKey && hasSignature;
+  console.log(`[AUTH CHECK] Unlock condition check result: ${allConditionsTrue ? 'UNLOCKED' : 'LOCKED'}`);
+  return allConditionsTrue;
+}
 
 async function getSession(): Promise<ExtensionSession> {
-  const data = await chrome.storage.session.get(['address', 'derivationSignature', 'token', 'isUnlocked']);
+  const data = await chrome.storage.session.get(['address', 'derivationSignature', 'token', 'isUnlocked', 'keyMaterial']);
+  
+  // Auto-restore kVault if service worker restarted but session is still active
+  if (data.keyMaterial && !kVault) {
+    try {
+      const keyBytes = base64ToBuffer(data.keyMaterial);
+      kVault = await crypto.subtle.importKey(
+        'raw',
+        keyBytes.buffer as ArrayBuffer,
+        { name: 'AES-GCM', length: 256 },
+        false, // non-extractable in extension context
+        ['encrypt', 'decrypt']
+      );
+      console.log('[Sphynx BG] Auto-restored kVault from session storage');
+    } catch (err: any) {
+      console.error('[Sphynx BG] Failed to auto-restore kVault:', err.message);
+    }
+  }
+
+  const isUnlocked = checkVaultUnlockState(data, kVault);
+
   return {
     address: data.address || null,
     derivationSignature: data.derivationSignature || null,
     token: data.token || null,
-    isUnlocked: !!data.isUnlocked && !!kVault
+    isUnlocked
   };
 }
 
-async function saveSession(session: Partial<ExtensionSession>) {
+async function saveSession(session: Partial<ExtensionSession> & { keyMaterial?: string }) {
   await chrome.storage.session.set(session);
 }
 
@@ -75,8 +107,9 @@ async function clearSession() {
   kVault = null;
   kIntegrity = null;
   stopAutoLockTimer();
-  await chrome.storage.session.remove(['address', 'derivationSignature', 'token', 'isUnlocked']);
+  await chrome.storage.session.clear();
   console.log('[Sphynx] Session locked and keys cleared from memory.');
+  await chrome.storage.local.remove(['sphynx_session', 'sphynx_vault_state']);
   await persistVaultState({ isUnlocked: false, address: null, hasKeyMaterial: false });
   await syncAndBroadcastVaultState(null);
 }
@@ -239,6 +272,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       address: address.toLowerCase(),
       derivationSignature: derivationSignature || '',
       token,
+      keyMaterial: keyMaterial || '',
       isUnlocked: !!keyMaterial
     }).then(async () => {
       // If key material is provided, import it as the vault key
@@ -302,7 +336,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         kIntegrity = null;
       }
 
-      await saveSession({ isUnlocked: !!kVault });
+      const sessionData = await chrome.storage.session.get(['address', 'derivationSignature', 'token', 'isUnlocked']);
+      const isUnlocked = checkVaultUnlockState(sessionData, kVault);
+      await saveSession({ isUnlocked });
       console.log('[Sphynx BG] Session stored. kVault:', !!kVault);
       await syncAndBroadcastVaultState(address.toLowerCase());
       sendResponse({ success: true, message: 'Session synchronized.' });

@@ -229,9 +229,6 @@ function relaySyncToBackground(payload: any) {
   chrome.storage.local.set({
     sphynx_session: {
       address: payload.address.toLowerCase(),
-      token: payload.token,
-      keyMaterial: payload.keyMaterial || '',
-      derivationSignature: payload.derivationSignature || '',
       isUnlocked,
       syncedAt: Date.now(),
     },
