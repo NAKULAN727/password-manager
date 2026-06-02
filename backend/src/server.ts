@@ -19,9 +19,14 @@ const port = process.env.PORT || 5000;
 app.use(helmet());
 
 // Configure CORS for web client integration
-const allowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:3000';
+const allowedOrigins = (process.env.ALLOWED_ORIGIN || 'http://localhost:3000').split(',').map(o => o.trim());
 app.use(cors({
-  origin: allowedOrigin,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Render health checks)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -180,6 +185,6 @@ app.listen(port, () => {
   console.log(`===============================================`);
   console.log(`🛡️  ZK Password Manager Auth API is running  🛡️`);
   console.log(`🔗 URL: http://localhost:${port}`);
-  console.log(`🌟 Allowed Client Origin: ${allowedOrigin}`);
+  console.log(`🌟 Allowed Client Origins: ${allowedOrigins.join(', ')}`);
   console.log(`===============================================`);
 });

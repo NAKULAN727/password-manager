@@ -18,8 +18,8 @@
   ],
 
   "host_permissions": [
-    "http://localhost:3000/*",
-    "http://localhost:5000/*"
+    "https://password-manager-sigma-green.vercel.app/*",
+    "https://password-manager-gg4l.onrender.com/*"
   ],
 
   "action": {
@@ -47,7 +47,7 @@
 
   "externally_connectable": {
     "matches": [
-      "http://localhost:3000/*"
+      "https://password-manager-sigma-green.vercel.app/*"
     ]
   },
 

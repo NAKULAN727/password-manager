@@ -7,12 +7,12 @@ const cspHeader = `
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data:;
   font-src 'self';
-  connect-src 'self' http://localhost:5000 ws://localhost:3000;
+  connect-src 'self' https://password-manager-gg4l.onrender.com wss://password-manager-sigma-green.vercel.app;
   frame-ancestors 'none';
   form-action 'self';
 `.replace(/\s{2,}/g, ' ').trim();
 
-const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
+const backendUrl = process.env.BACKEND_URL || "https://password-manager-gg4l.onrender.com";
 
 const nextConfig: NextConfig = {
   /**

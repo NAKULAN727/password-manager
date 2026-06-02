@@ -41,6 +41,7 @@ let extensionVaultLocked = true;
 /** Sphynx web app pages must not show floating autofill badges or dropdowns. */
 function isSphynxWebApp(): boolean {
   const { hostname, port } = window.location;
+  if (hostname === 'password-manager-sigma-green.vercel.app') return true;
   if (
     (hostname === 'localhost' || hostname === '127.0.0.1') &&
     (port === '3000' || port === '')
@@ -144,7 +145,9 @@ let syncCompleted = false;
 
 function checkDomSync() {
   if (syncCompleted) return;
-  if (window.location.hostname !== 'localhost') return;
+  const host = window.location.hostname;
+  const isProd = host === 'password-manager-sigma-green.vercel.app';
+  if (host !== 'localhost' && !isProd) return;
 
   const syncEl = document.getElementById('__sphynx_sync__');
   if (!syncEl) {
@@ -167,8 +170,8 @@ function checkDomSync() {
   }
 }
 
-if (window.location.hostname === 'localhost') {
-  console.log('[Sphynx] Starting DOM sync polling on localhost');
+if (window.location.hostname === 'localhost' || window.location.hostname === 'password-manager-sigma-green.vercel.app') {
+  console.log('[Sphynx] Starting DOM sync polling on', window.location.hostname);
 
   // Poll immediately and then every 1 second
   checkDomSync();
@@ -835,7 +838,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   return true;
 });
 
-if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === 'password-manager-sigma-green.vercel.app') {
   const broadcast = () => {
     broadcastExtensionStatus();
     if (isSphynxWebApp()) removeAllAutofillBadges();

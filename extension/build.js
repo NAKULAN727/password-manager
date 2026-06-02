@@ -7,8 +7,8 @@ const production = process.argv.includes('--production');
 // Environment configuration
 const envConfig = production
   ? {
-      WEB_APP_URL: 'https://sphynx.app',
-      API_URL: 'https://api.sphynx.app/api',
+      WEB_APP_URL: 'https://password-manager-sigma-green.vercel.app',
+      API_URL: 'https://password-manager-gg4l.onrender.com/api',
     }
   : {
       WEB_APP_URL: 'http://localhost:3000',
