@@ -19,7 +19,7 @@ const port = process.env.PORT || 5000;
 app.use(helmet());
 
 // Configure CORS for web client integration
-const allowedOrigins = (process.env.ALLOWED_ORIGIN || 'http://localhost:3000').split(',').map(o => o.trim());
+const allowedOrigins = (process.env.ALLOWED_ORIGIN || 'https://password-manager-sigma-green.vercel.app').split(',').map(o => o.trim());
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, Render health checks)
