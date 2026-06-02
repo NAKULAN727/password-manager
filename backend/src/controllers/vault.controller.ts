@@ -100,7 +100,7 @@ export async function addVaultEntry(req: Request, res: Response) {
     const user = (req as any).user;
     if (!user?.address) return res.status(401).json({ error: 'Unauthorized.' });
 
-    const { label, username, ciphertext, iv, tag, checksum, keyFingerprint } = req.body;
+    const { label, username, ciphertext, iv, tag, checksum } = req.body;
     if (!label || !ciphertext || !iv || !tag) {
       return res.status(400).json({ error: 'Missing required parameters (label, ciphertext, iv, tag).' });
     }
@@ -112,13 +112,7 @@ export async function addVaultEntry(req: Request, res: Response) {
       iv,
       tag,
       checksum: checksum ? String(checksum) : undefined,
-      keyFingerprint: keyFingerprint ? String(keyFingerprint) : undefined,
     };
-
-    console.log(
-      '[Sphynx Debug] API received fingerprint:',
-      dto.keyFingerprint
-    );
 
     const dbUser = await UserService.findOrCreate(user.address);
 
@@ -151,12 +145,6 @@ export async function listVaultEntries(req: Request, res: Response) {
     if (!dbUser) return res.status(200).json([]);
 
     const entries = await VaultService.listEntries(dbUser.id);
-    for (const entry of entries) {
-      console.log(
-        '[Sphynx Debug] Returning fingerprint:',
-        entry.keyFingerprint
-      );
-    }
     return res.status(200).json(entries);
   } catch (error) {
     console.error('Error in listVaultEntries:', error);
@@ -208,7 +196,7 @@ export async function updateVaultEntry(req: Request, res: Response) {
     if (!user?.address) return res.status(401).json({ error: 'Unauthorized.' });
 
     const { id } = req.params;
-    const { label, username, ciphertext, iv, tag, checksum, keyFingerprint } = req.body;
+    const { label, username, ciphertext, iv, tag, checksum } = req.body;
 
     if (!label || !ciphertext || !iv || !tag) {
       return res.status(400).json({ error: 'Missing required parameters.' });
@@ -224,7 +212,6 @@ export async function updateVaultEntry(req: Request, res: Response) {
       iv,
       tag,
       checksum: checksum ? String(checksum) : undefined,
-      keyFingerprint: keyFingerprint ? String(keyFingerprint) : undefined,
     });
 
     if (result.count === 0) {

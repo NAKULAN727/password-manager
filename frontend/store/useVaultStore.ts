@@ -24,7 +24,6 @@ export interface EncryptedVaultEntry {
   checksum?: string;  // Base64 HMAC
   createdAt: string;
   updatedAt: string;
-  keyFingerprint?: string;
 }
 
 interface VaultState {
@@ -354,20 +353,10 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       const entries = await api.get('/vault/list');
-      const mappedEntries = entries.map((entry: any) => {
-        let keyFingerprint = entry.keyFingerprint;
-        let cleanChecksum = entry.checksum;
-        if (!keyFingerprint && entry.checksum && entry.checksum.includes(':')) {
-          const parts = entry.checksum.split(':');
-          cleanChecksum = parts[0];
-          keyFingerprint = parts[1];
-        }
-        return {
-          ...entry,
-          checksum: cleanChecksum,
-          keyFingerprint,
-        };
-      });
+      const mappedEntries = entries.map((entry: any) => ({
+        ...entry,
+        checksum: entry.checksum || null,
+      }));
       set({ vaultEntries: mappedEntries });
     } catch (err: any) {
       console.error('Failed to fetch vault entries:', err);
@@ -410,13 +399,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         iv: encrypted.iv,
         tag: encrypted.tag,
         checksum,
-        keyFingerprint: encrypted.keyFingerprint,
       };
-
-      console.log(
-        '[Sphynx Debug] CREATE payload fingerprint:',
-        payload.keyFingerprint
-      );
 
       await api.post('/vault/add', payload);
 
@@ -484,7 +467,6 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         iv: encrypted.iv,
         tag: encrypted.tag,
         checksum,
-        keyFingerprint: encrypted.keyFingerprint,
       });
 
       // 4. Refresh encrypted list
