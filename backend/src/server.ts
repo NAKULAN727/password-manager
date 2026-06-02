@@ -19,13 +19,19 @@ const port = process.env.PORT || 5000;
 app.use(helmet());
 
 // Configure CORS for web client integration
-const allowedOrigins = (process.env.ALLOWED_ORIGIN || 'https://password-manager-sigma-green.vercel.app').split(',').map(o => o.trim());
+const allowedOrigins = (process.env.ALLOWED_ORIGIN || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+console.log('🌟 Allowed Client Origins:', allowedOrigins);
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Render health checks)
+    // Allow requests with no origin (curl, Render health checks, browser extensions)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS: origin ${origin} not allowed`));
+    return callback(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -185,6 +191,5 @@ app.listen(port, () => {
   console.log(`===============================================`);
   console.log(`🛡️  ZK Password Manager Auth API is running  🛡️`);
   console.log(`🔗 URL: http://localhost:${port}`);
-  console.log(`🌟 Allowed Client Origins: ${allowedOrigins.join(', ')}`);
   console.log(`===============================================`);
 });
