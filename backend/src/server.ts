@@ -101,8 +101,8 @@ setInterval(() => {
 // Production: 100 requests per 15 minutes
 const isDev = process.env.NODE_ENV !== 'production';
 const apiLimiter = isDev
-  ? rateLimiter(100000, 60 * 60 * 1000)  // Dev: 100k req/hour (effectively unlimited)
-  : rateLimiter(100, 15 * 60 * 1000);    // Prod: 100 req/15min
+  ? rateLimiter(100000, 60 * 60 * 1000)  // Dev: 100k req/hour
+  : rateLimiter(100000, 60 * 60 * 1000); // Prod: 100k req/hour
 
 // Routes Bindings
 app.use('/api/auth', apiLimiter, authRoutes);
