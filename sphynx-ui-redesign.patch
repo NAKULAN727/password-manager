@@ -1,0 +1,2182 @@
+[1mdiff --git a/frontend/app/audit/page.tsx b/frontend/app/audit/page.tsx[m
+[1mindex dfaa81e..9d502a2 100644[m
+[1m--- a/frontend/app/audit/page.tsx[m
+[1m+++ b/frontend/app/audit/page.tsx[m
+[36m@@ -83,13 +83,13 @@[m [mexport default function AuditPage() {[m
+   }[m
+ [m
+   return ([m
+[31m-    <div className="min-h-screen bg-[#090D16] text-slate-100 pb-20 relative">[m
+[32m+[m[32m    <div className="min-h-screen bg-[#0A1020] text-slate-100 pb-20 relative">[m
+       {/* Ambient glows */}[m
+[31m-      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#D4AF37]/3 blur-[120px] animate-pulse-glow" />[m
+[32m+[m[32m      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#79E6FF]/3 blur-[120px] animate-pulse-glow" />[m
+       <div className="absolute bottom-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-emerald-500/2 blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />[m
+ [m
+       {/* Header */}[m
+[31m-      <header className="border-b border-white/5 bg-[#090D16]/60 backdrop-blur-xl sticky top-0 z-50">[m
+[32m+[m[32m      <header className="border-b border-white/5 bg-[#0A1020]/60 backdrop-blur-xl sticky top-0 z-50">[m
+         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">[m
+           <div className="flex items-center gap-4">[m
+             <Link href="/dashboard">[m
+[36m@@ -99,7 +99,7 @@[m [mexport default function AuditPage() {[m
+               </Button>[m
+             </Link>[m
+             <div className="flex items-center gap-2">[m
+[31m-              <Flower2 size={18} className="text-[#D4AF37]" />[m
+[32m+[m[32m              <Flower2 size={18} className="text-[#79E6FF]" />[m
+               <h1 className="text-sm font-bold text-white">Security Garden</h1>[m
+             </div>[m
+           </div>[m
+[36m@@ -108,7 +108,7 @@[m [mexport default function AuditPage() {[m
+             <Button[m
+               variant="outline"[m
+               onClick={lockVault}[m
+[31m-              className="px-4 py-2 border-[#D4AF37]/25 hover:border-[#D4AF37]/60 text-[#D4AF37] hover:text-white text-xs font-bold gap-1.5"[m
+[32m+[m[32m              className="px-4 py-2 border-[#79E6FF]/25 hover:border-[#79E6FF]/60 text-[#79E6FF] hover:text-white text-xs font-bold gap-1.5"[m
+             >[m
+               <Lock size={13} />[m
+               Lock[m
+[36m@@ -131,7 +131,7 @@[m [mexport default function AuditPage() {[m
+         {/* Page Title */}[m
+         <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">[m
+           <div>[m
+[31m-            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">[m
+[32m+[m[32m            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">[m
+               The Security Garden[m
+             </h1>[m
+             <p className="mt-1.5 text-sm text-slate-400">[m
+[36m@@ -142,7 +142,7 @@[m [mexport default function AuditPage() {[m
+           <button[m
+             onClick={runAnalysis}[m
+             disabled={isAnalyzing}[m
+[31m-            className="text-xs text-[#D4AF37]/70 hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#D4AF37]/15 bg-white/[0.01] hover:bg-[#D4AF37]/5 rounded-2xl px-4 py-2.5 disabled:opacity-50"[m
+[32m+[m[32m            className="text-xs text-[#79E6FF]/70 hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#79E6FF]/15 bg-white/[0.01] hover:bg-[#79E6FF]/5 rounded-2xl px-4 py-2.5 disabled:opacity-50"[m
+           >[m
+             <RefreshCw size={12} className={isAnalyzing ? 'animate-spin' : ''} />[m
+             {isAnalyzing ? 'Analyzing...' : 'Refresh Analysis'}[m
+[36m@@ -156,7 +156,7 @@[m [mexport default function AuditPage() {[m
+             animate={{ opacity: 1 }}[m
+             className="flex flex-col items-center justify-center py-24"[m
+           >[m
+[31m-            <Loader2 size={32} className="text-[#D4AF37] animate-spin mb-4" />[m
+[32m+[m[32m            <Loader2 size={32} className="text-[#79E6FF] animate-spin mb-4" />[m
+             <p className="text-sm text-slate-400 font-mono">Analyzing your sanctuary...</p>[m
+             <p className="text-[10px] text-white/30 mt-2">All analysis occurs locally in your browser</p>[m
+           </motion.div>[m
+[36m@@ -180,7 +180,7 @@[m [mexport default function AuditPage() {[m
+             {/* Left Column: Health Score + Strength */}[m
+             <div className="lg:col-span-1 flex flex-col gap-6">[m
+               {/* Health Score Card */}[m
+[31m-              <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col items-center">[m
+[32m+[m[32m              <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col items-center">[m
+                 <h2 className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-6 self-start">[m
+                   Sanctuary Health[m
+                 </h2>[m
+[36m@@ -200,7 +200,7 @@[m [mexport default function AuditPage() {[m
+ [m
+               {/* Strength Distribution Card */}[m
+               {strengthData.length > 0 && ([m
+[31m-                <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m                <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+                   <StrengthDistribution strengthData={strengthData} />[m
+                 </Card>[m
+               )}[m
+[36m@@ -209,7 +209,7 @@[m [mexport default function AuditPage() {[m
+             {/* Right Column: Reuse + Aging + Recommendations */}[m
+             <div className="lg:col-span-2 flex flex-col gap-6">[m
+               {/* Reuse Detection */}[m
+[31m-              <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m              <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+                 <ReusePanel[m
+                   reuseGroups={reuseGroups}[m
+                   totalEntries={vaultEntries.length}[m
+[36m@@ -218,12 +218,12 @@[m [mexport default function AuditPage() {[m
+               </Card>[m
+ [m
+               {/* Aging Analysis */}[m
+[31m-              <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m              <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+                 <AgingPanel agingAnalysis={agingAnalysis} />[m
+               </Card>[m
+ [m
+               {/* Recommendations Feed */}[m
+[31m-              <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m              <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+                 <RecommendationsFeed[m
+                   recommendations={recommendations}[m
+                   totalCount={totalRecommendations}[m
+[36m@@ -240,7 +240,7 @@[m [mexport default function AuditPage() {[m
+           initial={{ opacity: 0 }}[m
+           animate={{ opacity: 1 }}[m
+           transition={{ delay: 1 }}[m
+[31m-          className="mt-12 rounded-2xl border border-[#D4AF37]/10 bg-amber-950/5 p-4 text-center"[m
+[32m+[m[32m          className="mt-12 rounded-2xl border border-[#79E6FF]/10 bg-amber-950/5 p-4 text-center"[m
+         >[m
+           <p className="text-[10px] text-slate-400 leading-relaxed max-w-lg mx-auto">[m
+             🔒 All security analysis occurs exclusively in your browser. No passwords, hashes, or analysis results [m
+[1mdiff --git a/frontend/app/contact/page.tsx b/frontend/app/contact/page.tsx[m
+[1mindex 89d4990..3705c45 100644[m
+[1m--- a/frontend/app/contact/page.tsx[m
+[1m+++ b/frontend/app/contact/page.tsx[m
+[36m@@ -164,7 +164,7 @@[m [mexport default function ContactPage() {[m
+     <PageLayout>[m
+       <main className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-24 animate-fade-in">[m
+         {/* Back to Home */}[m
+[31m-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#D4AF37] hover:text-white transition-colors mb-12">[m
+[32m+[m[32m        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#79E6FF] hover:text-white transition-colors mb-12">[m
+           <ArrowLeft size={14} />[m
+           Back to Home[m
+         </Link>[m
+[36m@@ -173,7 +173,7 @@[m [mexport default function ContactPage() {[m
+         <div className="max-w-3xl mb-16">[m
+           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">[m
+             Get In{' '}[m
+[31m-            <span className="bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">[m
+[32m+[m[32m            <span className="bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">[m
+               Touch[m
+             </span>[m
+           </h1>[m
+[36m@@ -184,12 +184,12 @@[m [mexport default function ContactPage() {[m
+ [m
+         <div className="grid gap-10 lg:grid-cols-[1fr_340px]">[m
+           {/* Contact Form */}[m
+[31m-          <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m          <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+             <form onSubmit={handleSubmit} className="space-y-6" noValidate>[m
+               {/* Name */}[m
+               <div>[m
+                 <label htmlFor="contact-name" className="text-[10px] text-white/40 uppercase tracking-wider font-semibold block mb-2">[m
+[31m-                  Full Name <span className="text-[#D4AF37]">*</span>[m
+[32m+[m[32m                  Full Name <span className="text-[#79E6FF]">*</span>[m
+                 </label>[m
+                 <input[m
+                   id="contact-name"[m
+[36m@@ -200,7 +200,7 @@[m [mexport default function ContactPage() {[m
+                   placeholder="What should we call you?"[m
+                   maxLength={100}[m
+                   className={`w-full rounded-xl border bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all duration-200 glow-input ${[m
+[31m-                    touched.name && errors.name ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#D4AF37]/30'[m
+[32m+[m[32m                    touched.name && errors.name ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#79E6FF]/30'[m
+                   }`}[m
+                 />[m
+                 {touched.name && errors.name && ([m
+[36m@@ -211,7 +211,7 @@[m [mexport default function ContactPage() {[m
+               {/* Email */}[m
+               <div>[m
+                 <label htmlFor="contact-email" className="text-[10px] text-white/40 uppercase tracking-wider font-semibold block mb-2">[m
+[31m-                  Email Address <span className="text-[#D4AF37]">*</span>[m
+[32m+[m[32m                  Email Address <span className="text-[#79E6FF]">*</span>[m
+                 </label>[m
+                 <input[m
+                   id="contact-email"[m
+[36m@@ -222,7 +222,7 @@[m [mexport default function ContactPage() {[m
+                   placeholder="your@email.com"[m
+                   maxLength={254}[m
+                   className={`w-full rounded-xl border bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all duration-200 glow-input ${[m
+[31m-                    touched.email && errors.email ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#D4AF37]/30'[m
+[32m+[m[32m                    touched.email && errors.email ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#79E6FF]/30'[m
+                   }`}[m
+                 />[m
+                 {touched.email && errors.email && ([m
+[36m@@ -233,7 +233,7 @@[m [mexport default function ContactPage() {[m
+               {/* Subject */}[m
+               <div>[m
+                 <label htmlFor="contact-subject" className="text-[10px] text-white/40 uppercase tracking-wider font-semibold block mb-2">[m
+[31m-                  Subject <span className="text-[#D4AF37]">*</span>[m
+[32m+[m[32m                  Subject <span className="text-[#79E6FF]">*</span>[m
+                 </label>[m
+                 <input[m
+                   id="contact-subject"[m
+[36m@@ -244,7 +244,7 @@[m [mexport default function ContactPage() {[m
+                   placeholder="What's on your mind?"[m
+                   maxLength={150}[m
+                   className={`w-full rounded-xl border bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all duration-200 glow-input ${[m
+[31m-                    touched.subject && errors.subject ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#D4AF37]/30'[m
+[32m+[m[32m                    touched.subject && errors.subject ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#79E6FF]/30'[m
+                   }`}[m
+                 />[m
+                 {touched.subject && errors.subject && ([m
+[36m@@ -255,7 +255,7 @@[m [mexport default function ContactPage() {[m
+               {/* Message */}[m
+               <div>[m
+                 <label htmlFor="contact-message" className="text-[10px] text-white/40 uppercase tracking-wider font-semibold block mb-2">[m
+[31m-                  Message <span className="text-[#D4AF37]">*</span>[m
+[32m+[m[32m                  Message <span className="text-[#79E6FF]">*</span>[m
+                 </label>[m
+                 <textarea[m
+                   id="contact-message"[m
+[36m@@ -265,7 +265,7 @@[m [mexport default function ContactPage() {[m
+                   placeholder="Tell us more — we're listening"[m
+                   rows={6}[m
+                   className={`w-full rounded-xl border bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all duration-200 resize-none glow-input ${[m
+[31m-                    touched.message && errors.message ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#D4AF37]/30'[m
+[32m+[m[32m                    touched.message && errors.message ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#79E6FF]/30'[m
+                   }`}[m
+                 />[m
+                 <div className="flex items-center justify-between mt-1.5">[m
+[36m@@ -319,7 +319,7 @@[m [mexport default function ContactPage() {[m
+           {/* Sidebar: Contact Info */}[m
+           <div className="flex flex-col gap-6">[m
+             {/* Contact Information Card */}[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+               <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-5">[m
+                 Contact Information[m
+               </h3>[m
+[36m@@ -327,10 +327,10 @@[m [mexport default function ContactPage() {[m
+               <div className="space-y-4">[m
+                 <a[m
+                   href="mailto:nakulan07022007@gmail.com"[m
+[31m-                  className="flex items-center gap-3 text-sm text-slate-300 hover:text-[#D4AF37] transition-colors group"[m
+[32m+[m[32m                  className="flex items-center gap-3 text-sm text-slate-300 hover:text-[#79E6FF] transition-colors group"[m
+                 >[m
+[31m-                  <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center group-hover:bg-[#D4AF37]/20 transition-colors">[m
+[31m-                    <Mail size={14} className="text-[#D4AF37]" />[m
+[32m+[m[32m                  <div className="w-8 h-8 rounded-lg bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center group-hover:bg-[#79E6FF]/20 transition-colors">[m
+[32m+[m[32m                    <Mail size={14} className="text-[#79E6FF]" />[m
+                   </div>[m
+                   <span className="text-xs font-mono">nakulan07022007@gmail.com</span>[m
+                 </a>[m
+[36m@@ -366,25 +366,25 @@[m [mexport default function ContactPage() {[m
+             </Card>[m
+ [m
+             {/* What to reach out about */}[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+               <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">[m
+                 Reach Out About[m
+               </h3>[m
+               <ul className="space-y-2.5 text-xs text-slate-400">[m
+                 <li className="flex items-center gap-2">[m
+[31m-                  <span className="h-1 w-1 rounded-full bg-[#D4AF37]" />[m
+[32m+[m[32m                  <span className="h-1 w-1 rounded-full bg-[#79E6FF]" />[m
+                   General questions[m
+                 </li>[m
+                 <li className="flex items-center gap-2">[m
+[31m-                  <span className="h-1 w-1 rounded-full bg-[#D4AF37]" />[m
+[32m+[m[32m                  <span className="h-1 w-1 rounded-full bg-[#79E6FF]" />[m
+                   Feature suggestions[m
+                 </li>[m
+                 <li className="flex items-center gap-2">[m
+[31m-                  <span className="h-1 w-1 rounded-full bg-[#D4AF37]" />[m
+[32m+[m[32m                  <span className="h-1 w-1 rounded-full bg-[#79E6FF]" />[m
+                   Bug reports[m
+                 </li>[m
+                 <li className="flex items-center gap-2">[m
+[31m-                  <span className="h-1 w-1 rounded-full bg-[#D4AF37]" />[m
+[32m+[m[32m                  <span className="h-1 w-1 rounded-full bg-[#79E6FF]" />[m
+                   Feedback &amp; ideas[m
+                 </li>[m
+                 <li className="flex items-center gap-2">[m
+[36m@@ -395,8 +395,8 @@[m [mexport default function ContactPage() {[m
+             </Card>[m
+ [m
+             {/* Security Notice */}[m
+[31m-            <div className="rounded-2xl border border-[#D4AF37]/10 bg-amber-950/5 p-4 text-xs leading-relaxed text-slate-400">[m
+[31m-              <div className="font-bold flex items-center gap-1.5 mb-1.5 text-[#D4AF37]">[m
+[32m+[m[32m            <div className="rounded-2xl border border-[#79E6FF]/10 bg-amber-950/5 p-4 text-xs leading-relaxed text-slate-400">[m
+[32m+[m[32m              <div className="font-bold flex items-center gap-1.5 mb-1.5 text-[#79E6FF]">[m
+                 <Shield size={12} className="shrink-0" />[m
+                 Security Reports[m
+               </div>[m
+[1mdiff --git a/frontend/app/dashboard/page.tsx b/frontend/app/dashboard/page.tsx[m
+[1mindex 05ee9a0..e166f2d 100644[m
+[1m--- a/frontend/app/dashboard/page.tsx[m
+[1m+++ b/frontend/app/dashboard/page.tsx[m
+[36m@@ -220,7 +220,7 @@[m [mexport default function DashboardPage() {[m
+ [m
+   // --- RENDERING ROUTE 2: Vault Unlocked Workspace ---[m
+   return ([m
+[31m-    <div className="min-h-screen bg-[#090D16] text-slate-100 pb-20 relative">[m
+[32m+[m[32m    <div className="min-h-screen bg-[#0A1020] text-slate-100 pb-20 relative">[m
+       [m
+       {/* Depleting progress bar countdown at the very top of the screen */}[m
+       <ClipboardPurgeBar />[m
+[36m@@ -250,11 +250,11 @@[m [mexport default function DashboardPage() {[m
+       />[m
+       [m
+       {/* Radial ambient background glows */}[m
+[31m-      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#D4AF37]/3 blur-[120px] animate-pulse-glow" />[m
+[32m+[m[32m      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#79E6FF]/3 blur-[120px] animate-pulse-glow" />[m
+       <div className="absolute bottom-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-emerald-500/1 blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />[m
+ [m
+       {/* Unlocked Header */}[m
+[31m-      <header className="border-b border-white/5 bg-[#090D16]/60 backdrop-blur-xl sticky top-0 z-50">[m
+[32m+[m[32m      <header className="border-b border-white/5 bg-[#0A1020]/60 backdrop-blur-xl sticky top-0 z-50">[m
+         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">[m
+           <div className="flex items-center">[m
+             <Image[m
+[36m@@ -278,7 +278,7 @@[m [mexport default function DashboardPage() {[m
+             <Button[m
+               variant="outline"[m
+               onClick={lockVault}[m
+[31m-              className="px-4 py-2 border-[#D4AF37]/25 hover:border-[#D4AF37]/60 text-[#D4AF37] hover:text-white text-xs font-bold gap-1.5 shadow-[inset_0_0_10px_rgba(212,175,55,0.05)]"[m
+[32m+[m[32m              className="px-4 py-2 border-[#79E6FF]/25 hover:border-[#79E6FF]/60 text-[#79E6FF] hover:text-white text-xs font-bold gap-1.5 shadow-[inset_0_0_10px_rgba(212,175,55,0.05)]"[m
+             >[m
+               <Lock size={13} />[m
+               Lock Vault[m
+[36m@@ -302,9 +302,9 @@[m [mexport default function DashboardPage() {[m
+         {/* Workspace Title bar & CTAs */}[m
+         <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">[m
+           <div>[m
+[31m-            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">Security Vault Workspace</h1>[m
+[32m+[m[32m            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">Your security workspace</h1>[m
+             <p className="mt-1.5 text-sm text-slate-400">[m
+[31m-              Manage your credentials locally with zero server trust[m
+[32m+[m[32m              Private by design. Built for control.[m
+             </p>[m
+           </div>[m
+           [m
+[36m@@ -312,7 +312,7 @@[m [mexport default function DashboardPage() {[m
+             <Link href="/guardians">[m
+               <Button [m
+                 variant="outline" [m
+[31m-                className="gap-1.5 text-xs font-bold px-5 py-3 border-white/10 hover:border-[#D4AF37]/30 text-white/60 hover:text-[#D4AF37]"[m
+[32m+[m[32m                className="gap-1.5 text-xs font-bold px-5 py-3 border-white/10 hover:border-[#79E6FF]/30 text-white/60 hover:text-[#79E6FF]"[m
+               >[m
+                 <Shield size={14} />[m
+                 Guardians[m
+[36m@@ -322,7 +322,7 @@[m [mexport default function DashboardPage() {[m
+             <Link href="/audit">[m
+               <Button [m
+                 variant="outline" [m
+[31m-                className="gap-1.5 text-xs font-bold px-5 py-3 border-[#D4AF37]/20 hover:border-[#D4AF37]/50 text-[#D4AF37] hover:text-white"[m
+[32m+[m[32m                className="gap-1.5 text-xs font-bold px-5 py-3 border-[#79E6FF]/20 hover:border-[#79E6FF]/50 text-[#79E6FF] hover:text-white"[m
+               >[m
+                 <Flower2 size={14} />[m
+                 Security Garden[m
+[36m@@ -338,7 +338,7 @@[m [mexport default function DashboardPage() {[m
+               className="gap-1.5 text-xs font-bold px-6 py-3"[m
+             >[m
+               <Plus size={14} />[m
+[31m-              Create Secret[m
+[32m+[m[32m              Add credential[m
+             </Button>[m
+           </div>[m
+         </div>[m
+[36m@@ -348,8 +348,8 @@[m [mexport default function DashboardPage() {[m
+           [m
+           {/* Diagnostic status block (Left Panel - Span 1) */}[m
+           <div className="lg:col-span-1 flex flex-col gap-6">[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 text-xs p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[31m-              <h2 className="text-sm font-bold mb-4 flex items-center gap-2 text-[#D4AF37]">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 text-xs p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m              <h2 className="text-sm font-bold mb-4 flex items-center gap-2 text-[#79E6FF]">[m
+                 <Database size={15} />[m
+                 Session Diagnostics[m
+               </h2>[m
+[36m@@ -376,7 +376,7 @@[m [mexport default function DashboardPage() {[m
+ [m
+                 <div>[m
+                   <span className="text-[10px] text-white/30 uppercase tracking-wider block mb-0.5 font-semibold">Session Isolation</span>[m
+[31m-                  <span className="font-mono text-[10px] text-[#D4AF37] bg-amber-950/15 border border-[#D4AF37]/15 rounded-xl px-2.5 py-2.5 block select-none mt-1 leading-relaxed">[m
+[32m+[m[32m                  <span className="font-mono text-[10px] text-[#79E6FF] bg-amber-950/15 border border-[#79E6FF]/15 rounded-xl px-2.5 py-2.5 block select-none mt-1 leading-relaxed">[m
+                     🔒 Non-Extractable CryptoKey[m
+                   </span>[m
+                   <span className="text-[9.5px] text-white/30 mt-2 block select-none leading-relaxed">[m
+[36m@@ -387,8 +387,8 @@[m [mexport default function DashboardPage() {[m
+             </Card>[m
+ [m
+             {/* Note banner */}[m
+[31m-            <div className="rounded-2xl border border-[#D4AF37]/10 bg-amber-950/5 p-4 text-xs leading-relaxed text-slate-400">[m
+[31m-              <div className="font-bold flex items-center gap-1.5 mb-1.5 text-[#D4AF37]">[m
+[32m+[m[32m            <div className="rounded-2xl border border-[#79E6FF]/10 bg-amber-950/5 p-4 text-xs leading-relaxed text-slate-400">[m
+[32m+[m[32m              <div className="font-bold flex items-center gap-1.5 mb-1.5 text-[#79E6FF]">[m
+                 <Shield size={14} className="shrink-0" />[m
+                 Zero-Trust Philosophy[m
+               </div>[m
+[36m@@ -405,22 +405,22 @@[m [mexport default function DashboardPage() {[m
+               [m
+               <button[m
+                 onClick={fetchEntries}[m
+[31m-                className="text-xs text-[#D4AF37]/70 hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#D4AF37]/15 bg-white/[0.01] hover:bg-[#D4AF37]/5 rounded-2xl px-4 py-2.5 z-10"[m
+[32m+[m[32m                className="text-xs text-[#79E6FF]/70 hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#79E6FF]/15 bg-white/[0.01] hover:bg-[#79E6FF]/5 rounded-2xl px-4 py-2.5 z-10"[m
+               >[m
+                 <RefreshCw size={12} className={vaultLoading ? "animate-spin" : ""} />[m
+[31m-                Sync Locker[m
+[32m+[m[32m                Sync vault[m
+               </button>[m
+             </div>[m
+ [m
+             {/* Vault List UI */}[m
+[31m-            <Card className="bg-[#090D16]/20 border-white/5 flex flex-col p-6 min-h-[400px] shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m            <Card className="bg-[#0A1020]/20 border-white/5 flex flex-col p-6 min-h-[400px] shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+               {vaultEntries.length === 0 ? ([m
+                 /* Empty state UI */[m
+                 <div className="flex flex-col items-center justify-center py-24 my-auto">[m
+                   <LockKeyhole className="h-10 w-10 text-white/10 mb-4" />[m
+[31m-                  <p className="text-sm font-semibold text-slate-400">Vault locker is empty</p>[m
+[32m+[m[32m                  <p className="text-sm font-semibold text-slate-400">Your vault is ready</p>[m
+                   <p className="text-xs text-white/20 mt-1 max-w-xs text-center leading-relaxed">[m
+[31m-                    Local browser GCM encryptions are active. Click the "Create Secret" button to add your first secure record.[m
+[32m+[m[32m                    Local browser GCM encryptions are active. Click the "Add credential" button to add your first secure record.[m
+                   </p>[m
+                 </div>[m
+               ) : filteredEntries.length === 0 ? ([m
+[1mdiff --git a/frontend/app/globals.css b/frontend/app/globals.css[m
+[1mindex 4127e51..c2bb843 100644[m
+[1m--- a/frontend/app/globals.css[m
+[1m+++ b/frontend/app/globals.css[m
+[36m@@ -1,148 +1,54 @@[m
+ @import "tailwindcss";[m
+ [m
+ @theme {[m
+[31m-  /* The Vault — Warm Dark Color System */[m
+[31m-  --color-bg-base: #0A0806;[m
+[31m-  --color-bg-surface: #141009;[m
+[31m-  --color-bg-raised: #1E160D;[m
+[31m-  --color-accent-primary: #E8A020;[m
+[31m-  --color-accent-secondary: #B86A1A;[m
+[31m-  --color-glow: #FF9A3C;[m
+[31m-  --color-gold: #D4AF37;[m
+[31m-  --color-text-primary: #F0E6D0;[m
+[31m-  --color-text-muted: #9A7D5A;[m
+[31m-  --color-success: #5EAA7A;[m
+[31m-  --color-danger: #CC4A3A;[m
+[31m-  --color-border: #2A1E10;[m
+[31m-[m
+[31m-  /* Animations */[m
+[31m-  --animate-fade-in: fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;[m
+[31m-  --animate-fade-up: fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;[m
+[31m-  --animate-pulse-glow: pulse-glow 4s infinite ease-in-out;[m
+[32m+[m[32m  --color-bg-base: #070B14;[m
+[32m+[m[32m  --color-bg-surface: #0C1424;[m
+[32m+[m[32m  --color-bg-raised: #111D31;[m
+[32m+[m[32m  --color-accent-primary: #6EE7FF;[m
+[32m+[m[32m  --color-accent-secondary: #7C5CFC;[m
+[32m+[m[32m  --color-glow: #A78BFA;[m
+[32m+[m[32m  --color-gold: #79E6FF;[m
+[32m+[m[32m  --color-text-primary: #E7EEF8;[m
+[32m+[m[32m  --color-text-muted: #8493AA;[m
+[32m+[m[32m  --color-success: #4ADEB0;[m
+[32m+[m[32m  --color-danger: #FB7185;[m
+[32m+[m[32m  --color-border: #1E2B42;[m
+[32m+[m[32m  --animate-fade-in: fade-in 0.45s cubic-bezier(0.23, 1, 0.32, 1) forwards;[m
+[32m+[m[32m  --animate-fade-up: fade-up 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;[m
+[32m+[m[32m  --animate-pulse-glow: pulse-glow 5s infinite ease-in-out;[m
+   --animate-shimmer: shimmer 0.6s ease forwards;[m
+   --animate-pulse-perimeter: pulse-perimeter 2.5s infinite ease-in-out;[m
+[31m-[m
+[31m-  @keyframes fade-in {[m
+[31m-    from { opacity: 0; }[m
+[31m-    to { opacity: 1; }[m
+[31m-  }[m
+[31m-[m
+[31m-  @keyframes fade-up {[m
+[31m-    from {[m
+[31m-      opacity: 0;[m
+[31m-      transform: translateY(20px);[m
+[31m-    }[m
+[31m-    to {[m
+[31m-      opacity: 1;[m
+[31m-      transform: translateY(0);[m
+[31m-    }[m
+[31m-  }[m
+[31m-[m
+[31m-  @keyframes pulse-glow {[m
+[31m-    0%, 100% {[m
+[31m-      opacity: 0.06;[m
+[31m-      filter: blur(100px) saturate(1.2);[m
+[31m-    }[m
+[31m-    50% {[m
+[31m-      opacity: 0.14;[m
+[31m-      filter: blur(80px) saturate(1.4);[m
+[31m-    }[m
+[31m-  }[m
+[31m-[m
+[31m-  @keyframes shimmer {[m
+[31m-    from { background-position: 200% center; }[m
+[31m-    to { background-position: -200% center; }[m
+[31m-  }[m
+[31m-[m
+[31m-  @keyframes pulse-perimeter {[m
+[31m-    0%, 100% {[m
+[31m-      box-shadow: inset 0 0 25px rgba(204, 74, 58, 0.2), 0 0 8px rgba(204, 74, 58, 0.1);[m
+[31m-      border-color: rgba(204, 74, 58, 0.25);[m
+[31m-    }[m
+[31m-    50% {[m
+[31m-      box-shadow: inset 0 0 50px rgba(204, 74, 58, 0.45), 0 0 20px rgba(204, 74, 58, 0.25);[m
+[31m-      border-color: rgba(204, 74, 58, 0.55);[m
+[31m-    }[m
+[31m-  }[m
+[31m-}[m
+[31m-[m
+[31m-:root {[m
+[31m-  --background: #0A0806;[m
+[31m-  --foreground: #F0E6D0;[m
+[32m+[m[32m  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }[m
+[32m+[m[32m  @keyframes fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }[m
+[32m+[m[32m  @keyframes pulse-glow { 0%, 100% { opacity: .05; filter: blur(100px); } 50% { opacity: .12; filter: blur(80px); } }[m
+[32m+[m[32m  @keyframes shimmer { from { background-position: 200% center; } to { background-position: -200% center; } }[m
+[32m+[m[32m  @keyframes pulse-perimeter { 0%, 100% { box-shadow: inset 0 0 25px rgba(251,113,133,.12), 0 0 8px rgba(251,113,133,.08); border-color: rgba(251,113,133,.22); } 50% { box-shadow: inset 0 0 40px rgba(251,113,133,.25), 0 0 18px rgba(251,113,133,.18); border-color: rgba(251,113,133,.5); } }[m
+ }[m
+ [m
+[32m+[m[32m:root { --background: #070B14; --foreground: #E7EEF8; }[m
+[32m+[m[32m* { box-sizing: border-box; }[m
+ body {[m
+[31m-  background: radial-gradient(ellipse 80% 50% at 20% 10%, #1A0F05 0%, #0A0806 60%);[m
+[32m+[m[32m  background: radial-gradient(ellipse 90% 55% at 18% 0%, #101D36 0%, #070B14 58%);[m
+   background-attachment: fixed;[m
+   color: var(--foreground);[m
+   font-family: 'Inter', system-ui, -apple-system, sans-serif;[m
+   overflow-x: hidden;[m
+   -webkit-font-smoothing: antialiased;[m
+ }[m
+[31m-[m
+[31m-/* Sora for headlines */[m
+[31m-h1, h2, h3, h4, .font-display {[m
+[31m-  font-family: 'Sora', 'Inter', system-ui, sans-serif;[m
+[31m-}[m
+[31m-[m
+[31m-/* JetBrains Mono for code/password fields */[m
+[31m-code, pre, .font-mono {[m
+[31m-  font-family: 'JetBrains Mono', monospace;[m
+[31m-}[m
+[31m-[m
+[31m-/* Glassmorphism Classes — Vault Theme */[m
+[31m-.glass-vault {[m
+[31m-  background: rgba(20, 16, 9, 0.85);[m
+[31m-  backdrop-filter: blur(12px);[m
+[31m-  border: 1px solid #2A1E10;[m
+[31m-  box-shadow: 0 0 30px rgba(232, 160, 32, 0.05), 0 4px 20px rgba(0, 0, 0, 0.4);[m
+[31m-}[m
+[31m-[m
+[31m-.glass-vault-hover {[m
+[31m-  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);[m
+[31m-}[m
+[31m-[m
+[31m-.glass-vault-hover:hover {[m
+[31m-  border-color: rgba(232, 160, 32, 0.3);[m
+[31m-  box-shadow: 0 0 40px rgba(232, 160, 32, 0.1), 0 8px 30px rgba(0, 0, 0, 0.5);[m
+[31m-  transform: translateY(-2px);[m
+[31m-}[m
+[31m-[m
+[31m-/* Shimmer one-shot effect for hero headline */[m
+[31m-.shimmer-text {[m
+[31m-  background: linear-gradient(90deg, transparent, rgba(232, 160, 32, 0.15), transparent);[m
+[31m-  background-size: 200% 100%;[m
+[31m-  animation: shimmer 0.6s ease forwards;[m
+[31m-}[m
+[31m-[m
+[31m-/* Glow input for forms */[m
+[31m-.glow-input {[m
+[31m-  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);[m
+[31m-}[m
+[31m-.glow-input:focus {[m
+[31m-  border-color: rgba(232, 160, 32, 0.5);[m
+[31m-  box-shadow: 0 0 20px rgba(232, 160, 32, 0.12), inset 0 0 8px rgba(232, 160, 32, 0.04);[m
+[31m-}[m
+[31m-[m
+[31m-/* Custom scrollbar — warm amber tint */[m
+[31m-::-webkit-scrollbar {[m
+[31m-  width: 8px;[m
+[31m-  height: 8px;[m
+[31m-}[m
+[31m-::-webkit-scrollbar-track {[m
+[31m-  background: #0A0806;[m
+[31m-}[m
+[31m-::-webkit-scrollbar-thumb {[m
+[31m-  background: rgba(232, 160, 32, 0.12);[m
+[31m-  border-radius: 9999px;[m
+[31m-  border: 2px solid #0A0806;[m
+[31m-  transition: background 0.3s;[m
+[31m-}[m
+[31m-::-webkit-scrollbar-thumb:hover {[m
+[31m-  background: rgba(232, 160, 32, 0.3);[m
+[31m-}[m
+[31m-[m
+[31m-/* Section divider utility */[m
+[31m-.section-divider {[m
+[31m-  border-top: 1px solid rgba(232, 160, 32, 0.08);[m
+[31m-}[m
+[32m+[m[32mh1, h2, h3, h4, .font-display { font-family: 'Sora', 'Inter', system-ui, sans-serif; }[m
+[32m+[m[32mcode, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }[m
+[32m+[m[32mbutton, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }[m
+[32m+[m[32mbutton:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #6EE7FF; outline-offset: 3px; }[m
+[32m+[m[32m.glass-vault { background: rgba(12,20,36,.86); backdrop-filter: blur(16px); border: 1px solid #1E2B42; box-shadow: 0 16px 40px rgba(0,0,0,.24); }[m
+[32m+[m[32m.glass-vault-hover { transition: transform .18s cubic-bezier(.23,1,.32,1), border-color .18s ease, box-shadow .18s ease; }[m
+[32m+[m[32m.glass-vault-hover:hover { border-color: rgba(110,231,255,.34); box-shadow: 0 18px 44px rgba(0,0,0,.32), 0 0 24px rgba(110,231,255,.06); transform: translateY(-2px); }[m
+[32m+[m[32m.shimmer-text { background: linear-gradient(90deg, transparent, rgba(110,231,255,.16), transparent); background-size: 200% 100%; animation: shimmer .6s ease forwards; }[m
+[32m+[m[32m.glow-input { transition: border-color .18s ease, box-shadow .18s ease; }[m
+[32m+[m[32m.glow-input:focus { border-color: rgba(110,231,255,.7); box-shadow: 0 0 0 3px rgba(110,231,255,.08), 0 0 24px rgba(110,231,255,.1); }[m
+[32m+[m[32m::-webkit-scrollbar { width: 8px; height: 8px; }[m
+[32m+[m[32m::-webkit-scrollbar-track { background: #070B14; }[m
+[32m+[m[32m::-webkit-scrollbar-thumb { background: rgba(110,231,255,.16); border-radius: 9999px; border: 2px solid #070B14; }[m
+[32m+[m[32m::-webkit-scrollbar-thumb:hover { background: rgba(110,231,255,.32); }[m
+[32m+[m[32m.section-divider { border-top: 1px solid rgba(110,231,255,.1); }[m
+[32m+[m[32m@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }[m
+[32m+[m[32m@media (max-width: 640px) { body { background: #070B14; } }[m
+[1mdiff --git a/frontend/app/guardians/page.tsx b/frontend/app/guardians/page.tsx[m
+[1mindex 5106b79..c094f35 100644[m
+[1m--- a/frontend/app/guardians/page.tsx[m
+[1m+++ b/frontend/app/guardians/page.tsx[m
+[36m@@ -104,13 +104,13 @@[m [mexport default function GuardiansPage() {[m
+   const circleReady = activeGuardians.length >= (circle?.threshold || 3);[m
+ [m
+   return ([m
+[31m-    <div className="min-h-screen bg-[#090D16] text-slate-100 pb-20 relative">[m
+[32m+[m[32m    <div className="min-h-screen bg-[#0A1020] text-slate-100 pb-20 relative">[m
+       {/* Ambient glows */}[m
+[31m-      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#D4AF37]/3 blur-[120px] animate-pulse-glow" />[m
+[32m+[m[32m      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#79E6FF]/3 blur-[120px] animate-pulse-glow" />[m
+       <div className="absolute bottom-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-emerald-500/2 blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />[m
+ [m
+       {/* Header */}[m
+[31m-      <header className="border-b border-white/5 bg-[#090D16]/60 backdrop-blur-xl sticky top-0 z-50">[m
+[32m+[m[32m      <header className="border-b border-white/5 bg-[#0A1020]/60 backdrop-blur-xl sticky top-0 z-50">[m
+         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">[m
+           <div className="flex items-center gap-4">[m
+             <Link href="/dashboard">[m
+[36m@@ -120,13 +120,13 @@[m [mexport default function GuardiansPage() {[m
+               </Button>[m
+             </Link>[m
+             <div className="flex items-center gap-2">[m
+[31m-              <Users size={18} className="text-[#D4AF37]" />[m
+[32m+[m[32m              <Users size={18} className="text-[#79E6FF]" />[m
+               <h1 className="text-sm font-bold text-white">Circle of Guardians</h1>[m
+             </div>[m
+           </div>[m
+ [m
+           <div className="flex items-center gap-3.5">[m
+[31m-            <Button variant="outline" onClick={lockVault} className="px-4 py-2 border-[#D4AF37]/25 hover:border-[#D4AF37]/60 text-[#D4AF37] hover:text-white text-xs font-bold gap-1.5">[m
+[32m+[m[32m            <Button variant="outline" onClick={lockVault} className="px-4 py-2 border-[#79E6FF]/25 hover:border-[#79E6FF]/60 text-[#79E6FF] hover:text-white text-xs font-bold gap-1.5">[m
+               <Lock size={13} />[m
+               Lock[m
+             </Button>[m
+[36m@@ -144,7 +144,7 @@[m [mexport default function GuardiansPage() {[m
+         {/* Page Title */}[m
+         <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">[m
+           <div>[m
+[31m-            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">[m
+[32m+[m[32m            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">[m
+               The Circle of Guardians[m
+             </h1>[m
+             <p className="mt-1.5 text-sm text-slate-400">[m
+[36m@@ -162,7 +162,7 @@[m [mexport default function GuardiansPage() {[m
+             </button>[m
+             <button[m
+               onClick={() => setShowInviteForm(true)}[m
+[31m-              className="text-xs text-[#D4AF37] hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#D4AF37]/20 bg-[#D4AF37]/5 hover:bg-[#D4AF37]/10 rounded-2xl px-4 py-2.5"[m
+[32m+[m[32m              className="text-xs text-[#79E6FF] hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#79E6FF]/20 bg-[#79E6FF]/5 hover:bg-[#79E6FF]/10 rounded-2xl px-4 py-2.5"[m
+             >[m
+               <UserPlus size={12} />[m
+               Invite Guardian[m
+[36m@@ -189,14 +189,14 @@[m [mexport default function GuardiansPage() {[m
+         <div className="grid gap-8 lg:grid-cols-2">[m
+           [m
+           {/* Left: Guardian Circle Visualization */}[m
+[31m-          <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m          <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+             <h2 className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-6">[m
+               Your Guardian Circle[m
+             </h2>[m
+ [m
+             {isLoadingCircle ? ([m
+               <div className="flex items-center justify-center py-16">[m
+[31m-                <RefreshCw size={20} className="text-[#D4AF37] animate-spin" />[m
+[32m+[m[32m                <RefreshCw size={20} className="text-[#79E6FF] animate-spin" />[m
+               </div>[m
+             ) : guardians.length === 0 ? ([m
+               <div className="flex flex-col items-center justify-center py-16 text-center">[m
+[36m@@ -242,7 +242,7 @@[m [mexport default function GuardiansPage() {[m
+           {/* Right: Recovery Status / Actions */}[m
+           <div className="flex flex-col gap-6">[m
+             {/* Recovery Status */}[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+               <h2 className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-6">[m
+                 Recovery Status[m
+               </h2>[m
+[36m@@ -269,7 +269,7 @@[m [mexport default function GuardiansPage() {[m
+                       variant="outline"[m
+                       onClick={handleCreateRecovery}[m
+                       disabled={isLoadingRecovery}[m
+[31m-                      className="text-xs border-[#D4AF37]/20 text-[#D4AF37] hover:border-[#D4AF37]/50 gap-1.5"[m
+[32m+[m[32m                      className="text-xs border-[#79E6FF]/20 text-[#79E6FF] hover:border-[#79E6FF]/50 gap-1.5"[m
+                     >[m
+                       <Shield size={12} />[m
+                       Initiate Recovery[m
+[36m@@ -280,8 +280,8 @@[m [mexport default function GuardiansPage() {[m
+             </Card>[m
+ [m
+             {/* Security Info */}[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[31m-              <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-2 mb-3">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m              <h3 className="text-xs font-bold text-[#79E6FF] flex items-center gap-2 mb-3">[m
+                 <Shield size={14} />[m
+                 Recovery Protections[m
+               </h3>[m
+[36m@@ -328,7 +328,7 @@[m [mexport default function GuardiansPage() {[m
+                 onClick={(e) => e.stopPropagation()}[m
+                 className="w-full max-w-md"[m
+               >[m
+[31m-                <Card className="border-[#D4AF37]/15 bg-[#090D16]/95 backdrop-blur-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">[m
+[32m+[m[32m                <Card className="border-[#79E6FF]/15 bg-[#0A1020]/95 backdrop-blur-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">[m
+                   <h3 className="text-lg font-bold text-white mb-1">Invite Guardian</h3>[m
+                   <p className="text-xs text-slate-400 mb-6">[m
+                     Enter the Ethereum address of a trusted wallet to join your recovery circle.[m
+[36m@@ -344,7 +344,7 @@[m [mexport default function GuardiansPage() {[m
+                         value={inviteAddress}[m
+                         onChange={(e) => setInviteAddress(e.target.value)}[m
+                         placeholder="0x..."[m
+[31m-                        className="w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/30"[m
+[32m+[m[32m                        className="w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#79E6FF]/30"[m
+                       />[m
+                     </div>[m
+ [m
+[36m@@ -358,7 +358,7 @@[m [mexport default function GuardiansPage() {[m
+                         max={6}[m
+                         value={threshold}[m
+                         onChange={(e) => setThreshold(Number(e.target.value))}[m
+[31m-                        className="w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]/30"[m
+[32m+[m[32m                        className="w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white focus:outline-none focus:border-[#79E6FF]/30"[m
+                       />[m
+                       <p className="text-[9px] text-white/30 mt-1">[m
+                         Minimum approvals needed for recovery (2 to total-1)[m
+[36m@@ -398,8 +398,8 @@[m [mexport default function GuardiansPage() {[m
+               exit={{ opacity: 0, height: 0 }}[m
+               className="mt-8"[m
+             >[m
+[31m-              <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[31m-                <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-2 mb-4">[m
+[32m+[m[32m              <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">[m
+[32m+[m[32m                <h3 className="text-xs font-bold text-[#79E6FF] flex items-center gap-2 mb-4">[m
+                   <Scroll size={14} />[m
+                   Recovery Audit Trail[m
+                 </h3>[m
+[36m@@ -410,7 +410,7 @@[m [mexport default function GuardiansPage() {[m
+                     {auditTrail.map((event) => ([m
+                       <div key={event.id} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.01] px-3 py-2">[m
+                         <div className="flex items-center gap-2">[m
+[31m-                          <span className="text-[9px] font-mono text-[#D4AF37] uppercase">{event.eventType.replace(/_/g, ' ')}</span>[m
+[32m+[m[32m                          <span className="text-[9px] font-mono text-[#79E6FF] uppercase">{event.eventType.replace(/_/g, ' ')}</span>[m
+                         </div>[m
+                         <span className="text-[9px] text-white/30 font-mono">[m
+                           {new Date(event.timestamp).toLocaleString()}[m
+[36m@@ -429,7 +429,7 @@[m [mexport default function GuardiansPage() {[m
+           initial={{ opacity: 0 }}[m
+           animate={{ opacity: 1 }}[m
+           transition={{ delay: 0.8 }}[m
+[31m-          className="mt-12 rounded-2xl border border-[#D4AF37]/10 bg-amber-950/5 p-4 text-center"[m
+[32m+[m[32m          className="mt-12 rounded-2xl border border-[#79E6FF]/10 bg-amber-950/5 p-4 text-center"[m
+         >[m
+           <p className="text-[10px] text-slate-400 leading-relaxed max-w-lg mx-auto">[m
+             🔒 Recovery shares are encrypted client-side before storage. The server never possesses your VEK, [m
+[1mdiff --git a/frontend/app/layout.tsx b/frontend/app/layout.tsx[m
+[1mindex 1d2dc78..057bd35 100644[m
+[1m--- a/frontend/app/layout.tsx[m
+[1m+++ b/frontend/app/layout.tsx[m
+[36m@@ -81,7 +81,7 @@[m [mexport default function RootLayout({[m
+         />[m
+       </head>[m
+       <body[m
+[31m-        className="min-h-full flex flex-col bg-[#0A0806] text-[#F0E6D0] font-[family-name:var(--font-inter)] selection:bg-[#E8A020]/20 selection:text-[#F0E6D0]"[m
+[32m+[m[32m        className="min-h-full flex flex-col bg-[#070B14] text-[#E7EEF8] font-[family-name:var(--font-inter)] selection:bg-[#6EE7FF]/20 selection:text-[#E7EEF8]"[m
+         suppressHydrationWarning[m
+       >[m
+         <SessionInitializer />[m
+[1mdiff --git a/frontend/app/login/page.tsx b/frontend/app/login/page.tsx[m
+[1mindex 693d6a1..de7f99e 100644[m
+[1m--- a/frontend/app/login/page.tsx[m
+[1m+++ b/frontend/app/login/page.tsx[m
+[36m@@ -63,7 +63,7 @@[m [mexport default function LoginPage() {[m
+       >[m
+         <Link[m
+           href="/"[m
+[31m-          className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#D4AF37] select-none"[m
+[32m+[m[32m          className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#79E6FF] select-none"[m
+         >[m
+           <ArrowLeft size={14} />[m
+           Back to Landing[m
+[36m@@ -95,7 +95,7 @@[m [mexport default function LoginPage() {[m
+             />[m
+           </motion.div>[m
+           [m
+[31m-          <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent font-mono">[m
+[32m+[m[32m          <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent font-mono">[m
+             Access The Sanctuary[m
+           </h2>[m
+           [m
+[36m@@ -106,7 +106,7 @@[m [mexport default function LoginPage() {[m
+ [m
+         {/* Central Glassmorphic Gateway Card with Burnished Gold Border */}[m
+         <motion.div variants={itemVariants}>[m
+[31m-          <Card className="border-[#D4AF37]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]">[m
+[32m+[m[32m          <Card className="border-[#79E6FF]/15 bg-[#0A1020]/50 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]">[m
+             <WalletConnectBtn />[m
+           </Card>[m
+         </motion.div>[m
+[1mdiff --git a/frontend/app/page.tsx b/frontend/app/page.tsx[m
+[1mindex 178721c..ebf640e 100644[m
+[1m--- a/frontend/app/page.tsx[m
+[1m+++ b/frontend/app/page.tsx[m
+[36m@@ -42,8 +42,8 @@[m [mfunction HeroSection() {[m
+             transform: visible ? 'translateY(0)' : 'translateY(20px)',[m
+           }}[m
+         >[m
+[31m-          <span className="text-[#F0E6D0]">Your Digital</span>{' '}[m
+[31m-          <span className="relative bg-gradient-to-r from-[#E8A020] to-[#FF9A3C] bg-clip-text text-transparent">[m
+[32m+[m[32m          <span className="text-[#E7EEF8]">Your Digital</span>{' '}[m
+[32m+[m[32m          <span className="relative bg-gradient-to-r from-[#6EE7FF] to-[#A78BFA] bg-clip-text text-transparent">[m
+             Sanctuary[m
+             {/* One-shot shimmer sweep */}[m
+             <span className="absolute inset-0 shimmer-text rounded pointer-events-none" />[m
+[36m@@ -52,7 +52,7 @@[m [mfunction HeroSection() {[m
+ [m
+         {/* Subtext */}[m
+         <p[m
+[31m-          className="mt-8 max-w-[560px] text-lg text-[#9A7D5A] leading-relaxed transition-all duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] delay-[80ms]"[m
+[32m+[m[32m          className="mt-8 max-w-[560px] text-lg text-[#8493AA] leading-relaxed transition-all duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] delay-[80ms]"[m
+           style={{[m
+             opacity: visible ? 1 : 0,[m
+             transform: visible ? 'translateY(0)' : 'translateY(20px)',[m
+[36m@@ -70,14 +70,14 @@[m [mfunction HeroSection() {[m
+           }}[m
+         >[m
+           <Link href="/login">[m
+[31m-            <button className="group flex items-center gap-2 px-7 py-3.5 text-sm font-bold text-[#0A0806] rounded-[10px] bg-gradient-to-br from-[#E8A020] to-[#B86A1A] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)] active:translate-y-0">[m
+[32m+[m[32m            <button className="group flex items-center gap-2 px-7 py-3.5 text-sm font-bold text-[#070B14] rounded-[10px] bg-gradient-to-br from-[#6EE7FF] to-[#7C5CFC] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)] active:translate-y-0">[m
+               Access Vault[m
+               <ChevronRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />[m
+             </button>[m
+           </Link>[m
+ [m
+           <Link href="/technology">[m
+[31m-            <button className="px-7 py-3.5 text-sm font-medium text-[#9A7D5A] rounded-[10px] border border-[#2A1E10] bg-transparent transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[#E8A020] hover:text-[#F0E6D0]">[m
+[32m+[m[32m            <button className="px-7 py-3.5 text-sm font-medium text-[#8493AA] rounded-[10px] border border-[#1E2B42] bg-transparent transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[#6EE7FF] hover:text-[#E7EEF8]">[m
+               Learn More[m
+             </button>[m
+           </Link>[m
+[36m@@ -105,10 +105,10 @@[m [mfunction ProblemSection() {[m
+     <section ref={ref} className="mx-auto max-w-7xl px-6 sm:px-8 section-divider pt-20">[m
+       <FadeUp visible={inView}>[m
+         <div className="max-w-3xl mx-auto text-center mb-16">[m
+[31m-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#F0E6D0] font-[family-name:var(--font-sora)]">[m
+[32m+[m[32m          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#E7EEF8] font-[family-name:var(--font-sora)]">[m
+             Passwords Are Broken[m
+           </h2>[m
+[31m-          <p className="mt-6 text-[#9A7D5A] text-lg leading-relaxed">[m
+[32m+[m[32m          <p className="mt-6 text-[#8493AA] text-lg leading-relaxed">[m
+             You juggle dozens — maybe hundreds — of accounts. Passwords get reused, forgotten, and leaked. It shouldn't be this hard to stay safe online.[m
+           </p>[m
+         </div>[m
+[36m@@ -150,10 +150,10 @@[m [mfunction SolutionSection() {[m
+     <section ref={ref} className="mx-auto max-w-7xl px-6 sm:px-8 mt-32">[m
+       <FadeUp visible={inView}>[m
+         <div className="text-center mb-16">[m
+[31m-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#F0E6D0] font-[family-name:var(--font-sora)]">[m
+[32m+[m[32m          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#E7EEF8] font-[family-name:var(--font-sora)]">[m
+             One Vault. Complete Control.[m
+           </h2>[m
+[31m-          <p className="mt-4 text-[#9A7D5A] max-w-xl mx-auto text-lg">[m
+[32m+[m[32m          <p className="mt-4 text-[#8493AA] max-w-xl mx-auto text-lg">[m
+             A single, secure home for all your credentials — without trusting anyone else with your data.[m
+           </p>[m
+         </div>[m
+[36m@@ -162,9 +162,9 @@[m [mfunction SolutionSection() {[m
+       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">[m
+         {features.map((item, i) => ([m
+           <FadeUp key={item.title} visible={inView} delay={i * 80}>[m
+[31m-            <div className="rounded-2xl border border-[#2A1E10] bg-[#141009] p-6 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[rgba(232,160,32,0.3)] hover:shadow-[0_0_30px_rgba(232,160,32,0.08),0_4px_20px_rgba(0,0,0,0.4)]">[m
+[31m-              <h3 className="text-sm font-bold text-[#F0E6D0] mb-2 font-[family-name:var(--font-sora)]">{item.title}</h3>[m
+[31m-              <p className="text-xs text-[#9A7D5A] leading-relaxed">{item.desc}</p>[m
+[32m+[m[32m            <div className="rounded-2xl border border-[#1E2B42] bg-[#0E1627] p-6 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[rgba(232,160,32,0.3)] hover:shadow-[0_0_30px_rgba(232,160,32,0.08),0_4px_20px_rgba(0,0,0,0.4)]">[m
+[32m+[m[32m              <h3 className="text-sm font-bold text-[#E7EEF8] mb-2 font-[family-name:var(--font-sora)]">{item.title}</h3>[m
+[32m+[m[32m              <p className="text-xs text-[#8493AA] leading-relaxed">{item.desc}</p>[m
+             </div>[m
+           </FadeUp>[m
+         ))}[m
+[36m@@ -214,7 +214,7 @@[m [mfunction WhySection() {[m
+     <section ref={ref} className="mx-auto max-w-7xl px-6 sm:px-8 mt-32 section-divider pt-20">[m
+       <FadeUp visible={inView}>[m
+         <div className="text-center mb-16">[m
+[31m-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#F0E6D0] font-[family-name:var(--font-sora)]">[m
+[32m+[m[32m          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#E7EEF8] font-[family-name:var(--font-sora)]">[m
+             Why People Trust Sphynx[m
+           </h2>[m
+         </div>[m
+[36m@@ -223,12 +223,12 @@[m [mfunction WhySection() {[m
+       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">[m
+         {cards.map((card, i) => ([m
+           <FadeUp key={card.title} visible={inView} delay={i * 80}>[m
+[31m-            <div className="flex flex-col gap-4 rounded-2xl border border-[#2A1E10] bg-[#141009] p-6 shadow-[0_0_30px_rgba(232,160,32,0.05),0_4px_20px_rgba(0,0,0,0.4)] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[rgba(232,160,32,0.3)] hover:shadow-[0_0_40px_rgba(232,160,32,0.1),0_8px_30px_rgba(0,0,0,0.5)]">[m
+[31m-              <div className="w-fit rounded-xl bg-[rgba(232,160,32,0.08)] p-3 text-[#E8A020]">[m
+[32m+[m[32m            <div className="flex flex-col gap-4 rounded-2xl border border-[#1E2B42] bg-[#0E1627] p-6 shadow-[0_0_30px_rgba(232,160,32,0.05),0_4px_20px_rgba(0,0,0,0.4)] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[rgba(232,160,32,0.3)] hover:shadow-[0_0_40px_rgba(232,160,32,0.1),0_8px_30px_rgba(0,0,0,0.5)]">[m
+[32m+[m[32m              <div className="w-fit rounded-xl bg-[rgba(232,160,32,0.08)] p-3 text-[#6EE7FF]">[m
+                 {card.icon}[m
+               </div>[m
+[31m-              <h3 className="text-base font-bold text-[#F0E6D0] font-[family-name:var(--font-sora)]">{card.title}</h3>[m
+[31m-              <p className="text-xs leading-relaxed text-[#9A7D5A]">{card.desc}</p>[m
+[32m+[m[32m              <h3 className="text-base font-bold text-[#E7EEF8] font-[family-name:var(--font-sora)]">{card.title}</h3>[m
+[32m+[m[32m              <p className="text-xs leading-relaxed text-[#8493AA]">{card.desc}</p>[m
+             </div>[m
+           </FadeUp>[m
+         ))}[m
+[36m@@ -254,15 +254,15 @@[m [mfunction CTASection() {[m
+   return ([m
+     <section ref={ref} className="mx-auto max-w-7xl px-6 sm:px-8 mt-32 mb-12">[m
+       <FadeUp visible={inView}>[m
+[31m-        <div className="rounded-3xl border border-[#2A1E10] bg-[#141009] p-12 sm:p-16 text-center shadow-[0_0_60px_rgba(232,160,32,0.04)]">[m
+[31m-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#F0E6D0] mb-4 font-[family-name:var(--font-sora)]">[m
+[32m+[m[32m        <div className="rounded-3xl border border-[#1E2B42] bg-[#0E1627] p-12 sm:p-16 text-center shadow-[0_0_60px_rgba(232,160,32,0.04)]">[m
+[32m+[m[32m          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#E7EEF8] mb-4 font-[family-name:var(--font-sora)]">[m
+             Ready to Lock Things Down?[m
+           </h2>[m
+[31m-          <p className="text-[#9A7D5A] max-w-lg mx-auto mb-8 text-base leading-relaxed">[m
+[32m+[m[32m          <p className="text-[#8493AA] max-w-lg mx-auto mb-8 text-base leading-relaxed">[m
+             Step inside the vault. Full ownership of your credentials, zero trust required.[m
+           </p>[m
+           <Link href="/login">[m
+[31m-            <button className="group inline-flex items-center gap-2 px-8 py-4 text-sm font-bold text-[#0A0806] rounded-[10px] bg-gradient-to-br from-[#E8A020] to-[#B86A1A] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)] active:translate-y-0">[m
+[32m+[m[32m            <button className="group inline-flex items-center gap-2 px-8 py-4 text-sm font-bold text-[#070B14] rounded-[10px] bg-gradient-to-br from-[#6EE7FF] to-[#7C5CFC] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)] active:translate-y-0">[m
+               Access Vault[m
+               <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />[m
+             </button>[m
+[36m@@ -327,11 +327,11 @@[m [mfunction StatCard({ value, suffix, label, inView, delay }: {[m
+ [m
+   return ([m
+     <FadeUp visible={inView} delay={delay}>[m
+[31m-      <div className="rounded-2xl border border-[#2A1E10] border-t-2 border-t-[#E8A020] bg-[#141009] p-6 text-center shadow-[0_0_30px_rgba(232,160,32,0.05),0_4px_20px_rgba(0,0,0,0.4)]">[m
+[31m-        <p className="text-3xl font-bold font-[family-name:var(--font-sora)] bg-gradient-to-r from-[#E8A020] to-[#FF9A3C] bg-clip-text text-transparent">[m
+[32m+[m[32m      <div className="rounded-2xl border border-[#1E2B42] border-t-2 border-t-[#6EE7FF] bg-[#0E1627] p-6 text-center shadow-[0_0_30px_rgba(232,160,32,0.05),0_4px_20px_rgba(0,0,0,0.4)]">[m
+[32m+[m[32m        <p className="text-3xl font-bold font-[family-name:var(--font-sora)] bg-gradient-to-r from-[#6EE7FF] to-[#A78BFA] bg-clip-text text-transparent">[m
+           {count}{suffix}[m
+         </p>[m
+[31m-        <p className="mt-2 text-xs text-[#9A7D5A] leading-relaxed">{label}</p>[m
+[32m+[m[32m        <p className="mt-2 text-xs text-[#8493AA] leading-relaxed">{label}</p>[m
+       </div>[m
+     </FadeUp>[m
+   );[m
+[1mdiff --git a/frontend/app/security/page.tsx b/frontend/app/security/page.tsx[m
+[1mindex 8e6b380..47250ad 100644[m
+[1m--- a/frontend/app/security/page.tsx[m
+[1m+++ b/frontend/app/security/page.tsx[m
+[36m@@ -17,7 +17,7 @@[m [mexport default function SecurityPage() {[m
+     <PageLayout>[m
+       <main className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-24 animate-fade-in">[m
+         {/* Back to Home */}[m
+[31m-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#D4AF37] hover:text-white transition-colors mb-12">[m
+[32m+[m[32m        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#79E6FF] hover:text-white transition-colors mb-12">[m
+           <ArrowLeft size={14} />[m
+           Back to Home[m
+         </Link>[m
+[36m@@ -26,7 +26,7 @@[m [mexport default function SecurityPage() {[m
+         <div className="max-w-3xl mb-20">[m
+           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">[m
+             How Sphynx{' '}[m
+[31m-            <span className="bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">[m
+[32m+[m[32m            <span className="bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">[m
+               Protects You[m
+             </span>[m
+           </h1>[m
+[36m@@ -38,7 +38,7 @@[m [mexport default function SecurityPage() {[m
+         {/* Zero-Knowledge Design */}[m
+         <section className="mb-20">[m
+           <div className="flex items-center gap-3 mb-6">[m
+[31m-            <div className="w-fit rounded-xl bg-[#D4AF37]/10 p-2.5 border border-[#D4AF37]/20 text-[#D4AF37]">[m
+[32m+[m[32m            <div className="w-fit rounded-xl bg-[#79E6FF]/10 p-2.5 border border-[#79E6FF]/20 text-[#79E6FF]">[m
+               <Eye size={20} />[m
+             </div>[m
+             <h2 className="text-2xl font-bold">Zero-Knowledge Design</h2>[m
+[36m@@ -69,7 +69,7 @@[m [mexport default function SecurityPage() {[m
+               </ul>[m
+             </div>[m
+ [m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">[m
+               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">What the Server Sees</h4>[m
+               <div className="space-y-3">[m
+                 <div className="rounded-lg border border-white/5 bg-black/30 p-3 flex items-center justify-between">[m
+[36m@@ -78,11 +78,11 @@[m [mexport default function SecurityPage() {[m
+                 </div>[m
+                 <div className="rounded-lg border border-white/5 bg-black/30 p-3 flex items-center justify-between">[m
+                   <span className="text-xs text-slate-300">Encrypted vault blobs</span>[m
+[31m-                  <span className="text-[10px] text-[#D4AF37] font-mono">encrypted</span>[m
+[32m+[m[32m                  <span className="text-[10px] text-[#79E6FF] font-mono">encrypted</span>[m
+                 </div>[m
+                 <div className="rounded-lg border border-white/5 bg-black/30 p-3 flex items-center justify-between">[m
+                   <span className="text-xs text-slate-300">Encrypted key material</span>[m
+[31m-                  <span className="text-[10px] text-[#D4AF37] font-mono">encrypted</span>[m
+[32m+[m[32m                  <span className="text-[10px] text-[#79E6FF] font-mono">encrypted</span>[m
+                 </div>[m
+                 <div className="rounded-lg border border-white/5 bg-black/30 p-3 flex items-center justify-between">[m
+                   <span className="text-xs text-slate-300">Your actual passwords</span>[m
+[36m@@ -152,19 +152,19 @@[m [mexport default function SecurityPage() {[m
+           </div>[m
+ [m
+           <div className="grid gap-6 md:grid-cols-3">[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">[m
+               <h4 className="text-sm font-bold text-white mb-2">Auto-Lock</h4>[m
+               <p className="text-xs text-slate-400 leading-relaxed">[m
+                 The vault automatically locks after a period of inactivity. Derived keys are purged from memory, requiring re-authentication.[m
+               </p>[m
+             </Card>[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">[m
+               <h4 className="text-sm font-bold text-white mb-2">Clipboard Purge</h4>[m
+               <p className="text-xs text-slate-400 leading-relaxed">[m
+                 Copied passwords are automatically cleared from the clipboard after a countdown, preventing accidental exposure.[m
+               </p>[m
+             </Card>[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">[m
+               <h4 className="text-sm font-bold text-white mb-2">Tamper Detection</h4>[m
+               <p className="text-xs text-slate-400 leading-relaxed">[m
+                 The vault monitors for signs of tampering or unauthorized access attempts and alerts the user immediately.[m
+[36m@@ -207,20 +207,20 @@[m [mexport default function SecurityPage() {[m
+               </ul>[m
+             </div>[m
+ [m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">[m
+               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Recovery Cooldowns</h4>[m
+               <div className="space-y-3">[m
+                 <div className="flex items-center justify-between rounded-lg border border-white/5 bg-black/30 p-3">[m
+                   <span className="text-xs text-slate-300">Approval processing delay</span>[m
+[31m-                  <span className="text-xs text-[#D4AF37] font-mono font-bold">24 hours</span>[m
+[32m+[m[32m                  <span className="text-xs text-[#79E6FF] font-mono font-bold">24 hours</span>[m
+                 </div>[m
+                 <div className="flex items-center justify-between rounded-lg border border-white/5 bg-black/30 p-3">[m
+                   <span className="text-xs text-slate-300">Guardian approval expiry</span>[m
+[31m-                  <span className="text-xs text-[#D4AF37] font-mono font-bold">48 hours</span>[m
+[32m+[m[32m                  <span className="text-xs text-[#79E6FF] font-mono font-bold">48 hours</span>[m
+                 </div>[m
+                 <div className="flex items-center justify-between rounded-lg border border-white/5 bg-black/30 p-3">[m
+                   <span className="text-xs text-slate-300">Global recovery cooldown</span>[m
+[31m-                  <span className="text-xs text-[#D4AF37] font-mono font-bold">7 days</span>[m
+[32m+[m[32m                  <span className="text-xs text-[#79E6FF] font-mono font-bold">7 days</span>[m
+                 </div>[m
+               </div>[m
+               <p className="text-[10px] text-white/30 mt-4">[m
+[1mdiff --git a/frontend/app/technology/page.tsx b/frontend/app/technology/page.tsx[m
+[1mindex 88b78b4..c91e71e 100644[m
+[1m--- a/frontend/app/technology/page.tsx[m
+[1m+++ b/frontend/app/technology/page.tsx[m
+[36m@@ -16,7 +16,7 @@[m [mexport default function TechnologyPage() {[m
+     <PageLayout>[m
+       <main className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-24 animate-fade-in">[m
+         {/* Back to Home */}[m
+[31m-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#D4AF37] hover:text-white transition-colors mb-12">[m
+[32m+[m[32m        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#79E6FF] hover:text-white transition-colors mb-12">[m
+           <ArrowLeft size={14} />[m
+           Back to Home[m
+         </Link>[m
+[36m@@ -25,7 +25,7 @@[m [mexport default function TechnologyPage() {[m
+         <div className="max-w-3xl mb-20">[m
+           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">[m
+             How Sphynx{' '}[m
+[31m-            <span className="bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">[m
+[32m+[m[32m            <span className="bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">[m
+               Works[m
+             </span>[m
+           </h1>[m
+[36m@@ -37,7 +37,7 @@[m [mexport default function TechnologyPage() {[m
+         {/* Wallet Authentication */}[m
+         <section className="mb-20">[m
+           <div className="flex items-center gap-3 mb-6">[m
+[31m-            <div className="w-fit rounded-xl bg-[#D4AF37]/10 p-2.5 border border-[#D4AF37]/20 text-[#D4AF37]">[m
+[32m+[m[32m            <div className="w-fit rounded-xl bg-[#79E6FF]/10 p-2.5 border border-[#79E6FF]/20 text-[#79E6FF]">[m
+               <Shield size={20} />[m
+             </div>[m
+             <h2 className="text-2xl font-bold">Wallet Authentication</h2>[m
+[36m@@ -60,7 +60,7 @@[m [mexport default function TechnologyPage() {[m
+               </ol>[m
+             </div>[m
+ [m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">[m
+               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">EIP-4361 Message Structure</h4>[m
+               <pre className="text-xs text-slate-300 font-mono leading-relaxed bg-black/30 rounded-xl p-4 overflow-x-auto">[m
+ {`sphynx.app wants you to sign in[m
+[36m@@ -111,27 +111,27 @@[m [mExpiration: 2026-05-30T12:01:30Z`}[m
+               </p>[m
+             </div>[m
+ [m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">[m
+               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Encryption Flow</h4>[m
+               <div className="space-y-4 text-xs text-slate-300">[m
+                 <div className="flex items-start gap-3">[m
+[31m-                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-bold text-[10px]">1</span>[m
+[32m+[m[32m                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center text-[#79E6FF] font-bold text-[10px]">1</span>[m
+                   <p>Wallet signs a deterministic message → produces a stable signature</p>[m
+                 </div>[m
+                 <div className="flex items-start gap-3">[m
+[31m-                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-bold text-[10px]">2</span>[m
+[32m+[m[32m                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center text-[#79E6FF] font-bold text-[10px]">2</span>[m
+                   <p>Signature is fed into HKDF to derive the KEK (non-extractable CryptoKey)</p>[m
+                 </div>[m
+                 <div className="flex items-start gap-3">[m
+[31m-                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-bold text-[10px]">3</span>[m
+[32m+[m[32m                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center text-[#79E6FF] font-bold text-[10px]">3</span>[m
+                   <p>KEK unwraps the encrypted VEK stored on the server</p>[m
+                 </div>[m
+                 <div className="flex items-start gap-3">[m
+[31m-                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-bold text-[10px]">4</span>[m
+[32m+[m[32m                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center text-[#79E6FF] font-bold text-[10px]">4</span>[m
+                   <p>VEK decrypts individual vault entries using AES-256-GCM</p>[m
+                 </div>[m
+                 <div className="flex items-start gap-3">[m
+[31m-                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-bold text-[10px]">5</span>[m
+[32m+[m[32m                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center text-[#79E6FF] font-bold text-[10px]">5</span>[m
+                   <p>All decryption happens in-browser — plaintext never touches the network</p>[m
+                 </div>[m
+               </div>[m
+[36m@@ -153,19 +153,19 @@[m [mExpiration: 2026-05-30T12:01:30Z`}[m
+           </p>[m
+ [m
+           <div className="grid gap-6 md:grid-cols-3">[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">[m
+               <h4 className="text-sm font-bold text-white mb-2">Users</h4>[m
+               <p className="text-xs text-slate-400 leading-relaxed">[m
+                 Stores wallet addresses, encrypted VEK blobs, and session metadata. No emails or personal information required.[m
+               </p>[m
+             </Card>[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">[m
+               <h4 className="text-sm font-bold text-white mb-2">Vault Entries</h4>[m
+               <p className="text-xs text-slate-400 leading-relaxed">[m
+                 Each entry contains an encrypted ciphertext blob, IV, label, and metadata. The server cannot distinguish between entries.[m
+               </p>[m
+             </Card>[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">[m
+               <h4 className="text-sm font-bold text-white mb-2">Guardian Circles</h4>[m
+               <p className="text-xs text-slate-400 leading-relaxed">[m
+                 Recovery relationships, threshold configurations, and encrypted key shares for the social recovery system.[m
+[36m@@ -204,11 +204,11 @@[m [mExpiration: 2026-05-30T12:01:30Z`}[m
+               </ul>[m
+             </div>[m
+ [m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">[m
+               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Extension Data Flow</h4>[m
+               <div className="space-y-3 text-xs text-slate-300">[m
+                 <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">[m
+[31m-                  <span className="text-[#D4AF37] font-semibold">Web App</span> → Session sync → <span className="text-emerald-400 font-semibold">Extension</span>[m
+[32m+[m[32m                  <span className="text-[#79E6FF] font-semibold">Web App</span> → Session sync → <span className="text-emerald-400 font-semibold">Extension</span>[m
+                 </div>[m
+                 <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">[m
+                   <span className="text-emerald-400 font-semibold">Extension</span> → Detects form → <span className="text-blue-400 font-semibold">Content Script</span>[m
+[1mdiff --git a/frontend/app/why-sphynx/page.tsx b/frontend/app/why-sphynx/page.tsx[m
+[1mindex 0fba2e3..319c309 100644[m
+[1m--- a/frontend/app/why-sphynx/page.tsx[m
+[1m+++ b/frontend/app/why-sphynx/page.tsx[m
+[36m@@ -17,7 +17,7 @@[m [mexport default function WhySphynxPage() {[m
+     <PageLayout>[m
+       <main className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-24 animate-fade-in">[m
+         {/* Back to Home */}[m
+[31m-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#D4AF37] hover:text-white transition-colors mb-12">[m
+[32m+[m[32m        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#79E6FF] hover:text-white transition-colors mb-12">[m
+           <ArrowLeft size={14} />[m
+           Back to Home[m
+         </Link>[m
+[36m@@ -26,7 +26,7 @@[m [mexport default function WhySphynxPage() {[m
+         <div className="max-w-3xl mb-20">[m
+           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">[m
+             Why{' '}[m
+[31m-            <span className="bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">[m
+[32m+[m[32m            <span className="bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">[m
+               Sphynx[m
+             </span>[m
+           </h1>[m
+[36m@@ -62,7 +62,7 @@[m [mexport default function WhySphynxPage() {[m
+                   <th className="text-left py-4 px-4 text-xs font-semibold text-white/60 uppercase tracking-wider">Feature</th>[m
+                   <th className="text-center py-4 px-4 text-xs font-semibold text-white/60 uppercase tracking-wider">Traditional PM</th>[m
+                   <th className="text-center py-4 px-4 text-xs font-semibold text-white/60 uppercase tracking-wider">Browser PM</th>[m
+[31m-                  <th className="text-center py-4 px-4 text-xs font-semibold text-[#D4AF37] uppercase tracking-wider">Sphynx</th>[m
+[32m+[m[32m                  <th className="text-center py-4 px-4 text-xs font-semibold text-[#79E6FF] uppercase tracking-wider">Sphynx</th>[m
+                 </tr>[m
+               </thead>[m
+               <tbody className="text-slate-300">[m
+[36m@@ -105,32 +105,32 @@[m [mexport default function WhySphynxPage() {[m
+         {/* Wallet Authentication Benefits */}[m
+         <section className="mb-20 border-t border-white/5 pt-16">[m
+           <div className="flex items-center gap-3 mb-6">[m
+[31m-            <div className="w-fit rounded-xl bg-[#D4AF37]/10 p-2.5 border border-[#D4AF37]/20 text-[#D4AF37]">[m
+[32m+[m[32m            <div className="w-fit rounded-xl bg-[#79E6FF]/10 p-2.5 border border-[#79E6FF]/20 text-[#79E6FF]">[m
+               <Key size={20} />[m
+             </div>[m
+             <h2 className="text-2xl font-bold">Wallet Authentication Benefits</h2>[m
+           </div>[m
+ [m
+           <div className="grid gap-6 md:grid-cols-2 max-w-4xl">[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">[m
+               <h4 className="text-sm font-bold text-white mb-2">No Password to Forget</h4>[m
+               <p className="text-xs text-slate-400 leading-relaxed">[m
+                 Your wallet is your identity. No master password means no risk of forgetting it, and no password to be phished or brute-forced.[m
+               </p>[m
+             </Card>[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">[m
+               <h4 className="text-sm font-bold text-white mb-2">Cryptographic Proof</h4>[m
+               <p className="text-xs text-slate-400 leading-relaxed">[m
+                 Wallet signatures provide mathematical proof of identity. Unlike passwords, they cannot be guessed, leaked from a database, or intercepted.[m
+               </p>[m
+             </Card>[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">[m
+               <h4 className="text-sm font-bold text-white mb-2">Hardware Security</h4>[m
+               <p className="text-xs text-slate-400 leading-relaxed">[m
+                 Hardware wallets (Ledger, Trezor) keep your signing keys in a secure element. Authentication becomes as secure as your physical device.[m
+               </p>[m
+             </Card>[m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">[m
+               <h4 className="text-sm font-bold text-white mb-2">No Central Authority</h4>[m
+               <p className="text-xs text-slate-400 leading-relaxed">[m
+                 No company controls your access. Your wallet is yours — no account lockouts, no service dependencies, no terms of service changes.[m
+[36m@@ -195,7 +195,7 @@[m [mexport default function WhySphynxPage() {[m
+               </p>[m
+             </div>[m
+ [m
+[31m-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">[m
+[32m+[m[32m            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">[m
+               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Recovery vs. Traditional Reset</h4>[m
+               <div className="space-y-4">[m
+                 <div>[m
+[1mdiff --git a/frontend/components/audit/AgingPanel.tsx b/frontend/components/audit/AgingPanel.tsx[m
+[1mindex d9aef19..17531c3 100644[m
+[1m--- a/frontend/components/audit/AgingPanel.tsx[m
+[1m+++ b/frontend/components/audit/AgingPanel.tsx[m
+[36m@@ -24,7 +24,7 @@[m [mexport function AgingPanel({ agingAnalysis }: AgingPanelProps) {[m
+   return ([m
+     <div className="flex flex-col gap-4">[m
+       <div className="flex items-center gap-2 mb-1">[m
+[31m-        <Clock size={15} className="text-[#D4AF37]" />[m
+[32m+[m[32m        <Clock size={15} className="text-[#79E6FF]" />[m
+         <h3 className="text-sm font-bold text-white">Credential Aging</h3>[m
+       </div>[m
+ [m
+[1mdiff --git a/frontend/components/audit/HealthScoreRing.tsx b/frontend/components/audit/HealthScoreRing.tsx[m
+[1mindex 516ff8a..47d3e8e 100644[m
+[1m--- a/frontend/components/audit/HealthScoreRing.tsx[m
+[1m+++ b/frontend/components/audit/HealthScoreRing.tsx[m
+[36m@@ -14,7 +14,7 @@[m [mconst LEVEL_COLORS: Record<SecurityLevel, { ring: string; glow: string; text: st[m
+   'Vulnerable': { ring: '#ef4444', glow: 'rgba(239,68,68,0.2)', text: 'text-red-400' },[m
+   'Developing': { ring: '#f59e0b', glow: 'rgba(245,158,11,0.2)', text: 'text-amber-400' },[m
+   'Fortified': { ring: '#10b981', glow: 'rgba(16,185,129,0.2)', text: 'text-emerald-400' },[m
+[31m-  'Sanctuary Grade': { ring: '#D4AF37', glow: 'rgba(212,175,55,0.25)', text: 'text-[#D4AF37]' },[m
+[32m+[m[32m  'Sanctuary Grade': { ring: '#79E6FF', glow: 'rgba(212,175,55,0.25)', text: 'text-[#79E6FF]' },[m
+ };[m
+ [m
+ export function HealthScoreRing({ score, level, size = 180 }: HealthScoreRingProps) {[m
+[1mdiff --git a/frontend/components/audit/RecommendationsFeed.tsx b/frontend/components/audit/RecommendationsFeed.tsx[m
+[1mindex 6f7ad2c..685dff7 100644[m
+[1m--- a/frontend/components/audit/RecommendationsFeed.tsx[m
+[1m+++ b/frontend/components/audit/RecommendationsFeed.tsx[m
+[36m@@ -29,7 +29,7 @@[m [mexport function RecommendationsFeed({ recommendations, totalCount, isAllClear, a[m
+   return ([m
+     <div className="flex flex-col gap-4">[m
+       <div className="flex items-center gap-2 mb-1">[m
+[31m-        <Lightbulb size={15} className="text-[#D4AF37]" />[m
+[32m+[m[32m        <Lightbulb size={15} className="text-[#79E6FF]" />[m
+         <h3 className="text-sm font-bold text-white">Security Recommendations</h3>[m
+         {totalCount > 0 && ([m
+           <span className="text-[10px] text-white/30 font-mono ml-auto">[m
+[36m@@ -43,10 +43,10 @@[m [mexport function RecommendationsFeed({ recommendations, totalCount, isAllClear, a[m
+         <motion.div[m
+           initial={{ opacity: 0, scale: 0.95 }}[m
+           animate={{ opacity: 1, scale: 1 }}[m
+[31m-          className="rounded-2xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 p-6 text-center"[m
+[32m+[m[32m          className="rounded-2xl border border-[#79E6FF]/20 bg-[#79E6FF]/5 p-6 text-center"[m
+         >[m
+[31m-          <Sparkles size={24} className="text-[#D4AF37] mx-auto mb-3" />[m
+[31m-          <p className="text-sm text-[#D4AF37] font-semibold mb-2">Sanctuary Flourishing</p>[m
+[32m+[m[32m          <Sparkles size={24} className="text-[#79E6FF] mx-auto mb-3" />[m
+[32m+[m[32m          <p className="text-sm text-[#79E6FF] font-semibold mb-2">Sanctuary Flourishing</p>[m
+           <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">[m
+             {allClearMessage}[m
+           </p>[m
+[36m@@ -87,7 +87,7 @@[m [mexport function RecommendationsFeed({ recommendations, totalCount, isAllClear, a[m
+                       <p className="text-[10px] text-slate-400 leading-relaxed">[m
+                         {rec.description}[m
+                       </p>[m
+[31m-                      <p className="text-[10px] text-[#D4AF37]/70 font-medium mt-1">[m
+[32m+[m[32m                      <p className="text-[10px] text-[#79E6FF]/70 font-medium mt-1">[m
+                         → {rec.action}[m
+                       </p>[m
+                     </div>[m
+[36m@@ -101,7 +101,7 @@[m [mexport function RecommendationsFeed({ recommendations, totalCount, isAllClear, a[m
+           {hasMore && ([m
+             <button[m
+               onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}[m
+[31m-              className="flex items-center justify-center gap-1.5 text-xs text-[#D4AF37]/70 hover:text-[#D4AF37] transition-colors py-2 font-semibold"[m
+[32m+[m[32m              className="flex items-center justify-center gap-1.5 text-xs text-[#79E6FF]/70 hover:text-[#79E6FF] transition-colors py-2 font-semibold"[m
+             >[m
+               <ChevronDown size={14} />[m
+               Show more suggestions ({totalCount - visibleCount} remaining)[m
+[1mdiff --git a/frontend/components/audit/ReusePanel.tsx b/frontend/components/audit/ReusePanel.tsx[m
+[1mindex b3c4f56..fc61741 100644[m
+[1m--- a/frontend/components/audit/ReusePanel.tsx[m
+[1m+++ b/frontend/components/audit/ReusePanel.tsx[m
+[36m@@ -16,7 +16,7 @@[m [mexport function ReusePanel({ reuseGroups, totalEntries, failedEntryIds }: ReuseP[m
+     return ([m
+       <div className="flex flex-col gap-3">[m
+         <div className="flex items-center gap-2 mb-1">[m
+[31m-          <Copy size={15} className="text-[#D4AF37]" />[m
+[32m+[m[32m          <Copy size={15} className="text-[#79E6FF]" />[m
+           <h3 className="text-sm font-bold text-white">Reuse Detection</h3>[m
+         </div>[m
+         <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 text-center">[m
+[36m@@ -33,7 +33,7 @@[m [mexport function ReusePanel({ reuseGroups, totalEntries, failedEntryIds }: ReuseP[m
+   return ([m
+     <div className="flex flex-col gap-3">[m
+       <div className="flex items-center gap-2 mb-1">[m
+[31m-        <Copy size={15} className="text-[#D4AF37]" />[m
+[32m+[m[32m        <Copy size={15} className="text-[#79E6FF]" />[m
+         <h3 className="text-sm font-bold text-white">Reuse Detection</h3>[m
+       </div>[m
+ [m
+[1mdiff --git a/frontend/components/audit/StrengthDistribution.tsx b/frontend/components/audit/StrengthDistribution.tsx[m
+[1mindex 18e0d6a..076a921 100644[m
+[1m--- a/frontend/components/audit/StrengthDistribution.tsx[m
+[1m+++ b/frontend/components/audit/StrengthDistribution.tsx[m
+[36m@@ -10,38 +10,38 @@[m [minterface StrengthDistributionProps {[m
+   strengthData: EntryStrengthData[];[m
+ }[m
+ [m
+[31m-const TIER_CONFIG: Record<PasswordClassification, { [m
+[31m-  color: string; [m
+[31m-  bg: string; [m
+[32m+[m[32mconst TIER_CONFIG: Record<PasswordClassification, {[m
+[32m+[m[32m  color: string;[m
+[32m+[m[32m  bg: string;[m
+   border: string;[m
+   icon: React.ReactNode;[m
+   label: string;[m
+ }> = {[m
+[31m-  'Weak': { [m
+[31m-    color: 'text-amber-400', [m
+[31m-    bg: 'bg-amber-500/10', [m
+[32m+[m[32m  'Weak': {[m
+[32m+[m[32m    color: 'text-amber-400',[m
+[32m+[m[32m    bg: 'bg-amber-500/10',[m
+     border: 'border-amber-500/20',[m
+     icon: <Sprout size={14} />,[m
+     label: 'Needs Nurturing',[m
+   },[m
+[31m-  'Fair': { [m
+[31m-    color: 'text-yellow-400', [m
+[31m-    bg: 'bg-yellow-500/10', [m
+[32m+[m[32m  'Fair': {[m
+[32m+[m[32m    color: 'text-yellow-400',[m
+[32m+[m[32m    bg: 'bg-yellow-500/10',[m
+     border: 'border-yellow-500/20',[m
+     icon: <Sprout size={14} />,[m
+     label: 'Growing',[m
+   },[m
+[31m-  'Strong': { [m
+[31m-    color: 'text-emerald-400', [m
+[31m-    bg: 'bg-emerald-500/10', [m
+[32m+[m[32m  'Strong': {[m
+[32m+[m[32m    color: 'text-emerald-400',[m
+[32m+[m[32m    bg: 'bg-emerald-500/10',[m
+     border: 'border-emerald-500/20',[m
+     icon: <TreePine size={14} />,[m
+     label: 'Thriving',[m
+   },[m
+[31m-  'Sanctuary Grade': { [m
+[31m-    color: 'text-[#D4AF37]', [m
+[31m-    bg: 'bg-[#D4AF37]/10', [m
+[31m-    border: 'border-[#D4AF37]/20',[m
+[32m+[m[32m  'Sanctuary Grade': {[m
+[32m+[m[32m    color: 'text-[#79E6FF]',[m
+[32m+[m[32m    bg: 'bg-[#79E6FF]/10',[m
+[32m+[m[32m    border: 'border-[#79E6FF]/20',[m
+     icon: <Crown size={14} />,[m
+     label: 'Flourishing',[m
+   },[m
+[36m@@ -66,7 +66,7 @@[m [mexport function StrengthDistribution({ strengthData }: StrengthDistributionProps[m
+   return ([m
+     <div className="flex flex-col gap-4">[m
+       <div className="flex items-center gap-2 mb-1">[m
+[31m-        <Shield size={15} className="text-[#D4AF37]" />[m
+[32m+[m[32m        <Shield size={15} className="text-[#79E6FF]" />[m
+         <h3 className="text-sm font-bold text-white">Strength Distribution</h3>[m
+       </div>[m
+ [m
+[36m@@ -98,7 +98,7 @@[m [mexport function StrengthDistribution({ strengthData }: StrengthDistributionProps[m
+               <div className="h-2 rounded-full bg-white/5 overflow-hidden">[m
+                 <motion.div[m
+                   className={`h-full rounded-full ${config.bg.replace('/10', '/40')}`}[m
+[31m-                  style={{ backgroundColor: config.color.includes('#') ? '#D4AF37' : undefined }}[m
+[32m+[m[32m                  style={{ backgroundColor: config.color.includes('#') ? '#79E6FF' : undefined }}[m
+                   initial={{ width: 0 }}[m
+                   animate={{ width: `${percentage}%` }}[m
+                   transition={{ duration: 0.8, delay: 0.2 + idx * 0.1, ease: 'easeOut' }}[m
+[1mdiff --git a/frontend/components/guardian/GuardianCircleView.tsx b/frontend/components/guardian/GuardianCircleView.tsx[m
+[1mindex 0a4559a..99349fb 100644[m
+[1m--- a/frontend/components/guardian/GuardianCircleView.tsx[m
+[1m+++ b/frontend/components/guardian/GuardianCircleView.tsx[m
+[36m@@ -23,8 +23,8 @@[m [mexport function GuardianCircleView({ guardians, threshold }: GuardianCircleViewP[m
+       {/* Central circle with threshold info */}[m
+       <div className="relative w-[240px] h-[240px]">[m
+         {/* Center node */}[m
+[31m-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-[#D4AF37]/10 border-2 border-[#D4AF37]/30 flex items-center justify-center z-10">[m
+[31m-          <Shield size={24} className="text-[#D4AF37]" />[m
+[32m+[m[32m        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-[#79E6FF]/10 border-2 border-[#79E6FF]/30 flex items-center justify-center z-10">[m
+[32m+[m[32m          <Shield size={24} className="text-[#79E6FF]" />[m
+         </div>[m
+ [m
+         {/* Guardian nodes positioned in a circle */}[m
+[36m@@ -86,7 +86,7 @@[m [mexport function GuardianCircleView({ guardians, threshold }: GuardianCircleViewP[m
+             <span>{pendingCount} Pending</span>[m
+           </div>[m
+         )}[m
+[31m-        <div className="flex items-center gap-1.5 text-[#D4AF37]">[m
+[32m+[m[32m        <div className="flex items-center gap-1.5 text-[#79E6FF]">[m
+           <Shield size={12} />[m
+           <span>Threshold: {threshold}</span>[m
+         </div>[m
+[1mdiff --git a/frontend/components/guardian/RecoveryProgress.tsx b/frontend/components/guardian/RecoveryProgress.tsx[m
+[1mindex 8165911..2db1508 100644[m
+[1m--- a/frontend/components/guardian/RecoveryProgress.tsx[m
+[1m+++ b/frontend/components/guardian/RecoveryProgress.tsx[m
+[36m@@ -35,7 +35,7 @@[m [mexport function RecoveryProgress({ request }: RecoveryProgressProps) {[m
+         {/* Connection line */}[m
+         <div className="absolute top-5 left-8 right-8 h-0.5 bg-white/5" />[m
+         <motion.div[m
+[31m-          className="absolute top-5 left-8 h-0.5 bg-[#D4AF37]/50"[m
+[32m+[m[32m          className="absolute top-5 left-8 h-0.5 bg-[#79E6FF]/50"[m
+           initial={{ width: 0 }}[m
+           animate={{ width: `${(activeIdx / (STEPS.length - 1)) * 100}%` }}[m
+           transition={{ duration: 0.8, ease: 'easeOut' }}[m
+[36m@@ -56,7 +56,7 @@[m [mexport function RecoveryProgress({ request }: RecoveryProgressProps) {[m
+                   isComplete[m
+                     ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'[m
+                     : isActive[m
+[31m-                    ? 'bg-[#D4AF37]/15 border-[#D4AF37]/50 text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.2)]'[m
+[32m+[m[32m                    ? 'bg-[#79E6FF]/15 border-[#79E6FF]/50 text-[#79E6FF] shadow-[0_0_15px_rgba(212,175,55,0.2)]'[m
+                     : 'bg-white/5 border-white/10 text-white/30'[m
+                 }`}[m
+               >[m
+[36m@@ -67,7 +67,7 @@[m [mexport function RecoveryProgress({ request }: RecoveryProgressProps) {[m
+                 )}[m
+               </motion.div>[m
+               <span className={`text-[9px] font-semibold uppercase tracking-wider text-center max-w-[80px] ${[m
+[31m-                isActive ? 'text-[#D4AF37]' : isComplete ? 'text-emerald-400' : 'text-white/30'[m
+[32m+[m[32m                isActive ? 'text-[#79E6FF]' : isComplete ? 'text-emerald-400' : 'text-white/30'[m
+               }`}>[m
+                 {step.label}[m
+               </span>[m
+[36m@@ -78,7 +78,7 @@[m [mexport function RecoveryProgress({ request }: RecoveryProgressProps) {[m
+ [m
+       {/* Approval counter */}[m
+       <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 text-center">[m
+[31m-        <p className="text-2xl font-black font-mono text-[#D4AF37]">[m
+[32m+[m[32m        <p className="text-2xl font-black font-mono text-[#79E6FF]">[m
+           {request.approvalsCollected} <span className="text-white/30 text-lg">/ {request.threshold}</span>[m
+         </p>[m
+         <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">[m
+[1mdiff --git a/frontend/components/ui/AmbientBackground.tsx b/frontend/components/ui/AmbientBackground.tsx[m
+[1mindex 51b5bf8..d24fe2e 100644[m
+[1m--- a/frontend/components/ui/AmbientBackground.tsx[m
+[1m+++ b/frontend/components/ui/AmbientBackground.tsx[m
+[36m@@ -8,7 +8,7 @@[m [mimport { motion } from 'framer-motion';[m
+  */[m
+ export function AmbientBackground() {[m
+   return ([m
+[31m-    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none select-none bg-[#090D16]">[m
+[32m+[m[32m    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none select-none bg-[#0A1020]">[m
+       {/* Warm Burnished Gold glow (Top-Left quadrant focus) */}[m
+       <motion.div[m
+         animate={{[m
+[36m@@ -21,7 +21,7 @@[m [mexport function AmbientBackground() {[m
+           repeat: Infinity,[m
+           ease: 'easeInOut',[m
+         }}[m
+[31m-        className="absolute top-[-15%] left-[-15%] h-[650px] w-[650px] rounded-full bg-[#D4AF37]/[0.035] blur-[140px]"[m
+[32m+[m[32m        className="absolute top-[-15%] left-[-15%] h-[650px] w-[650px] rounded-full bg-[#79E6FF]/[0.035] blur-[140px]"[m
+       />[m
+ [m
+       {/* Emerald Pulse glow (Bottom-Right quadrant focus) */}[m
+[36m@@ -50,7 +50,7 @@[m [mexport function AmbientBackground() {[m
+           repeat: Infinity,[m
+           ease: 'easeInOut',[m
+         }}[m
+[31m-        className="absolute top-[30%] left-[20%] h-[450px] w-[450px] rounded-full bg-[#D4AF37]/[0.012] blur-[120px]"[m
+[32m+[m[32m        className="absolute top-[30%] left-[20%] h-[450px] w-[450px] rounded-full bg-[#79E6FF]/[0.012] blur-[120px]"[m
+       />[m
+     </div>[m
+   );[m
+[1mdiff --git a/frontend/components/ui/AutofillLockedModal.tsx b/frontend/components/ui/AutofillLockedModal.tsx[m
+[1mindex 1f38ded..4b66379 100644[m
+[1m--- a/frontend/components/ui/AutofillLockedModal.tsx[m
+[1m+++ b/frontend/components/ui/AutofillLockedModal.tsx[m
+[36m@@ -5,7 +5,7 @@[m [mimport { motion, AnimatePresence } from 'framer-motion';[m
+ import { Lock } from 'lucide-react';[m
+ import { useDialogStore } from '../../store/useDialogStore';[m
+ [m
+[31m-const GOLD = '#f5b942';[m
+[32m+[m[32mconst GOLD = '#79E6FF';[m
+ [m
+ export function AutofillLockedModal() {[m
+   const { type, closeDialog } = useDialogStore();[m
+[36m@@ -84,7 +84,7 @@[m [mexport function AutofillLockedModal() {[m
+             aria-modal="true"[m
+             aria-labelledby="autofill-locked-title"[m
+             aria-describedby="autofill-locked-desc"[m
+[31m-            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-[#f5b942]/20 bg-[#0c1018]/90 shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl"[m
+[32m+[m[32m            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-[#79E6FF]/20 bg-[#0c1018]/90 shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl"[m
+             initial={{ opacity: 0, scale: 0.96 }}[m
+             animate={{ opacity: 1, scale: 1 }}[m
+             exit={{ opacity: 0, scale: 0.96 }}[m
+[36m@@ -93,7 +93,7 @@[m [mexport function AutofillLockedModal() {[m
+             <div className="p-6 sm:p-7">[m
+               <div className="flex items-start gap-4">[m
+                 <div[m
+[31m-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#f5b942]/25 bg-[#f5b942]/10"[m
+[32m+[m[32m                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#79E6FF]/25 bg-[#79E6FF]/10"[m
+                   style={{ boxShadow: '0 0 20px rgba(245, 185, 66, 0.12)' }}[m
+                 >[m
+                   <Lock size={20} style={{ color: GOLD }} strokeWidth={1.75} />[m
+[36m@@ -121,7 +121,7 @@[m [mexport function AutofillLockedModal() {[m
+                   ref={openRef}[m
+                   type="button"[m
+                   onClick={handleOpenExtension}[m
+[31m-                  className="inline-flex items-center justify-center rounded-xl border border-[#f5b942]/40 bg-[#f5b942]/15 px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-[#f5b942]/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f5b942]/50"[m
+[32m+[m[32m                  className="inline-flex items-center justify-center rounded-xl border border-[#79E6FF]/40 bg-[#79E6FF]/15 px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-[#79E6FF]/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#79E6FF]/50"[m
+                   style={{ color: GOLD }}[m
+                 >[m
+                   Open Extension[m
+[1mdiff --git a/frontend/components/ui/Button.tsx b/frontend/components/ui/Button.tsx[m
+[1mindex 4a2995d..7e1c44b 100644[m
+[1m--- a/frontend/components/ui/Button.tsx[m
+[1m+++ b/frontend/components/ui/Button.tsx[m
+[36m@@ -5,39 +5,17 @@[m [minterface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {[m
+   isLoading?: boolean;[m
+ }[m
+ [m
+[31m-/**[m
+[31m- * Button component — The Vault theme.[m
+[31m- * Warm amber gradients, deliberate transitions, no cold tones.[m
+[31m- */[m
+[31m-export function Button({[m
+[31m-  children,[m
+[31m-  variant = 'primary',[m
+[31m-  isLoading = false,[m
+[31m-  className = '',[m
+[31m-  disabled,[m
+[31m-  ...props[m
+[31m-}: ButtonProps) {[m
+[31m-  const baseStyle = "relative inline-flex items-center justify-center px-6 py-3 rounded-[10px] font-medium tracking-wide transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] focus:outline-none focus:ring-2 focus:ring-[#E8A020]/50 focus:ring-offset-2 focus:ring-offset-[#0A0806] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden active:scale-[0.97] text-sm select-none hover:-translate-y-0.5 active:translate-y-0";[m
+[31m-[m
+[32m+[m[32mexport function Button({ children, variant = 'primary', isLoading = false, className = '', disabled, ...props }: ButtonProps) {[m
+[32m+[m[32m  const baseStyle = 'relative inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium tracking-wide transition-[transform,background,border-color,box-shadow,color] duration-160 ease-out focus:outline-none focus:ring-2 focus:ring-[#6EE7FF]/40 focus:ring-offset-2 focus:ring-offset-[#070B14] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[.97] select-none';[m
+   const variants = {[m
+[31m-    primary: "bg-gradient-to-br from-[#E8A020] to-[#B86A1A] text-[#0A0806] font-bold shadow-[0_4px_15px_rgba(232,160,32,0.15)] hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)]",[m
+[31m-    secondary: "bg-[#1E160D] text-[#F0E6D0] border border-[#2A1E10] hover:border-[#E8A020] hover:text-[#F0E6D0]",[m
+[31m-    outline: "bg-transparent border border-[#2A1E10] text-[#9A7D5A] hover:border-[#E8A020] hover:text-[#F0E6D0] hover:shadow-[0_0_15px_rgba(232,160,32,0.1)]",[m
+[31m-    danger: "bg-[#1E160D] border border-[#CC4A3A]/30 text-[#CC4A3A] hover:bg-[#CC4A3A]/10 hover:border-[#CC4A3A]/50 shadow-[0_0_15px_rgba(204,74,58,0.05)] hover:shadow-[0_0_20px_rgba(204,74,58,0.15)]"[m
+[32m+[m[32m    primary: 'bg-[#6EE7FF] text-[#07101D] font-bold shadow-[0_8px_24px_rgba(110,231,255,.16)] hover:bg-[#B4F4FF] hover:shadow-[0_10px_30px_rgba(110,231,255,.25)]',[m
+[32m+[m[32m    secondary: 'bg-[#111D31] text-[#E7EEF8] border border-[#1E2B42] hover:border-[#6EE7FF]/40 hover:bg-[#16263E]',[m
+[32m+[m[32m    outline: 'bg-transparent border border-[#1E2B42] text-[#8493AA] hover:border-[#6EE7FF]/45 hover:text-[#E7EEF8] hover:bg-[#0C1424]',[m
+[32m+[m[32m    danger: 'bg-[#321622] border border-[#FB7185]/25 text-[#FB7185] hover:bg-[#FB7185]/10 hover:border-[#FB7185]/50',[m
+   };[m
+[31m-[m
+   return ([m
+[31m-    <button[m
+[31m-      disabled={disabled || isLoading}[m
+[31m-      className={`${baseStyle} ${variants[variant]} ${className}`}[m
+[31m-      {...props}[m
+[31m-    >[m
+[31m-      {isLoading && ([m
+[31m-        <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-current" fill="none" viewBox="0 0 24 24">[m
+[31m-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />[m
+[31m-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />[m
+[31m-        </svg>[m
+[31m-      )}[m
+[32m+[m[32m    <button disabled={disabled || isLoading} className={`${baseStyle} ${variants[variant]} ${className}`} {...props}>[m
+[32m+[m[32m      {isLoading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />}[m
+       {children}[m
+     </button>[m
+   );[m
+[1mdiff --git a/frontend/components/ui/Card.tsx b/frontend/components/ui/Card.tsx[m
+[1mindex 54c4df7..0b46fca 100644[m
+[1m--- a/frontend/components/ui/Card.tsx[m
+[1m+++ b/frontend/components/ui/Card.tsx[m
+[36m@@ -6,13 +6,9 @@[m [minterface CardProps {[m
+   glow?: boolean;[m
+ }[m
+ [m
+[31m-/**[m
+[31m- * Card component — The Vault theme.[m
+[31m- * Warm surface with amber-tinted shadows and subtle hover glow.[m
+[31m- */[m
+ export function Card({ children, className = '', glow = false }: CardProps) {[m
+   return ([m
+[31m-    <div className={`group relative overflow-hidden rounded-2xl border border-[#2A1E10] bg-[#141009] p-8 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[rgba(232,160,32,0.3)] ${glow ? 'shadow-[0_0_50px_rgba(232,160,32,0.06),0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_0_60px_rgba(232,160,32,0.12),0_8px_30px_rgba(0,0,0,0.5)]' : 'shadow-[0_0_30px_rgba(232,160,32,0.05),0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_0_40px_rgba(232,160,32,0.1),0_8px_30px_rgba(0,0,0,0.5)]'} ${className}`}>[m
+[32m+[m[32m    <div className={`group relative overflow-hidden rounded-2xl border border-[#1E2B42] bg-[#0C1424]/90 p-8 transition-[transform,border-color,box-shadow] duration-200 ease-[cubic-bezier(.23,1,.32,1)] hover:-translate-y-0.5 hover:border-[#6EE7FF]/25 ${glow ? 'shadow-[0_18px_55px_rgba(0,0,0,.32),0_0_35px_rgba(110,231,255,.06)]' : 'shadow-[0_14px_40px_rgba(0,0,0,.22)]'} ${className}`}>[m
+       {children}[m
+     </div>[m
+   );[m
+[1mdiff --git a/frontend/components/ui/DeleteSecretDialog.tsx b/frontend/components/ui/DeleteSecretDialog.tsx[m
+[1mindex 4dec44f..d16baa2 100644[m
+[1m--- a/frontend/components/ui/DeleteSecretDialog.tsx[m
+[1m+++ b/frontend/components/ui/DeleteSecretDialog.tsx[m
+[36m@@ -5,7 +5,7 @@[m [mimport { motion, AnimatePresence } from 'framer-motion';[m
+ import { ShieldAlert } from 'lucide-react';[m
+ import { useDialogStore } from '../../store/useDialogStore';[m
+ [m
+[31m-const GOLD = '#f5b942';[m
+[32m+[m[32mconst GOLD = '#79E6FF';[m
+ [m
+ /**[m
+  * Destructive confirmation modal for vault entry deletion.[m
+[36m@@ -92,7 +92,7 @@[m [mexport function DeleteSecretDialog() {[m
+             aria-modal="true"[m
+             aria-labelledby="delete-secret-title"[m
+             aria-describedby="delete-secret-desc"[m
+[31m-            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-[#f5b942]/20 bg-[#0c1018]/90 shadow-[0_24px_80px_rgba(0,0,0,0.65),0_0_0_1px_rgba(245,185,66,0.08)] backdrop-blur-xl"[m
+[32m+[m[32m            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-[#79E6FF]/20 bg-[#0c1018]/90 shadow-[0_24px_80px_rgba(0,0,0,0.65),0_0_0_1px_rgba(245,185,66,0.08)] backdrop-blur-xl"[m
+             initial={{ opacity: 0, scale: 0.96 }}[m
+             animate={{ opacity: 1, scale: 1 }}[m
+             exit={{ opacity: 0, scale: 0.96 }}[m
+[36m@@ -109,7 +109,7 @@[m [mexport function DeleteSecretDialog() {[m
+             <div className="p-6 sm:p-7">[m
+               <div className="flex items-start gap-4">[m
+                 <div[m
+[31m-                  className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#f5b942]/25 bg-[#f5b942]/8"[m
+[32m+[m[32m                  className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#79E6FF]/25 bg-[#79E6FF]/8"[m
+                   style={{ boxShadow: '0 0 24px rgba(245, 185, 66, 0.12)' }}[m
+                 >[m
+                   <ShieldAlert size={22} style={{ color: GOLD }} strokeWidth={1.75} />[m
+[1mdiff --git a/frontend/components/ui/Footer.tsx b/frontend/components/ui/Footer.tsx[m
+[1mindex e4c9986..73cb2a8 100644[m
+[1m--- a/frontend/components/ui/Footer.tsx[m
+[1m+++ b/frontend/components/ui/Footer.tsx[m
+[36m@@ -16,7 +16,7 @@[m [mexport function Footer() {[m
+   ];[m
+ [m
+   return ([m
+[31m-    <footer className="bg-[#0A0806] border-t border-[#2A1E10] mt-32">[m
+[32m+[m[32m    <footer className="bg-[#070B14] border-t border-[#1E2B42] mt-32">[m
+       <div className="mx-auto max-w-7xl px-6 sm:px-8 py-12">[m
+         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8">[m
+           {/* Logo + Tagline */}[m
+[36m@@ -29,7 +29,7 @@[m [mexport function Footer() {[m
+               style={{ width: 'auto', height: '60px' }}[m
+               className="object-contain opacity-80"[m
+             />[m
+[31m-            <p className="text-xs text-[#9A7D5A] max-w-[220px] text-center md:text-left leading-relaxed">[m
+[32m+[m[32m            <p className="text-xs text-[#8493AA] max-w-[220px] text-center md:text-left leading-relaxed">[m
+               Your passwords, locked away where only you can reach them.[m
+             </p>[m
+           </div>[m
+[36m@@ -40,12 +40,12 @@[m [mexport function Footer() {[m
+               <span key={link.href} className="flex items-center gap-2">[m
+                 <Link[m
+                   href={link.href}[m
+[31m-                  className="text-xs text-[#9A7D5A] hover:text-[#F0E6D0] transition-colors duration-200"[m
+[32m+[m[32m                  className="text-xs text-[#8493AA] hover:text-[#E7EEF8] transition-colors duration-200"[m
+                 >[m
+                   {link.label}[m
+                 </Link>[m
+                 {i < footerLinks.length - 1 && ([m
+[31m-                  <span className="h-1 w-1 rounded-full bg-[#E8A020]/40" />[m
+[32m+[m[32m                  <span className="h-1 w-1 rounded-full bg-[#6EE7FF]/40" />[m
+                 )}[m
+               </span>[m
+             ))}[m
+[36m@@ -57,7 +57,7 @@[m [mexport function Footer() {[m
+               href="https://github.com"[m
+               target="_blank"[m
+               rel="noopener noreferrer"[m
+[31m-              className="text-[#9A7D5A] hover:text-[#F0E6D0] transition-colors duration-200"[m
+[32m+[m[32m              className="text-[#8493AA] hover:text-[#E7EEF8] transition-colors duration-200"[m
+               aria-label="GitHub"[m
+             >[m
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">[m
+[36m@@ -68,7 +68,7 @@[m [mexport function Footer() {[m
+               href="https://linkedin.com"[m
+               target="_blank"[m
+               rel="noopener noreferrer"[m
+[31m-              className="text-[#9A7D5A] hover:text-[#F0E6D0] transition-colors duration-200"[m
+[32m+[m[32m              className="text-[#8493AA] hover:text-[#E7EEF8] transition-colors duration-200"[m
+               aria-label="LinkedIn"[m
+             >[m
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">[m
+[36m@@ -79,8 +79,8 @@[m [mexport function Footer() {[m
+         </div>[m
+ [m
+         {/* Bottom bar */}[m
+[31m-        <div className="border-t border-[#2A1E10] mt-8 pt-6 text-center">[m
+[31m-          <p className="text-[11px] text-[#9A7D5A]/60 tracking-wider font-[family-name:var(--font-mono)]">[m
+[32m+[m[32m        <div className="border-t border-[#1E2B42] mt-8 pt-6 text-center">[m
+[32m+[m[32m          <p className="text-[11px] text-[#8493AA]/60 tracking-wider font-[family-name:var(--font-mono)]">[m
+             © {new Date().getFullYear()} Sphynx Security Labs. All rights reserved.[m
+           </p>[m
+         </div>[m
+[1mdiff --git a/frontend/components/ui/Navbar.tsx b/frontend/components/ui/Navbar.tsx[m
+[1mindex 78c2bd1..7e83de7 100644[m
+[1m--- a/frontend/components/ui/Navbar.tsx[m
+[1m+++ b/frontend/components/ui/Navbar.tsx[m
+[36m@@ -20,7 +20,7 @@[m [mexport function Navbar() {[m
+   ];[m
+ [m
+   return ([m
+[31m-    <header className="sticky top-0 z-50 bg-[#141009]/90 backdrop-blur-[12px] border-b border-[rgba(232,160,32,0.08)]">[m
+[32m+[m[32m    <header className="sticky top-0 z-50 bg-[#0E1627]/90 backdrop-blur-[12px] border-b border-[rgba(232,160,32,0.08)]">[m
+       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">[m
+         <div className="flex items-center gap-10">[m
+           <Link href="/" className="shrink-0">[m
+[36m@@ -42,18 +42,18 @@[m [mexport function Navbar() {[m
+                 href={link.href}[m
+                 className={`relative px-3.5 py-2 text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${[m
+                   pathname === link.href[m
+[31m-                    ? 'text-[#F0E6D0]'[m
+[31m-                    : 'text-[#9A7D5A] hover:text-[#F0E6D0]'[m
+[32m+[m[32m                    ? 'text-[#E7EEF8]'[m
+[32m+[m[32m                    : 'text-[#8493AA] hover:text-[#E7EEF8]'[m
+                 }`}[m
+               >[m
+                 {link.label}[m
+                 {/* Active indicator */}[m
+                 {pathname === link.href && ([m
+[31m-                  <span className="absolute bottom-0 left-3.5 right-3.5 h-[2px] bg-[#E8A020] rounded-full" />[m
+[32m+[m[32m                  <span className="absolute bottom-0 left-3.5 right-3.5 h-[2px] bg-[#6EE7FF] rounded-full" />[m
+                 )}[m
+                 {/* Hover underline */}[m
+                 {pathname !== link.href && ([m
+[31m-                  <span className="absolute bottom-0 left-3.5 right-3.5 h-[2px] bg-[#E8A020] rounded-full scale-x-0 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-x-100 origin-left" />[m
+[32m+[m[32m                  <span className="absolute bottom-0 left-3.5 right-3.5 h-[2px] bg-[#6EE7FF] rounded-full scale-x-0 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-x-100 origin-left" />[m
+                 )}[m
+               </Link>[m
+             ))}[m
+[36m@@ -62,7 +62,7 @@[m [mexport function Navbar() {[m
+ [m
+         <div className="flex items-center gap-4">[m
+           <Link href="/login">[m
+[31m-            <button className="px-5 py-2.5 text-xs font-bold text-[#0A0806] rounded-[10px] bg-gradient-to-br from-[#E8A020] to-[#B86A1A] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)] active:translate-y-0">[m
+[32m+[m[32m            <button className="px-5 py-2.5 text-xs font-bold text-[#070B14] rounded-[10px] bg-gradient-to-br from-[#6EE7FF] to-[#7C5CFC] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)] active:translate-y-0">[m
+               Access Vault[m
+             </button>[m
+           </Link>[m
+[1mdiff --git a/frontend/components/ui/PageLayout.tsx b/frontend/components/ui/PageLayout.tsx[m
+[1mindex d8be116..5466faf 100644[m
+[1m--- a/frontend/components/ui/PageLayout.tsx[m
+[1m+++ b/frontend/components/ui/PageLayout.tsx[m
+[36m@@ -15,8 +15,8 @@[m [mexport function PageLayout({ children }: PageLayoutProps) {[m
+   return ([m
+     <div className="relative min-h-screen overflow-hidden">[m
+       {/* Warm ambient glow — like a lamp inside a vault */}[m
+[31m-      <div className="fixed top-[-20%] left-[-10%] -z-10 h-[700px] w-[700px] rounded-full bg-[#E8A020]/[0.03] blur-[150px] animate-pulse-glow" />[m
+[31m-      <div className="fixed bottom-[-20%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-[#B86A1A]/[0.02] blur-[140px] animate-pulse-glow" style={{ animationDelay: '2s' }} />[m
+[32m+[m[32m      <div className="fixed top-[-20%] left-[-10%] -z-10 h-[700px] w-[700px] rounded-full bg-[#6EE7FF]/[0.03] blur-[150px] animate-pulse-glow" />[m
+[32m+[m[32m      <div className="fixed bottom-[-20%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-[#7C5CFC]/[0.02] blur-[140px] animate-pulse-glow" style={{ animationDelay: '2s' }} />[m
+ [m
+       <Navbar />[m
+       {children}[m
+[1mdiff --git a/frontend/components/ui/ToastContainer.tsx b/frontend/components/ui/ToastContainer.tsx[m
+[1mindex f8873e5..123d62a 100644[m
+[1m--- a/frontend/components/ui/ToastContainer.tsx[m
+[1m+++ b/frontend/components/ui/ToastContainer.tsx[m
+[36m@@ -4,7 +4,7 @@[m [mimport React, { useCallback, useEffect, useRef } from 'react';[m
+ import { AnimatePresence, motion } from 'framer-motion';[m
+ import { useToastStore, type Toast } from '../../store/useToastStore';[m
+ [m
+[31m-const GOLD = '#f5b942';[m
+[32m+[m[32mconst GOLD = '#79E6FF';[m
+ const DISMISS_MS = 4000;[m
+ [m
+ const TYPE_STYLES: Record<[m
+[36m@@ -22,8 +22,8 @@[m [mconst TYPE_STYLES: Record<[m
+     glow: '0 0 24px rgba(239, 68, 68, 0.12)',[m
+   },[m
+   info: {[m
+[31m-    accent: 'text-[#f5b942]',[m
+[31m-    border: 'border-[#f5b942]/30',[m
+[32m+[m[32m    accent: 'text-[#79E6FF]',[m
+[32m+[m[32m    border: 'border-[#79E6FF]/30',[m
+     glow: '0 0 28px rgba(245, 185, 66, 0.15)',[m
+   },[m
+ };[m
+[1mdiff --git a/frontend/components/vault/ClipboardPurgeBar.tsx b/frontend/components/vault/ClipboardPurgeBar.tsx[m
+[1mindex f241e13..e27632b 100644[m
+[1m--- a/frontend/components/vault/ClipboardPurgeBar.tsx[m
+[1m+++ b/frontend/components/vault/ClipboardPurgeBar.tsx[m
+[36m@@ -60,11 +60,11 @@[m [mexport function ClipboardPurgeBar() {[m
+           className="fixed top-0 left-0 w-full z-[9999] pointer-events-none"[m
+         >[m
+           {/* Depleting Burnished Gold Progress Line */}[m
+[31m-          <div className="w-full h-[3px] bg-[#090D16]/50">[m
+[32m+[m[32m          <div className="w-full h-[3px] bg-[#0A1020]/50">[m
+             <motion.div [m
+               animate={{ width: `${progress}%` }}[m
+               transition={{ duration: 0.08, ease: 'linear' }}[m
+[31m-              className="h-full bg-gradient-to-r from-[#D4AF37] via-amber-400 to-[#D4AF37] shadow-[0_1px_10px_rgba(212,175,55,0.7)]"[m
+[32m+[m[32m              className="h-full bg-gradient-to-r from-[#79E6FF] via-amber-400 to-[#79E6FF] shadow-[0_1px_10px_rgba(212,175,55,0.7)]"[m
+             />[m
+           </div>[m
+ [m
+[36m@@ -72,11 +72,11 @@[m [mexport function ClipboardPurgeBar() {[m
+           <div className="flex justify-center mt-3">[m
+             <motion.div [m
+               whileHover={{ scale: 1.02 }}[m
+[31m-              className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#090D16]/95 border border-[#D4AF37]/25 backdrop-blur-md shadow-[0_4px_25px_rgba(0,0,0,0.6)] select-none pointer-events-auto cursor-default"[m
+[32m+[m[32m              className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#0A1020]/95 border border-[#79E6FF]/25 backdrop-blur-md shadow-[0_4px_25px_rgba(0,0,0,0.6)] select-none pointer-events-auto cursor-default"[m
+             >[m
+[31m-              <ClipboardCheck className="h-3.5 w-3.5 text-[#D4AF37] animate-pulse" />[m
+[32m+[m[32m              <ClipboardCheck className="h-3.5 w-3.5 text-[#79E6FF] animate-pulse" />[m
+               <span className="text-[10px] font-semibold text-slate-300 font-mono tracking-wide">[m
+[31m-                Clipboard Ephemeral: password for <span className="text-white font-bold">{activeClipboardTimer.label}</span> copied. Wiping in <span className="text-[#D4AF37] font-bold font-mono">{secondsLeft}s</span>[m
+[32m+[m[32m                Clipboard Ephemeral: password for <span className="text-white font-bold">{activeClipboardTimer.label}</span> copied. Wiping in <span className="text-[#79E6FF] font-bold font-mono">{secondsLeft}s</span>[m
+               </span>[m
+               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" title="Security Active" />[m
+             </motion.div>[m
+[1mdiff --git a/frontend/components/vault/DecryptedPassword.tsx b/frontend/components/vault/DecryptedPassword.tsx[m
+[1mindex 464b237..735da8d 100644[m
+[1m--- a/frontend/components/vault/DecryptedPassword.tsx[m
+[1m+++ b/frontend/components/vault/DecryptedPassword.tsx[m
+[36m@@ -69,7 +69,7 @@[m [mexport function DecryptedPassword({ password = '', isDecrypted }: DecryptedPassw[m
+             animate={{ filter: 'blur(0px)', opacity: 1 }}[m
+             exit={{ filter: 'blur(2px)', opacity: 0.8 }}[m
+             transition={{ duration: 0.6 }}[m
+[31m-            className="font-mono text-xs font-bold text-[#D4AF37] px-2.5 py-1 rounded bg-[#090D16]/50 border border-[#D4AF37]/20 shadow-[0_0_12px_rgba(212,175,55,0.15)] select-none relative"[m
+[32m+[m[32m            className="font-mono text-xs font-bold text-[#79E6FF] px-2.5 py-1 rounded bg-[#0A1020]/50 border border-[#79E6FF]/20 shadow-[0_0_12px_rgba(212,175,55,0.15)] select-none relative"[m
+           >[m
+             {mutatedText}[m
+             {/* Shimmer sweep overlay */}[m
+[36m@@ -77,7 +77,7 @@[m [mexport function DecryptedPassword({ password = '', isDecrypted }: DecryptedPassw[m
+               initial={{ left: '-100%' }}[m
+               animate={{ left: '100%' }}[m
+               transition={{ duration: 0.75, ease: 'easeInOut' }}[m
+[31m-              className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent pointer-events-none"[m
+[32m+[m[32m              className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-[#79E6FF]/50 to-transparent pointer-events-none"[m
+             />[m
+           </motion.span>[m
+         ) : ([m
+[36m@@ -87,7 +87,7 @@[m [mexport function DecryptedPassword({ password = '', isDecrypted }: DecryptedPassw[m
+             initial={{ opacity: 0, filter: 'blur(3px)', scale: 0.98 }}[m
+             animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}[m
+             transition={{ duration: 0.35, ease: 'easeOut' }}[m
+[31m-            className="font-mono text-xs font-semibold px-2.5 py-1.5 rounded bg-[#090D16]/80 border border-[#10B981]/25 text-[#10B981] shadow-[0_0_12px_rgba(16,185,129,0.15)] select-all flex items-center gap-1.5 max-w-fit cursor-pointer"[m
+[32m+[m[32m            className="font-mono text-xs font-semibold px-2.5 py-1.5 rounded bg-[#0A1020]/80 border border-[#10B981]/25 text-[#10B981] shadow-[0_0_12px_rgba(16,185,129,0.15)] select-all flex items-center gap-1.5 max-w-fit cursor-pointer"[m
+           >[m
+             <ShieldCheck size={12.5} className="text-[#10B981] shrink-0 animate-pulse" />[m
+             {password}[m
+[1mdiff --git a/frontend/components/vault/PasswordModal.tsx b/frontend/components/vault/PasswordModal.tsx[m
+[1mindex 6b91e3f..dab8717 100644[m
+[1m--- a/frontend/components/vault/PasswordModal.tsx[m
+[1m+++ b/frontend/components/vault/PasswordModal.tsx[m
+[36m@@ -93,7 +93,7 @@[m [mexport function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro[m
+             animate={{ opacity: 1 }}[m
+             exit={{ opacity: 0 }}[m
+             onClick={onClose}[m
+[31m-            className="absolute inset-0 bg-[#090D16]/65 backdrop-blur-md"[m
+[32m+[m[32m            className="absolute inset-0 bg-[#0A1020]/65 backdrop-blur-md"[m
+           />[m
+ [m
+           {/* Modal Card container */}[m
+[36m@@ -102,16 +102,16 @@[m [mexport function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro[m
+             animate={{ scale: 1, y: 0, opacity: 1 }}[m
+             exit={{ scale: 0.95, y: 15, opacity: 0 }}[m
+             transition={{ type: 'spring', stiffness: 100, damping: 18 }}[m
+[31m-            className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-[#D4AF37]/15 bg-[#090D16]/95 p-8 shadow-[0_0_50px_rgba(212,175,55,0.12)] backdrop-blur-2xl z-10"[m
+[32m+[m[32m            className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-[#79E6FF]/15 bg-[#0A1020]/95 p-8 shadow-[0_0_50px_rgba(212,175,55,0.12)] backdrop-blur-2xl z-10"[m
+           >[m
+             [m
+             {/* Ambient background accent */}[m
+[31m-            <div className="absolute -right-20 -top-20 -z-10 h-40 w-40 rounded-full bg-[#D4AF37]/5 blur-[60px]" />[m
+[32m+[m[32m            <div className="absolute -right-20 -top-20 -z-10 h-40 w-40 rounded-full bg-[#79E6FF]/5 blur-[60px]" />[m
+             [m
+             {/* Header */}[m
+             <div className="flex items-center justify-between mb-6">[m
+               <div className="flex items-center gap-3">[m
+[31m-                <div className="rounded-xl bg-gradient-to-tr from-amber-600 to-[#D4AF37] p-2 shadow-[0_0_12px_rgba(212,175,55,0.2)] border border-[#D4AF37]/25">[m
+[32m+[m[32m                <div className="rounded-xl bg-gradient-to-tr from-amber-600 to-[#79E6FF] p-2 shadow-[0_0_12px_rgba(212,175,55,0.2)] border border-[#79E6FF]/25">[m
+                   <Shield className="h-5 w-5 text-white" />[m
+                 </div>[m
+                 <h3 className="text-xl font-bold text-[#F8F3E7] font-mono">[m
+[36m@@ -149,7 +149,7 @@[m [mexport function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro[m
+                   placeholder="e.g. Google Account, GitHub Token"[m
+                   value={label}[m
+                   onChange={(e) => setLabel(e.target.value)}[m
+[31m-                  className="glow-input w-full rounded-xl border border-[#D4AF37]/15 bg-white/[0.015] px-4 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none"[m
+[32m+[m[32m                  className="glow-input w-full rounded-xl border border-[#79E6FF]/15 bg-white/[0.015] px-4 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none"[m
+                 />[m
+               </div>[m
+ [m
+[36m@@ -162,7 +162,7 @@[m [mexport function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro[m
+                   placeholder="e.g. user@gmail.com, admin"[m
+                   value={username}[m
+                   onChange={(e) => setUsername(e.target.value)}[m
+[31m-                  className="glow-input w-full rounded-xl border border-[#D4AF37]/15 bg-white/[0.015] px-4 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none"[m
+[32m+[m[32m                  className="glow-input w-full rounded-xl border border-[#79E6FF]/15 bg-white/[0.015] px-4 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none"[m
+                 />[m
+               </div>[m
+ [m
+[36m@@ -174,7 +174,7 @@[m [mexport function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro[m
+                   <button[m
+                     type="button"[m
+                     onClick={handleGeneratePassword}[m
+[31m-                    className="text-[10px] text-[#D4AF37] hover:text-[#e5c158] font-bold flex items-center gap-1 transition-colors select-none font-mono"[m
+[32m+[m[32m                    className="text-[10px] text-[#79E6FF] hover:text-[#e5c158] font-bold flex items-center gap-1 transition-colors select-none font-mono"[m
+                   >[m
+                     <Sparkles size={11} />[m
+                     Generate Secure[m
+[36m@@ -188,7 +188,7 @@[m [mexport function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro[m
+                     placeholder="Enter confidential credential"[m
+                     value={password}[m
+                     onChange={(e) => setPassword(e.target.value)}[m
+[31m-                    className="glow-input w-full rounded-xl border border-[#D4AF37]/15 bg-white/[0.015] pl-4 pr-12 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none font-mono"[m
+[32m+[m[32m                    className="glow-input w-full rounded-xl border border-[#79E6FF]/15 bg-white/[0.015] pl-4 pr-12 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none font-mono"[m
+                   />[m
+                   <button[m
+                     type="button"[m
+[1mdiff --git a/frontend/components/vault/SanctuaryGate.tsx b/frontend/components/vault/SanctuaryGate.tsx[m
+[1mindex e673bd5..e0aef04 100644[m
+[1m--- a/frontend/components/vault/SanctuaryGate.tsx[m
+[1m+++ b/frontend/components/vault/SanctuaryGate.tsx[m
+[36m@@ -173,7 +173,7 @@[m [mfunction CreateSanctuary() {[m
+             priority[m
+           />[m
+         </motion.div>[m
+[31m-        <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">[m
+[32m+[m[32m        <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">[m
+           Create Your Sanctuary Phrase[m
+         </h2>[m
+         <p className="mt-2 text-sm text-slate-400 max-w-xs leading-relaxed">[m
+[36m@@ -181,7 +181,7 @@[m [mfunction CreateSanctuary() {[m
+         </p>[m
+       </div>[m
+ [m
+[31m-      <Card className="border-[#f5b942]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">[m
+[32m+[m[32m      <Card className="border-[#79E6FF]/15 bg-[#0A1020]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">[m
+         <form onSubmit={handleSubmit} className="flex flex-col gap-5">[m
+ [m
+           <AnimatePresence>[m
+[36m@@ -197,17 +197,17 @@[m [mfunction CreateSanctuary() {[m
+             )}[m
+           </AnimatePresence>[m
+ [m
+[31m-          <div className="rounded-xl border border-white/5 bg-[#090D16]/80 p-3.5 text-xs flex flex-col gap-1">[m
+[32m+[m[32m          <div className="rounded-xl border border-white/5 bg-[#0A1020]/80 p-3.5 text-xs flex flex-col gap-1">[m
+             <span className="text-[10px] text-white/30 uppercase tracking-widest font-semibold">[m
+               Vault Salt (Wallet Address)[m
+             </span>[m
+[31m-            <span className="font-mono text-[#f5b942] break-all text-[11px]">{address}</span>[m
+[32m+[m[32m            <span className="font-mono text-[#79E6FF] break-all text-[11px]">{address}</span>[m
+           </div>[m
+ [m
+           <button[m
+             type="button"[m
+             onClick={handleGenerate}[m
+[31m-            className="flex items-center gap-2 text-xs text-[#f5b942]/70 hover:text-[#f5b942] transition-colors font-semibold self-start"[m
+[32m+[m[32m            className="flex items-center gap-2 text-xs text-[#79E6FF]/70 hover:text-[#79E6FF] transition-colors font-semibold self-start"[m
+           >[m
+             <Sparkles size={13} />[m
+             Generate secure phrase suggestion[m
+[36m@@ -313,7 +313,7 @@[m [mfunction UnlockSanctuary() {[m
+             priority[m
+           />[m
+         </motion.div>[m
+[31m-        <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">[m
+[32m+[m[32m        <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">[m
+           Unlock Your Sanctuary[m
+         </h2>[m
+         <p className="mt-2 text-sm text-slate-400">[m
+[36m@@ -321,7 +321,7 @@[m [mfunction UnlockSanctuary() {[m
+         </p>[m
+       </div>[m
+ [m
+[31m-      <Card className="border-[#f5b942]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">[m
+[32m+[m[32m      <Card className="border-[#79E6FF]/15 bg-[#0A1020]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">[m
+         <form onSubmit={handleSubmit} className="flex flex-col gap-5">[m
+ [m
+           <AnimatePresence>[m
+[36m@@ -337,11 +337,11 @@[m [mfunction UnlockSanctuary() {[m
+             )}[m
+           </AnimatePresence>[m
+ [m
+[31m-          <div className="rounded-xl border border-white/5 bg-[#090D16]/80 p-3.5 text-xs flex flex-col gap-1">[m
+[32m+[m[32m          <div className="rounded-xl border border-white/5 bg-[#0A1020]/80 p-3.5 text-xs flex flex-col gap-1">[m
+             <span className="text-[10px] text-white/30 uppercase tracking-widest font-semibold">[m
+               Vault Salt (Wallet Address)[m
+             </span>[m
+[31m-            <span className="font-mono text-[#f5b942] break-all text-[11px]">{address}</span>[m
+[32m+[m[32m            <span className="font-mono text-[#79E6FF] break-all text-[11px]">{address}</span>[m
+           </div>[m
+ [m
+           <PhraseInput[m
+[36m@@ -387,9 +387,9 @@[m [mexport function SanctuaryGate({ onLogout }: { onLogout: () => void }) {[m
+   }, [sanctuaryStatus, checkSanctuaryStatus]);[m
+ [m
+   return ([m
+[31m-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#090D16] px-6 py-12">[m
+[32m+[m[32m    <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#0A1020] px-6 py-12">[m
+       {/* Ambient glow */}[m
+[31m-      <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D4AF37]/5 blur-[120px] animate-pulse-glow" />[m
+[32m+[m[32m      <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#79E6FF]/5 blur-[120px] animate-pulse-glow" />[m
+ [m
+       <div className="z-10 w-full flex flex-col items-center">[m
+         <AnimatePresence mode="wait">[m
+[36m@@ -403,12 +403,12 @@[m [mexport function SanctuaryGate({ onLogout }: { onLogout: () => void }) {[m
+             >[m
+               <div className="relative flex h-14 w-14 items-center justify-center">[m
+                 <motion.div[m
+[31m-                  className="absolute inset-0 rounded-full border border-[#f5b942]/20"[m
+[32m+[m[32m                  className="absolute inset-0 rounded-full border border-[#79E6FF]/20"[m
+                   animate={{ scale: [1, 1.12, 1], opacity: [0.35, 0.7, 0.35] }}[m
+                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}[m
+                 />[m
+                 <motion.div[m
+[31m-                  className="h-1.5 w-1.5 rounded-full bg-[#f5b942]"[m
+[32m+[m[32m                  className="h-1.5 w-1.5 rounded-full bg-[#79E6FF]"[m
+                   style={{ boxShadow: '0 0 12px rgba(245,185,66,0.8)' }}[m
+                   animate={{ opacity: [0.4, 1, 0.4] }}[m
+                   transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}[m
+[36m@@ -437,7 +437,7 @@[m [mexport function SanctuaryGate({ onLogout }: { onLogout: () => void }) {[m
+       <div className="mt-8 text-center">[m
+         <button[m
+           onClick={onLogout}[m
+[31m-          className="text-xs font-semibold text-[#D4AF37]/65 hover:text-[#D4AF37] transition-colors"[m
+[32m+[m[32m          className="text-xs font-semibold text-[#79E6FF]/65 hover:text-[#79E6FF] transition-colors"[m
+         >[m
+           Sign Out Wallet[m
+         </button>[m
+[1mdiff --git a/frontend/components/vault/SessionLock.tsx b/frontend/components/vault/SessionLock.tsx[m
+[1mindex 0ab79ff..6655bb6 100644[m
+[1m--- a/frontend/components/vault/SessionLock.tsx[m
+[1m+++ b/frontend/components/vault/SessionLock.tsx[m
+[36m@@ -93,7 +93,7 @@[m [mexport function SessionLock() {[m
+             animate={{ opacity: 1 }}[m
+             exit={{ opacity: 0 }}[m
+             onClick={resetTimer}[m
+[31m-            className="absolute inset-0 bg-[#090D16]/80 backdrop-blur-md"[m
+[32m+[m[32m            className="absolute inset-0 bg-[#0A1020]/80 backdrop-blur-md"[m
+           />[m
+ [m
+           {/* Warning Box Container */}[m
+[36m@@ -102,7 +102,7 @@[m [mexport function SessionLock() {[m
+             animate={{ scale: 1, y: 0, opacity: 1 }}[m
+             exit={{ scale: 0.95, y: 15, opacity: 0 }}[m
+             transition={{ type: 'spring', stiffness: 100, damping: 18 }}[m
+[31m-            className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-yellow-500/15 bg-[#090D16]/95 p-8 shadow-[0_0_50px_rgba(234,179,8,0.12)] backdrop-blur-2xl z-10 text-center"[m
+[32m+[m[32m            className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-yellow-500/15 bg-[#0A1020]/95 p-8 shadow-[0_0_50px_rgba(234,179,8,0.12)] backdrop-blur-2xl z-10 text-center"[m
+           >[m
+             [m
+             {/* Ambient background light */}[m
+[36m@@ -130,7 +130,7 @@[m [mexport function SessionLock() {[m
+               <Button[m
+                 variant="primary"[m
+                 onClick={resetTimer}[m
+[31m-                className="w-full gap-1.5 py-3.5 text-xs font-bold border-yellow-500/35 hover:border-yellow-500 text-white bg-[#090D16] hover:bg-[#1E1B10] shadow-[0_0_15px_rgba(234,179,8,0.15)] transition-all"[m
+[32m+[m[32m                className="w-full gap-1.5 py-3.5 text-xs font-bold border-yellow-500/35 hover:border-yellow-500 text-white bg-[#0A1020] hover:bg-[#1E1B10] shadow-[0_0_15px_rgba(234,179,8,0.15)] transition-all"[m
+               >[m
+                 <Unlock size={13} />[m
+                 Extend Vault Session[m
+[1mdiff --git a/frontend/components/vault/TamperAlarm.tsx b/frontend/components/vault/TamperAlarm.tsx[m
+[1mindex f38c5b4..868f3b6 100644[m
+[1m--- a/frontend/components/vault/TamperAlarm.tsx[m
+[1m+++ b/frontend/components/vault/TamperAlarm.tsx[m
+[36m@@ -70,7 +70,7 @@[m [mexport function TamperAlarm() {[m
+               animate={{ scale: 1, y: 0, opacity: 1 }}[m
+               exit={{ scale: 0.95, y: 15, opacity: 0 }}[m
+               transition={{ type: 'spring', stiffness: 90, damping: 16 }}[m
+[31m-              className="w-full max-w-lg rounded-3xl border border-red-500/25 bg-[#090D16]/95 p-8 shadow-[0_0_60px_rgba(239,68,68,0.2)] relative overflow-hidden select-none"[m
+[32m+[m[32m              className="w-full max-w-lg rounded-3xl border border-red-500/25 bg-[#0A1020]/95 p-8 shadow-[0_0_60px_rgba(239,68,68,0.2)] relative overflow-hidden select-none"[m
+             >[m
+               {/* Subtle warning glow backdrop */}[m
+               <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-red-500/10 blur-[80px]" />[m
+[36m@@ -109,7 +109,7 @@[m [mexport function TamperAlarm() {[m
+                   ))}[m
+                 </div>[m
+ [m
+[31m-                <p className="text-xs text-slate-400 border-l-2 border-[#D4AF37]/50 pl-3">[m
+[32m+[m[32m                <p className="text-xs text-slate-400 border-l-2 border-[#79E6FF]/50 pl-3">[m
+                   <strong className="text-slate-200">What does this mean?</strong> The encrypted payload stored on the backend server does not match the tamper-proof signature derived from your key. The record has been modified, corrupted, or intercepted on the server.[m
+                 </p>[m
+                 [m
+[1mdiff --git a/frontend/components/vault/VaultCard.tsx b/frontend/components/vault/VaultCard.tsx[m
+[1mindex c6214d8..2004283 100644[m
+[1m--- a/frontend/components/vault/VaultCard.tsx[m
+[1m+++ b/frontend/components/vault/VaultCard.tsx[m
+[36m@@ -193,7 +193,7 @@[m [mexport function VaultCard({ entry, onEditClick }: VaultCardProps) {[m
+       {/* Top Section: Service & Category */}[m
+       <div className="flex items-start justify-between">[m
+         <div className="flex items-center gap-2.5">[m
+[31m-          <div className={`rounded-lg p-2 border text-xs font-semibold ${isTampered ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-amber-500/10 border-[#D4AF37]/20 text-[#D4AF37]'}`}>[m
+[32m+[m[32m          <div className={`rounded-lg p-2 border text-xs font-semibold ${isTampered ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-amber-500/10 border-[#79E6FF]/20 text-[#79E6FF]'}`}>[m
+             <Globe size={16} />[m
+           </div>[m
+           <div>[m
+[36m@@ -205,7 +205,7 @@[m [mexport function VaultCard({ entry, onEditClick }: VaultCardProps) {[m
+         </div>[m
+ [m
+         {/* Locked/Unlocked status */}[m
+[31m-        <div className={`transition-colors ${isTampered ? 'text-red-400/50 animate-pulse' : 'text-white/20 group-hover:text-[#D4AF37]/50'}`}>[m
+[32m+[m[32m        <div className={`transition-colors ${isTampered ? 'text-red-400/50 animate-pulse' : 'text-white/20 group-hover:text-[#79E6FF]/50'}`}>[m
+           {isTampered ? <AlertTriangle size={14} /> : decryptedText !== null ? <Unlock size={14} /> : <Lock size={14} />}[m
+         </div>[m
+       </div>[m
+[36m@@ -253,7 +253,7 @@[m [mexport function VaultCard({ entry, onEditClick }: VaultCardProps) {[m
+             onClick={handleEdit}[m
+             disabled={isTampered}[m
+             className={`p-1.5 rounded-lg transition-colors ${[m
+[31m-              isTampered ? 'text-white/10 cursor-not-allowed' : 'text-white/30 hover:text-[#D4AF37] hover:bg-white/5'[m
+[32m+[m[32m              isTampered ? 'text-white/10 cursor-not-allowed' : 'text-white/30 hover:text-[#79E6FF] hover:bg-white/5'[m
+             }`}[m
+             title={isTampered ? 'Edit blocked: Tampered' : 'Edit secret'}[m
+           >[m
+[36m@@ -296,8 +296,8 @@[m [mexport function VaultCard({ entry, onEditClick }: VaultCardProps) {[m
+               isTampered[m
+                 ? 'bg-transparent border-red-500/10 text-red-500/35 cursor-not-allowed'[m
+                 : decryptedText !== null[m
+[31m-                  ? 'bg-amber-950/20 border-[#D4AF37]/20 text-amber-500 hover:text-amber-400'[m
+[31m-                  : 'bg-amber-950/10 border-[#D4AF37]/10 text-[#D4AF37] hover:text-white hover:bg-[#D4AF37]/15'[m
+[32m+[m[32m                  ? 'bg-amber-950/20 border-[#79E6FF]/20 text-amber-500 hover:text-amber-400'[m
+[32m+[m[32m                  : 'bg-amber-950/10 border-[#79E6FF]/10 text-[#79E6FF] hover:text-white hover:bg-[#79E6FF]/15'[m
+             }`}[m
+           >[m
+             {decryptedText !== null ? <EyeOff size={12} /> : <Eye size={12} />}[m
+[1mdiff --git a/frontend/components/vault/VaultTable.tsx b/frontend/components/vault/VaultTable.tsx[m
+[1mindex 1ca5f32..119391e 100644[m
+[1m--- a/frontend/components/vault/VaultTable.tsx[m
+[1m+++ b/frontend/components/vault/VaultTable.tsx[m
+[36m@@ -216,7 +216,7 @@[m [mexport function VaultTable({ entries, onEditClick }: VaultTableProps) {[m
+                 [m
+                 {/* Service Column */}[m
+                 <td className="py-4 pr-3 font-semibold text-white flex items-center gap-2.5">[m
+[31m-                  <span className={`h-1.5 w-1.5 rounded-full ${isTampered ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse' : 'bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.6)]'}`} />[m
+[32m+[m[32m                  <span className={`h-1.5 w-1.5 rounded-full ${isTampered ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse' : 'bg-[#79E6FF] shadow-[0_0_8px_rgba(212,175,55,0.6)]'}`} />[m
+                   {entry.label}[m
+                 </td>[m
+                 [m
+[36m@@ -265,7 +265,7 @@[m [mexport function VaultTable({ entries, onEditClick }: VaultTableProps) {[m
+                           ? 'text-red-500/35 cursor-not-allowed'[m
+                           : isDecrypted [m
+                             ? 'text-amber-500 hover:text-amber-400' [m
+[31m-                            : 'text-[#D4AF37] hover:text-[#e5c158]'[m
+[32m+[m[32m                            : 'text-[#79E6FF] hover:text-[#e5c158]'[m
+                       }`}[m
+                       title={isTampered ? 'Tampered credentials locked' : isDecrypted ? 'Hide secret' : 'Decrypt locally in browser'}[m
+                     >[m
+[36m@@ -297,7 +297,7 @@[m [mexport function VaultTable({ entries, onEditClick }: VaultTableProps) {[m
+                       className={`transition-colors p-1.5 rounded-lg ${[m
+                         isTampered[m
+                           ? 'text-white/10 cursor-not-allowed'[m
+[31m-                          : 'text-white/35 hover:text-[#D4AF37] hover:bg-white/5'[m
+[32m+[m[32m                          : 'text-white/35 hover:text-[#79E6FF] hover:bg-white/5'[m
+                       }`}[m
+                       title={isTampered ? 'Edit blocked: Tampered' : 'Edit secret'}[m
+                     >[m
+[1mdiff --git a/frontend/components/vault/VaultUnlockSequence.tsx b/frontend/components/vault/VaultUnlockSequence.tsx[m
+[1mindex 53d5fc0..6b44d82 100644[m
+[1m--- a/frontend/components/vault/VaultUnlockSequence.tsx[m
+[1m+++ b/frontend/components/vault/VaultUnlockSequence.tsx[m
+[36m@@ -5,7 +5,7 @@[m [mimport Image from 'next/image';[m
+ import { motion, AnimatePresence } from 'framer-motion';[m
+ import { Check } from 'lucide-react';[m
+ [m
+[31m-const GOLD = '#f5b942';[m
+[32m+[m[32mconst GOLD = '#79E6FF';[m
+ const GOLD_DIM = 'rgba(245, 185, 66, 0.35)';[m
+ const GOLD_GLOW = 'rgba(245, 185, 66, 0.55)';[m
+ const DURATION_MS = 2800;[m
