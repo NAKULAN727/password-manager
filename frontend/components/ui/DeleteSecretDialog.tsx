@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert } from 'lucide-react';
 import { useDialogStore } from '../../store/useDialogStore';
 
-const GOLD = '#f5b942';
+const GOLD = '#79E6FF';
 
 /**
  * Destructive confirmation modal for vault entry deletion.
@@ -92,7 +92,7 @@ export function DeleteSecretDialog() {
             aria-modal="true"
             aria-labelledby="delete-secret-title"
             aria-describedby="delete-secret-desc"
-            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-[#f5b942]/20 bg-[#0c1018]/90 shadow-[0_24px_80px_rgba(0,0,0,0.65),0_0_0_1px_rgba(245,185,66,0.08)] backdrop-blur-xl"
+            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-[#79E6FF]/20 bg-[#0c1018]/90 shadow-[0_24px_80px_rgba(0,0,0,0.65),0_0_0_1px_rgba(245,185,66,0.08)] backdrop-blur-xl"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
@@ -109,7 +109,7 @@ export function DeleteSecretDialog() {
             <div className="p-6 sm:p-7">
               <div className="flex items-start gap-4">
                 <div
-                  className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#f5b942]/25 bg-[#f5b942]/8"
+                  className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#79E6FF]/25 bg-[#79E6FF]/8"
                   style={{ boxShadow: '0 0 24px rgba(245, 185, 66, 0.12)' }}
                 >
                   <ShieldAlert size={22} style={{ color: GOLD }} strokeWidth={1.75} />

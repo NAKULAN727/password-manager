@@ -16,7 +16,7 @@ export function ReusePanel({ reuseGroups, totalEntries, failedEntryIds }: ReuseP
     return (
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-2 mb-1">
-          <Copy size={15} className="text-[#D4AF37]" />
+          <Copy size={15} className="text-[#79E6FF]" />
           <h3 className="text-sm font-bold text-white">Reuse Detection</h3>
         </div>
         <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 text-center">
@@ -33,7 +33,7 @@ export function ReusePanel({ reuseGroups, totalEntries, failedEntryIds }: ReuseP
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 mb-1">
-        <Copy size={15} className="text-[#D4AF37]" />
+        <Copy size={15} className="text-[#79E6FF]" />
         <h3 className="text-sm font-bold text-white">Reuse Detection</h3>
       </div>
 

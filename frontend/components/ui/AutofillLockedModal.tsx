@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock } from 'lucide-react';
 import { useDialogStore } from '../../store/useDialogStore';
 
-const GOLD = '#f5b942';
+const GOLD = '#79E6FF';
 
 export function AutofillLockedModal() {
   const { type, closeDialog } = useDialogStore();
@@ -84,7 +84,7 @@ export function AutofillLockedModal() {
             aria-modal="true"
             aria-labelledby="autofill-locked-title"
             aria-describedby="autofill-locked-desc"
-            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-[#f5b942]/20 bg-[#0c1018]/90 shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl"
+            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-[#79E6FF]/20 bg-[#0c1018]/90 shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
@@ -93,7 +93,7 @@ export function AutofillLockedModal() {
             <div className="p-6 sm:p-7">
               <div className="flex items-start gap-4">
                 <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#f5b942]/25 bg-[#f5b942]/10"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#79E6FF]/25 bg-[#79E6FF]/10"
                   style={{ boxShadow: '0 0 20px rgba(245, 185, 66, 0.12)' }}
                 >
                   <Lock size={20} style={{ color: GOLD }} strokeWidth={1.75} />
@@ -121,7 +121,7 @@ export function AutofillLockedModal() {
                   ref={openRef}
                   type="button"
                   onClick={handleOpenExtension}
-                  className="inline-flex items-center justify-center rounded-xl border border-[#f5b942]/40 bg-[#f5b942]/15 px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-[#f5b942]/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f5b942]/50"
+                  className="inline-flex items-center justify-center rounded-xl border border-[#79E6FF]/40 bg-[#79E6FF]/15 px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-[#79E6FF]/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#79E6FF]/50"
                   style={{ color: GOLD }}
                 >
                   Open Extension

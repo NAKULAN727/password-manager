@@ -10,38 +10,38 @@ interface StrengthDistributionProps {
   strengthData: EntryStrengthData[];
 }
 
-const TIER_CONFIG: Record<PasswordClassification, { 
-  color: string; 
-  bg: string; 
+const TIER_CONFIG: Record<PasswordClassification, {
+  color: string;
+  bg: string;
   border: string;
   icon: React.ReactNode;
   label: string;
 }> = {
-  'Weak': { 
-    color: 'text-amber-400', 
-    bg: 'bg-amber-500/10', 
+  'Weak': {
+    color: 'text-amber-400',
+    bg: 'bg-amber-500/10',
     border: 'border-amber-500/20',
     icon: <Sprout size={14} />,
     label: 'Needs Nurturing',
   },
-  'Fair': { 
-    color: 'text-yellow-400', 
-    bg: 'bg-yellow-500/10', 
+  'Fair': {
+    color: 'text-yellow-400',
+    bg: 'bg-yellow-500/10',
     border: 'border-yellow-500/20',
     icon: <Sprout size={14} />,
     label: 'Growing',
   },
-  'Strong': { 
-    color: 'text-emerald-400', 
-    bg: 'bg-emerald-500/10', 
+  'Strong': {
+    color: 'text-emerald-400',
+    bg: 'bg-emerald-500/10',
     border: 'border-emerald-500/20',
     icon: <TreePine size={14} />,
     label: 'Thriving',
   },
-  'Sanctuary Grade': { 
-    color: 'text-[#D4AF37]', 
-    bg: 'bg-[#D4AF37]/10', 
-    border: 'border-[#D4AF37]/20',
+  'Sanctuary Grade': {
+    color: 'text-[#79E6FF]',
+    bg: 'bg-[#79E6FF]/10',
+    border: 'border-[#79E6FF]/20',
     icon: <Crown size={14} />,
     label: 'Flourishing',
   },
@@ -66,7 +66,7 @@ export function StrengthDistribution({ strengthData }: StrengthDistributionProps
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2 mb-1">
-        <Shield size={15} className="text-[#D4AF37]" />
+        <Shield size={15} className="text-[#79E6FF]" />
         <h3 className="text-sm font-bold text-white">Strength Distribution</h3>
       </div>
 
@@ -98,7 +98,7 @@ export function StrengthDistribution({ strengthData }: StrengthDistributionProps
               <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                 <motion.div
                   className={`h-full rounded-full ${config.bg.replace('/10', '/40')}`}
-                  style={{ backgroundColor: config.color.includes('#') ? '#D4AF37' : undefined }}
+                  style={{ backgroundColor: config.color.includes('#') ? '#79E6FF' : undefined }}
                   initial={{ width: 0 }}
                   animate={{ width: `${percentage}%` }}
                   transition={{ duration: 0.8, delay: 0.2 + idx * 0.1, ease: 'easeOut' }}

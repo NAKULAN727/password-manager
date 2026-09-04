@@ -17,7 +17,7 @@ export default function WhySphynxPage() {
     <PageLayout>
       <main className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-24 animate-fade-in">
         {/* Back to Home */}
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#D4AF37] hover:text-white transition-colors mb-12">
+        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#79E6FF] hover:text-white transition-colors mb-12">
           <ArrowLeft size={14} />
           Back to Home
         </Link>
@@ -26,7 +26,7 @@ export default function WhySphynxPage() {
         <div className="max-w-3xl mb-20">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
             Why{' '}
-            <span className="bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">
               Sphynx
             </span>
           </h1>
@@ -62,7 +62,7 @@ export default function WhySphynxPage() {
                   <th className="text-left py-4 px-4 text-xs font-semibold text-white/60 uppercase tracking-wider">Feature</th>
                   <th className="text-center py-4 px-4 text-xs font-semibold text-white/60 uppercase tracking-wider">Traditional PM</th>
                   <th className="text-center py-4 px-4 text-xs font-semibold text-white/60 uppercase tracking-wider">Browser PM</th>
-                  <th className="text-center py-4 px-4 text-xs font-semibold text-[#D4AF37] uppercase tracking-wider">Sphynx</th>
+                  <th className="text-center py-4 px-4 text-xs font-semibold text-[#79E6FF] uppercase tracking-wider">Sphynx</th>
                 </tr>
               </thead>
               <tbody className="text-slate-300">
@@ -105,32 +105,32 @@ export default function WhySphynxPage() {
         {/* Wallet Authentication Benefits */}
         <section className="mb-20 border-t border-white/5 pt-16">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-fit rounded-xl bg-[#D4AF37]/10 p-2.5 border border-[#D4AF37]/20 text-[#D4AF37]">
+            <div className="w-fit rounded-xl bg-[#79E6FF]/10 p-2.5 border border-[#79E6FF]/20 text-[#79E6FF]">
               <Key size={20} />
             </div>
             <h2 className="text-2xl font-bold">Wallet Authentication Benefits</h2>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 max-w-4xl">
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">
               <h4 className="text-sm font-bold text-white mb-2">No Password to Forget</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Your wallet is your identity. No master password means no risk of forgetting it, and no password to be phished or brute-forced.
               </p>
             </Card>
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">
               <h4 className="text-sm font-bold text-white mb-2">Cryptographic Proof</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Wallet signatures provide mathematical proof of identity. Unlike passwords, they cannot be guessed, leaked from a database, or intercepted.
               </p>
             </Card>
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">
               <h4 className="text-sm font-bold text-white mb-2">Hardware Security</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Hardware wallets (Ledger, Trezor) keep your signing keys in a secure element. Authentication becomes as secure as your physical device.
               </p>
             </Card>
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">
               <h4 className="text-sm font-bold text-white mb-2">No Central Authority</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 No company controls your access. Your wallet is yours — no account lockouts, no service dependencies, no terms of service changes.
@@ -195,7 +195,7 @@ export default function WhySphynxPage() {
               </p>
             </div>
 
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">
               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Recovery vs. Traditional Reset</h4>
               <div className="space-y-4">
                 <div>

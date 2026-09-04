@@ -14,7 +14,7 @@ const LEVEL_COLORS: Record<SecurityLevel, { ring: string; glow: string; text: st
   'Vulnerable': { ring: '#ef4444', glow: 'rgba(239,68,68,0.2)', text: 'text-red-400' },
   'Developing': { ring: '#f59e0b', glow: 'rgba(245,158,11,0.2)', text: 'text-amber-400' },
   'Fortified': { ring: '#10b981', glow: 'rgba(16,185,129,0.2)', text: 'text-emerald-400' },
-  'Sanctuary Grade': { ring: '#D4AF37', glow: 'rgba(212,175,55,0.25)', text: 'text-[#D4AF37]' },
+  'Sanctuary Grade': { ring: '#79E6FF', glow: 'rgba(212,175,55,0.25)', text: 'text-[#79E6FF]' },
 };
 
 export function HealthScoreRing({ score, level, size = 180 }: HealthScoreRingProps) {

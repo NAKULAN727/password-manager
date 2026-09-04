@@ -93,7 +93,7 @@ export function SessionLock() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={resetTimer}
-            className="absolute inset-0 bg-[#090D16]/80 backdrop-blur-md"
+            className="absolute inset-0 bg-[#0A1020]/80 backdrop-blur-md"
           />
 
           {/* Warning Box Container */}
@@ -102,7 +102,7 @@ export function SessionLock() {
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.95, y: 15, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-            className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-yellow-500/15 bg-[#090D16]/95 p-8 shadow-[0_0_50px_rgba(234,179,8,0.12)] backdrop-blur-2xl z-10 text-center"
+            className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-yellow-500/15 bg-[#0A1020]/95 p-8 shadow-[0_0_50px_rgba(234,179,8,0.12)] backdrop-blur-2xl z-10 text-center"
           >
             
             {/* Ambient background light */}
@@ -130,7 +130,7 @@ export function SessionLock() {
               <Button
                 variant="primary"
                 onClick={resetTimer}
-                className="w-full gap-1.5 py-3.5 text-xs font-bold border-yellow-500/35 hover:border-yellow-500 text-white bg-[#090D16] hover:bg-[#1E1B10] shadow-[0_0_15px_rgba(234,179,8,0.15)] transition-all"
+                className="w-full gap-1.5 py-3.5 text-xs font-bold border-yellow-500/35 hover:border-yellow-500 text-white bg-[#0A1020] hover:bg-[#1E1B10] shadow-[0_0_15px_rgba(234,179,8,0.15)] transition-all"
               >
                 <Unlock size={13} />
                 Extend Vault Session

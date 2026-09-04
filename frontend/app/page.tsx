@@ -42,8 +42,8 @@ function HeroSection() {
             transform: visible ? 'translateY(0)' : 'translateY(20px)',
           }}
         >
-          <span className="text-[#F0E6D0]">Your Digital</span>{' '}
-          <span className="relative bg-gradient-to-r from-[#E8A020] to-[#FF9A3C] bg-clip-text text-transparent">
+          <span className="text-[#E7EEF8]">Your Digital</span>{' '}
+          <span className="relative bg-gradient-to-r from-[#6EE7FF] to-[#A78BFA] bg-clip-text text-transparent">
             Sanctuary
             {/* One-shot shimmer sweep */}
             <span className="absolute inset-0 shimmer-text rounded pointer-events-none" />
@@ -52,7 +52,7 @@ function HeroSection() {
 
         {/* Subtext */}
         <p
-          className="mt-8 max-w-[560px] text-lg text-[#9A7D5A] leading-relaxed transition-all duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] delay-[80ms]"
+          className="mt-8 max-w-[560px] text-lg text-[#8493AA] leading-relaxed transition-all duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] delay-[80ms]"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? 'translateY(0)' : 'translateY(20px)',
@@ -70,14 +70,14 @@ function HeroSection() {
           }}
         >
           <Link href="/login">
-            <button className="group flex items-center gap-2 px-7 py-3.5 text-sm font-bold text-[#0A0806] rounded-[10px] bg-gradient-to-br from-[#E8A020] to-[#B86A1A] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)] active:translate-y-0">
+            <button className="group flex items-center gap-2 px-7 py-3.5 text-sm font-bold text-[#070B14] rounded-[10px] bg-gradient-to-br from-[#6EE7FF] to-[#7C5CFC] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)] active:translate-y-0">
               Access Vault
               <ChevronRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
             </button>
           </Link>
 
           <Link href="/technology">
-            <button className="px-7 py-3.5 text-sm font-medium text-[#9A7D5A] rounded-[10px] border border-[#2A1E10] bg-transparent transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[#E8A020] hover:text-[#F0E6D0]">
+            <button className="px-7 py-3.5 text-sm font-medium text-[#8493AA] rounded-[10px] border border-[#1E2B42] bg-transparent transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[#6EE7FF] hover:text-[#E7EEF8]">
               Learn More
             </button>
           </Link>
@@ -105,10 +105,10 @@ function ProblemSection() {
     <section ref={ref} className="mx-auto max-w-7xl px-6 sm:px-8 section-divider pt-20">
       <FadeUp visible={inView}>
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#F0E6D0] font-[family-name:var(--font-sora)]">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#E7EEF8] font-[family-name:var(--font-sora)]">
             Passwords Are Broken
           </h2>
-          <p className="mt-6 text-[#9A7D5A] text-lg leading-relaxed">
+          <p className="mt-6 text-[#8493AA] text-lg leading-relaxed">
             You juggle dozens — maybe hundreds — of accounts. Passwords get reused, forgotten, and leaked. It shouldn't be this hard to stay safe online.
           </p>
         </div>
@@ -150,10 +150,10 @@ function SolutionSection() {
     <section ref={ref} className="mx-auto max-w-7xl px-6 sm:px-8 mt-32">
       <FadeUp visible={inView}>
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#F0E6D0] font-[family-name:var(--font-sora)]">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#E7EEF8] font-[family-name:var(--font-sora)]">
             One Vault. Complete Control.
           </h2>
-          <p className="mt-4 text-[#9A7D5A] max-w-xl mx-auto text-lg">
+          <p className="mt-4 text-[#8493AA] max-w-xl mx-auto text-lg">
             A single, secure home for all your credentials — without trusting anyone else with your data.
           </p>
         </div>
@@ -162,9 +162,9 @@ function SolutionSection() {
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
         {features.map((item, i) => (
           <FadeUp key={item.title} visible={inView} delay={i * 80}>
-            <div className="rounded-2xl border border-[#2A1E10] bg-[#141009] p-6 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[rgba(232,160,32,0.3)] hover:shadow-[0_0_30px_rgba(232,160,32,0.08),0_4px_20px_rgba(0,0,0,0.4)]">
-              <h3 className="text-sm font-bold text-[#F0E6D0] mb-2 font-[family-name:var(--font-sora)]">{item.title}</h3>
-              <p className="text-xs text-[#9A7D5A] leading-relaxed">{item.desc}</p>
+            <div className="rounded-2xl border border-[#1E2B42] bg-[#0E1627] p-6 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[rgba(232,160,32,0.3)] hover:shadow-[0_0_30px_rgba(232,160,32,0.08),0_4px_20px_rgba(0,0,0,0.4)]">
+              <h3 className="text-sm font-bold text-[#E7EEF8] mb-2 font-[family-name:var(--font-sora)]">{item.title}</h3>
+              <p className="text-xs text-[#8493AA] leading-relaxed">{item.desc}</p>
             </div>
           </FadeUp>
         ))}
@@ -214,7 +214,7 @@ function WhySection() {
     <section ref={ref} className="mx-auto max-w-7xl px-6 sm:px-8 mt-32 section-divider pt-20">
       <FadeUp visible={inView}>
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#F0E6D0] font-[family-name:var(--font-sora)]">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#E7EEF8] font-[family-name:var(--font-sora)]">
             Why People Trust Sphynx
           </h2>
         </div>
@@ -223,12 +223,12 @@ function WhySection() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {cards.map((card, i) => (
           <FadeUp key={card.title} visible={inView} delay={i * 80}>
-            <div className="flex flex-col gap-4 rounded-2xl border border-[#2A1E10] bg-[#141009] p-6 shadow-[0_0_30px_rgba(232,160,32,0.05),0_4px_20px_rgba(0,0,0,0.4)] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[rgba(232,160,32,0.3)] hover:shadow-[0_0_40px_rgba(232,160,32,0.1),0_8px_30px_rgba(0,0,0,0.5)]">
-              <div className="w-fit rounded-xl bg-[rgba(232,160,32,0.08)] p-3 text-[#E8A020]">
+            <div className="flex flex-col gap-4 rounded-2xl border border-[#1E2B42] bg-[#0E1627] p-6 shadow-[0_0_30px_rgba(232,160,32,0.05),0_4px_20px_rgba(0,0,0,0.4)] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[rgba(232,160,32,0.3)] hover:shadow-[0_0_40px_rgba(232,160,32,0.1),0_8px_30px_rgba(0,0,0,0.5)]">
+              <div className="w-fit rounded-xl bg-[rgba(232,160,32,0.08)] p-3 text-[#6EE7FF]">
                 {card.icon}
               </div>
-              <h3 className="text-base font-bold text-[#F0E6D0] font-[family-name:var(--font-sora)]">{card.title}</h3>
-              <p className="text-xs leading-relaxed text-[#9A7D5A]">{card.desc}</p>
+              <h3 className="text-base font-bold text-[#E7EEF8] font-[family-name:var(--font-sora)]">{card.title}</h3>
+              <p className="text-xs leading-relaxed text-[#8493AA]">{card.desc}</p>
             </div>
           </FadeUp>
         ))}
@@ -254,15 +254,15 @@ function CTASection() {
   return (
     <section ref={ref} className="mx-auto max-w-7xl px-6 sm:px-8 mt-32 mb-12">
       <FadeUp visible={inView}>
-        <div className="rounded-3xl border border-[#2A1E10] bg-[#141009] p-12 sm:p-16 text-center shadow-[0_0_60px_rgba(232,160,32,0.04)]">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#F0E6D0] mb-4 font-[family-name:var(--font-sora)]">
+        <div className="rounded-3xl border border-[#1E2B42] bg-[#0E1627] p-12 sm:p-16 text-center shadow-[0_0_60px_rgba(232,160,32,0.04)]">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[#E7EEF8] mb-4 font-[family-name:var(--font-sora)]">
             Ready to Lock Things Down?
           </h2>
-          <p className="text-[#9A7D5A] max-w-lg mx-auto mb-8 text-base leading-relaxed">
+          <p className="text-[#8493AA] max-w-lg mx-auto mb-8 text-base leading-relaxed">
             Step inside the vault. Full ownership of your credentials, zero trust required.
           </p>
           <Link href="/login">
-            <button className="group inline-flex items-center gap-2 px-8 py-4 text-sm font-bold text-[#0A0806] rounded-[10px] bg-gradient-to-br from-[#E8A020] to-[#B86A1A] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)] active:translate-y-0">
+            <button className="group inline-flex items-center gap-2 px-8 py-4 text-sm font-bold text-[#070B14] rounded-[10px] bg-gradient-to-br from-[#6EE7FF] to-[#7C5CFC] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)] active:translate-y-0">
               Access Vault
               <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
             </button>
@@ -327,11 +327,11 @@ function StatCard({ value, suffix, label, inView, delay }: {
 
   return (
     <FadeUp visible={inView} delay={delay}>
-      <div className="rounded-2xl border border-[#2A1E10] border-t-2 border-t-[#E8A020] bg-[#141009] p-6 text-center shadow-[0_0_30px_rgba(232,160,32,0.05),0_4px_20px_rgba(0,0,0,0.4)]">
-        <p className="text-3xl font-bold font-[family-name:var(--font-sora)] bg-gradient-to-r from-[#E8A020] to-[#FF9A3C] bg-clip-text text-transparent">
+      <div className="rounded-2xl border border-[#1E2B42] border-t-2 border-t-[#6EE7FF] bg-[#0E1627] p-6 text-center shadow-[0_0_30px_rgba(232,160,32,0.05),0_4px_20px_rgba(0,0,0,0.4)]">
+        <p className="text-3xl font-bold font-[family-name:var(--font-sora)] bg-gradient-to-r from-[#6EE7FF] to-[#A78BFA] bg-clip-text text-transparent">
           {count}{suffix}
         </p>
-        <p className="mt-2 text-xs text-[#9A7D5A] leading-relaxed">{label}</p>
+        <p className="mt-2 text-xs text-[#8493AA] leading-relaxed">{label}</p>
       </div>
     </FadeUp>
   );

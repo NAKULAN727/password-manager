@@ -23,8 +23,8 @@ export function GuardianCircleView({ guardians, threshold }: GuardianCircleViewP
       {/* Central circle with threshold info */}
       <div className="relative w-[240px] h-[240px]">
         {/* Center node */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-[#D4AF37]/10 border-2 border-[#D4AF37]/30 flex items-center justify-center z-10">
-          <Shield size={24} className="text-[#D4AF37]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-[#79E6FF]/10 border-2 border-[#79E6FF]/30 flex items-center justify-center z-10">
+          <Shield size={24} className="text-[#79E6FF]" />
         </div>
 
         {/* Guardian nodes positioned in a circle */}
@@ -86,7 +86,7 @@ export function GuardianCircleView({ guardians, threshold }: GuardianCircleViewP
             <span>{pendingCount} Pending</span>
           </div>
         )}
-        <div className="flex items-center gap-1.5 text-[#D4AF37]">
+        <div className="flex items-center gap-1.5 text-[#79E6FF]">
           <Shield size={12} />
           <span>Threshold: {threshold}</span>
         </div>

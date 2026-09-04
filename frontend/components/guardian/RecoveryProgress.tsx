@@ -35,7 +35,7 @@ export function RecoveryProgress({ request }: RecoveryProgressProps) {
         {/* Connection line */}
         <div className="absolute top-5 left-8 right-8 h-0.5 bg-white/5" />
         <motion.div
-          className="absolute top-5 left-8 h-0.5 bg-[#D4AF37]/50"
+          className="absolute top-5 left-8 h-0.5 bg-[#79E6FF]/50"
           initial={{ width: 0 }}
           animate={{ width: `${(activeIdx / (STEPS.length - 1)) * 100}%` }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -56,7 +56,7 @@ export function RecoveryProgress({ request }: RecoveryProgressProps) {
                   isComplete
                     ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
                     : isActive
-                    ? 'bg-[#D4AF37]/15 border-[#D4AF37]/50 text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.2)]'
+                    ? 'bg-[#79E6FF]/15 border-[#79E6FF]/50 text-[#79E6FF] shadow-[0_0_15px_rgba(212,175,55,0.2)]'
                     : 'bg-white/5 border-white/10 text-white/30'
                 }`}
               >
@@ -67,7 +67,7 @@ export function RecoveryProgress({ request }: RecoveryProgressProps) {
                 )}
               </motion.div>
               <span className={`text-[9px] font-semibold uppercase tracking-wider text-center max-w-[80px] ${
-                isActive ? 'text-[#D4AF37]' : isComplete ? 'text-emerald-400' : 'text-white/30'
+                isActive ? 'text-[#79E6FF]' : isComplete ? 'text-emerald-400' : 'text-white/30'
               }`}>
                 {step.label}
               </span>
@@ -78,7 +78,7 @@ export function RecoveryProgress({ request }: RecoveryProgressProps) {
 
       {/* Approval counter */}
       <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 text-center">
-        <p className="text-2xl font-black font-mono text-[#D4AF37]">
+        <p className="text-2xl font-black font-mono text-[#79E6FF]">
           {request.approvalsCollected} <span className="text-white/30 text-lg">/ {request.threshold}</span>
         </p>
         <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">

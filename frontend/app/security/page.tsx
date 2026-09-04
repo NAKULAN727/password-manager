@@ -17,7 +17,7 @@ export default function SecurityPage() {
     <PageLayout>
       <main className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-24 animate-fade-in">
         {/* Back to Home */}
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#D4AF37] hover:text-white transition-colors mb-12">
+        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#79E6FF] hover:text-white transition-colors mb-12">
           <ArrowLeft size={14} />
           Back to Home
         </Link>
@@ -26,7 +26,7 @@ export default function SecurityPage() {
         <div className="max-w-3xl mb-20">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
             How Sphynx{' '}
-            <span className="bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">
               Protects You
             </span>
           </h1>
@@ -38,7 +38,7 @@ export default function SecurityPage() {
         {/* Zero-Knowledge Design */}
         <section className="mb-20">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-fit rounded-xl bg-[#D4AF37]/10 p-2.5 border border-[#D4AF37]/20 text-[#D4AF37]">
+            <div className="w-fit rounded-xl bg-[#79E6FF]/10 p-2.5 border border-[#79E6FF]/20 text-[#79E6FF]">
               <Eye size={20} />
             </div>
             <h2 className="text-2xl font-bold">Zero-Knowledge Design</h2>
@@ -69,7 +69,7 @@ export default function SecurityPage() {
               </ul>
             </div>
 
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">
               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">What the Server Sees</h4>
               <div className="space-y-3">
                 <div className="rounded-lg border border-white/5 bg-black/30 p-3 flex items-center justify-between">
@@ -78,11 +78,11 @@ export default function SecurityPage() {
                 </div>
                 <div className="rounded-lg border border-white/5 bg-black/30 p-3 flex items-center justify-between">
                   <span className="text-xs text-slate-300">Encrypted vault blobs</span>
-                  <span className="text-[10px] text-[#D4AF37] font-mono">encrypted</span>
+                  <span className="text-[10px] text-[#79E6FF] font-mono">encrypted</span>
                 </div>
                 <div className="rounded-lg border border-white/5 bg-black/30 p-3 flex items-center justify-between">
                   <span className="text-xs text-slate-300">Encrypted key material</span>
-                  <span className="text-[10px] text-[#D4AF37] font-mono">encrypted</span>
+                  <span className="text-[10px] text-[#79E6FF] font-mono">encrypted</span>
                 </div>
                 <div className="rounded-lg border border-white/5 bg-black/30 p-3 flex items-center justify-between">
                   <span className="text-xs text-slate-300">Your actual passwords</span>
@@ -152,19 +152,19 @@ export default function SecurityPage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">
               <h4 className="text-sm font-bold text-white mb-2">Auto-Lock</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 The vault automatically locks after a period of inactivity. Derived keys are purged from memory, requiring re-authentication.
               </p>
             </Card>
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">
               <h4 className="text-sm font-bold text-white mb-2">Clipboard Purge</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Copied passwords are automatically cleared from the clipboard after a countdown, preventing accidental exposure.
               </p>
             </Card>
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">
               <h4 className="text-sm font-bold text-white mb-2">Tamper Detection</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 The vault monitors for signs of tampering or unauthorized access attempts and alerts the user immediately.
@@ -207,20 +207,20 @@ export default function SecurityPage() {
               </ul>
             </div>
 
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">
               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Recovery Cooldowns</h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between rounded-lg border border-white/5 bg-black/30 p-3">
                   <span className="text-xs text-slate-300">Approval processing delay</span>
-                  <span className="text-xs text-[#D4AF37] font-mono font-bold">24 hours</span>
+                  <span className="text-xs text-[#79E6FF] font-mono font-bold">24 hours</span>
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-white/5 bg-black/30 p-3">
                   <span className="text-xs text-slate-300">Guardian approval expiry</span>
-                  <span className="text-xs text-[#D4AF37] font-mono font-bold">48 hours</span>
+                  <span className="text-xs text-[#79E6FF] font-mono font-bold">48 hours</span>
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-white/5 bg-black/30 p-3">
                   <span className="text-xs text-slate-300">Global recovery cooldown</span>
-                  <span className="text-xs text-[#D4AF37] font-mono font-bold">7 days</span>
+                  <span className="text-xs text-[#79E6FF] font-mono font-bold">7 days</span>
                 </div>
               </div>
               <p className="text-[10px] text-white/30 mt-4">

@@ -15,8 +15,8 @@ export function PageLayout({ children }: PageLayoutProps) {
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Warm ambient glow — like a lamp inside a vault */}
-      <div className="fixed top-[-20%] left-[-10%] -z-10 h-[700px] w-[700px] rounded-full bg-[#E8A020]/[0.03] blur-[150px] animate-pulse-glow" />
-      <div className="fixed bottom-[-20%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-[#B86A1A]/[0.02] blur-[140px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
+      <div className="fixed top-[-20%] left-[-10%] -z-10 h-[700px] w-[700px] rounded-full bg-[#6EE7FF]/[0.03] blur-[150px] animate-pulse-glow" />
+      <div className="fixed bottom-[-20%] right-[-10%] -z-10 h-[600px] w-[600px] rounded-full bg-[#7C5CFC]/[0.02] blur-[140px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
 
       <Navbar />
       {children}

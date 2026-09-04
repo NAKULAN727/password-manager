@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
  */
 export function AmbientBackground() {
   return (
-    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none select-none bg-[#090D16]">
+    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none select-none bg-[#0A1020]">
       {/* Warm Burnished Gold glow (Top-Left quadrant focus) */}
       <motion.div
         animate={{
@@ -21,7 +21,7 @@ export function AmbientBackground() {
           repeat: Infinity,
           ease: 'easeInOut',
         }}
-        className="absolute top-[-15%] left-[-15%] h-[650px] w-[650px] rounded-full bg-[#D4AF37]/[0.035] blur-[140px]"
+        className="absolute top-[-15%] left-[-15%] h-[650px] w-[650px] rounded-full bg-[#79E6FF]/[0.035] blur-[140px]"
       />
 
       {/* Emerald Pulse glow (Bottom-Right quadrant focus) */}
@@ -50,7 +50,7 @@ export function AmbientBackground() {
           repeat: Infinity,
           ease: 'easeInOut',
         }}
-        className="absolute top-[30%] left-[20%] h-[450px] w-[450px] rounded-full bg-[#D4AF37]/[0.012] blur-[120px]"
+        className="absolute top-[30%] left-[20%] h-[450px] w-[450px] rounded-full bg-[#79E6FF]/[0.012] blur-[120px]"
       />
     </div>
   );

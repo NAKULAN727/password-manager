@@ -216,7 +216,7 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
                 
                 {/* Service Column */}
                 <td className="py-4 pr-3 font-semibold text-white flex items-center gap-2.5">
-                  <span className={`h-1.5 w-1.5 rounded-full ${isTampered ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse' : 'bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.6)]'}`} />
+                  <span className={`h-1.5 w-1.5 rounded-full ${isTampered ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse' : 'bg-[#79E6FF] shadow-[0_0_8px_rgba(212,175,55,0.6)]'}`} />
                   {entry.label}
                 </td>
                 
@@ -265,7 +265,7 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
                           ? 'text-red-500/35 cursor-not-allowed'
                           : isDecrypted 
                             ? 'text-amber-500 hover:text-amber-400' 
-                            : 'text-[#D4AF37] hover:text-[#e5c158]'
+                            : 'text-[#79E6FF] hover:text-[#e5c158]'
                       }`}
                       title={isTampered ? 'Tampered credentials locked' : isDecrypted ? 'Hide secret' : 'Decrypt locally in browser'}
                     >
@@ -297,7 +297,7 @@ export function VaultTable({ entries, onEditClick }: VaultTableProps) {
                       className={`transition-colors p-1.5 rounded-lg ${
                         isTampered
                           ? 'text-white/10 cursor-not-allowed'
-                          : 'text-white/35 hover:text-[#D4AF37] hover:bg-white/5'
+                          : 'text-white/35 hover:text-[#79E6FF] hover:bg-white/5'
                       }`}
                       title={isTampered ? 'Edit blocked: Tampered' : 'Edit secret'}
                     >

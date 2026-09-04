@@ -60,11 +60,11 @@ export function ClipboardPurgeBar() {
           className="fixed top-0 left-0 w-full z-[9999] pointer-events-none"
         >
           {/* Depleting Burnished Gold Progress Line */}
-          <div className="w-full h-[3px] bg-[#090D16]/50">
+          <div className="w-full h-[3px] bg-[#0A1020]/50">
             <motion.div 
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.08, ease: 'linear' }}
-              className="h-full bg-gradient-to-r from-[#D4AF37] via-amber-400 to-[#D4AF37] shadow-[0_1px_10px_rgba(212,175,55,0.7)]"
+              className="h-full bg-gradient-to-r from-[#79E6FF] via-amber-400 to-[#79E6FF] shadow-[0_1px_10px_rgba(212,175,55,0.7)]"
             />
           </div>
 
@@ -72,11 +72,11 @@ export function ClipboardPurgeBar() {
           <div className="flex justify-center mt-3">
             <motion.div 
               whileHover={{ scale: 1.02 }}
-              className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#090D16]/95 border border-[#D4AF37]/25 backdrop-blur-md shadow-[0_4px_25px_rgba(0,0,0,0.6)] select-none pointer-events-auto cursor-default"
+              className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#0A1020]/95 border border-[#79E6FF]/25 backdrop-blur-md shadow-[0_4px_25px_rgba(0,0,0,0.6)] select-none pointer-events-auto cursor-default"
             >
-              <ClipboardCheck className="h-3.5 w-3.5 text-[#D4AF37] animate-pulse" />
+              <ClipboardCheck className="h-3.5 w-3.5 text-[#79E6FF] animate-pulse" />
               <span className="text-[10px] font-semibold text-slate-300 font-mono tracking-wide">
-                Clipboard Ephemeral: password for <span className="text-white font-bold">{activeClipboardTimer.label}</span> copied. Wiping in <span className="text-[#D4AF37] font-bold font-mono">{secondsLeft}s</span>
+                Clipboard Ephemeral: password for <span className="text-white font-bold">{activeClipboardTimer.label}</span> copied. Wiping in <span className="text-[#79E6FF] font-bold font-mono">{secondsLeft}s</span>
               </span>
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" title="Security Active" />
             </motion.div>

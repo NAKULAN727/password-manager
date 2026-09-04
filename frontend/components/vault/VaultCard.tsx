@@ -193,7 +193,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
       {/* Top Section: Service & Category */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2.5">
-          <div className={`rounded-lg p-2 border text-xs font-semibold ${isTampered ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-amber-500/10 border-[#D4AF37]/20 text-[#D4AF37]'}`}>
+          <div className={`rounded-lg p-2 border text-xs font-semibold ${isTampered ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-amber-500/10 border-[#79E6FF]/20 text-[#79E6FF]'}`}>
             <Globe size={16} />
           </div>
           <div>
@@ -205,7 +205,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
         </div>
 
         {/* Locked/Unlocked status */}
-        <div className={`transition-colors ${isTampered ? 'text-red-400/50 animate-pulse' : 'text-white/20 group-hover:text-[#D4AF37]/50'}`}>
+        <div className={`transition-colors ${isTampered ? 'text-red-400/50 animate-pulse' : 'text-white/20 group-hover:text-[#79E6FF]/50'}`}>
           {isTampered ? <AlertTriangle size={14} /> : decryptedText !== null ? <Unlock size={14} /> : <Lock size={14} />}
         </div>
       </div>
@@ -253,7 +253,7 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
             onClick={handleEdit}
             disabled={isTampered}
             className={`p-1.5 rounded-lg transition-colors ${
-              isTampered ? 'text-white/10 cursor-not-allowed' : 'text-white/30 hover:text-[#D4AF37] hover:bg-white/5'
+              isTampered ? 'text-white/10 cursor-not-allowed' : 'text-white/30 hover:text-[#79E6FF] hover:bg-white/5'
             }`}
             title={isTampered ? 'Edit blocked: Tampered' : 'Edit secret'}
           >
@@ -296,8 +296,8 @@ export function VaultCard({ entry, onEditClick }: VaultCardProps) {
               isTampered
                 ? 'bg-transparent border-red-500/10 text-red-500/35 cursor-not-allowed'
                 : decryptedText !== null
-                  ? 'bg-amber-950/20 border-[#D4AF37]/20 text-amber-500 hover:text-amber-400'
-                  : 'bg-amber-950/10 border-[#D4AF37]/10 text-[#D4AF37] hover:text-white hover:bg-[#D4AF37]/15'
+                  ? 'bg-amber-950/20 border-[#79E6FF]/20 text-amber-500 hover:text-amber-400'
+                  : 'bg-amber-950/10 border-[#79E6FF]/10 text-[#79E6FF] hover:text-white hover:bg-[#79E6FF]/15'
             }`}
           >
             {decryptedText !== null ? <EyeOff size={12} /> : <Eye size={12} />}

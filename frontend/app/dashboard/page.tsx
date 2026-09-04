@@ -220,7 +220,7 @@ export default function DashboardPage() {
 
   // --- RENDERING ROUTE 2: Vault Unlocked Workspace ---
   return (
-    <div className="min-h-screen bg-[#090D16] text-slate-100 pb-20 relative">
+    <div className="min-h-screen bg-[#0A1020] text-slate-100 pb-20 relative">
       
       {/* Depleting progress bar countdown at the very top of the screen */}
       <ClipboardPurgeBar />
@@ -250,11 +250,11 @@ export default function DashboardPage() {
       />
       
       {/* Radial ambient background glows */}
-      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#D4AF37]/3 blur-[120px] animate-pulse-glow" />
+      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#79E6FF]/3 blur-[120px] animate-pulse-glow" />
       <div className="absolute bottom-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-emerald-500/1 blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
 
       {/* Unlocked Header */}
-      <header className="border-b border-white/5 bg-[#090D16]/60 backdrop-blur-xl sticky top-0 z-50">
+      <header className="border-b border-white/5 bg-[#0A1020]/60 backdrop-blur-xl sticky top-0 z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
           <div className="flex items-center">
             <Image
@@ -278,7 +278,7 @@ export default function DashboardPage() {
             <Button
               variant="outline"
               onClick={lockVault}
-              className="px-4 py-2 border-[#D4AF37]/25 hover:border-[#D4AF37]/60 text-[#D4AF37] hover:text-white text-xs font-bold gap-1.5 shadow-[inset_0_0_10px_rgba(212,175,55,0.05)]"
+              className="px-4 py-2 border-[#79E6FF]/25 hover:border-[#79E6FF]/60 text-[#79E6FF] hover:text-white text-xs font-bold gap-1.5 shadow-[inset_0_0_10px_rgba(212,175,55,0.05)]"
             >
               <Lock size={13} />
               Lock Vault
@@ -302,9 +302,9 @@ export default function DashboardPage() {
         {/* Workspace Title bar & CTAs */}
         <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">Security Vault Workspace</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">Your security workspace</h1>
             <p className="mt-1.5 text-sm text-slate-400">
-              Manage your credentials locally with zero server trust
+              Private by design. Built for control.
             </p>
           </div>
           
@@ -312,7 +312,7 @@ export default function DashboardPage() {
             <Link href="/guardians">
               <Button 
                 variant="outline" 
-                className="gap-1.5 text-xs font-bold px-5 py-3 border-white/10 hover:border-[#D4AF37]/30 text-white/60 hover:text-[#D4AF37]"
+                className="gap-1.5 text-xs font-bold px-5 py-3 border-white/10 hover:border-[#79E6FF]/30 text-white/60 hover:text-[#79E6FF]"
               >
                 <Shield size={14} />
                 Guardians
@@ -322,7 +322,7 @@ export default function DashboardPage() {
             <Link href="/audit">
               <Button 
                 variant="outline" 
-                className="gap-1.5 text-xs font-bold px-5 py-3 border-[#D4AF37]/20 hover:border-[#D4AF37]/50 text-[#D4AF37] hover:text-white"
+                className="gap-1.5 text-xs font-bold px-5 py-3 border-[#79E6FF]/20 hover:border-[#79E6FF]/50 text-[#79E6FF] hover:text-white"
               >
                 <Flower2 size={14} />
                 Security Garden
@@ -338,7 +338,7 @@ export default function DashboardPage() {
               className="gap-1.5 text-xs font-bold px-6 py-3"
             >
               <Plus size={14} />
-              Create Secret
+              Add credential
             </Button>
           </div>
         </div>
@@ -348,8 +348,8 @@ export default function DashboardPage() {
           
           {/* Diagnostic status block (Left Panel - Span 1) */}
           <div className="lg:col-span-1 flex flex-col gap-6">
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 text-xs p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
-              <h2 className="text-sm font-bold mb-4 flex items-center gap-2 text-[#D4AF37]">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 text-xs p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+              <h2 className="text-sm font-bold mb-4 flex items-center gap-2 text-[#79E6FF]">
                 <Database size={15} />
                 Session Diagnostics
               </h2>
@@ -376,7 +376,7 @@ export default function DashboardPage() {
 
                 <div>
                   <span className="text-[10px] text-white/30 uppercase tracking-wider block mb-0.5 font-semibold">Session Isolation</span>
-                  <span className="font-mono text-[10px] text-[#D4AF37] bg-amber-950/15 border border-[#D4AF37]/15 rounded-xl px-2.5 py-2.5 block select-none mt-1 leading-relaxed">
+                  <span className="font-mono text-[10px] text-[#79E6FF] bg-amber-950/15 border border-[#79E6FF]/15 rounded-xl px-2.5 py-2.5 block select-none mt-1 leading-relaxed">
                     🔒 Non-Extractable CryptoKey
                   </span>
                   <span className="text-[9.5px] text-white/30 mt-2 block select-none leading-relaxed">
@@ -387,8 +387,8 @@ export default function DashboardPage() {
             </Card>
 
             {/* Note banner */}
-            <div className="rounded-2xl border border-[#D4AF37]/10 bg-amber-950/5 p-4 text-xs leading-relaxed text-slate-400">
-              <div className="font-bold flex items-center gap-1.5 mb-1.5 text-[#D4AF37]">
+            <div className="rounded-2xl border border-[#79E6FF]/10 bg-amber-950/5 p-4 text-xs leading-relaxed text-slate-400">
+              <div className="font-bold flex items-center gap-1.5 mb-1.5 text-[#79E6FF]">
                 <Shield size={14} className="shrink-0" />
                 Zero-Trust Philosophy
               </div>
@@ -405,22 +405,22 @@ export default function DashboardPage() {
               
               <button
                 onClick={fetchEntries}
-                className="text-xs text-[#D4AF37]/70 hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#D4AF37]/15 bg-white/[0.01] hover:bg-[#D4AF37]/5 rounded-2xl px-4 py-2.5 z-10"
+                className="text-xs text-[#79E6FF]/70 hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#79E6FF]/15 bg-white/[0.01] hover:bg-[#79E6FF]/5 rounded-2xl px-4 py-2.5 z-10"
               >
                 <RefreshCw size={12} className={vaultLoading ? "animate-spin" : ""} />
-                Sync Locker
+                Sync vault
               </button>
             </div>
 
             {/* Vault List UI */}
-            <Card className="bg-[#090D16]/20 border-white/5 flex flex-col p-6 min-h-[400px] shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+            <Card className="bg-[#0A1020]/20 border-white/5 flex flex-col p-6 min-h-[400px] shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
               {vaultEntries.length === 0 ? (
                 /* Empty state UI */
                 <div className="flex flex-col items-center justify-center py-24 my-auto">
                   <LockKeyhole className="h-10 w-10 text-white/10 mb-4" />
-                  <p className="text-sm font-semibold text-slate-400">Vault locker is empty</p>
+                  <p className="text-sm font-semibold text-slate-400">Your vault is ready</p>
                   <p className="text-xs text-white/20 mt-1 max-w-xs text-center leading-relaxed">
-                    Local browser GCM encryptions are active. Click the "Create Secret" button to add your first secure record.
+                    Local browser GCM encryptions are active. Click the "Add credential" button to add your first secure record.
                   </p>
                 </div>
               ) : filteredEntries.length === 0 ? (

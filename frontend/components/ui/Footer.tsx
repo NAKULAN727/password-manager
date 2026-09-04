@@ -16,7 +16,7 @@ export function Footer() {
   ];
 
   return (
-    <footer className="bg-[#0A0806] border-t border-[#2A1E10] mt-32">
+    <footer className="bg-[#070B14] border-t border-[#1E2B42] mt-32">
       <div className="mx-auto max-w-7xl px-6 sm:px-8 py-12">
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
           {/* Logo + Tagline */}
@@ -29,7 +29,7 @@ export function Footer() {
               style={{ width: 'auto', height: '60px' }}
               className="object-contain opacity-80"
             />
-            <p className="text-xs text-[#9A7D5A] max-w-[220px] text-center md:text-left leading-relaxed">
+            <p className="text-xs text-[#8493AA] max-w-[220px] text-center md:text-left leading-relaxed">
               Your passwords, locked away where only you can reach them.
             </p>
           </div>
@@ -40,12 +40,12 @@ export function Footer() {
               <span key={link.href} className="flex items-center gap-2">
                 <Link
                   href={link.href}
-                  className="text-xs text-[#9A7D5A] hover:text-[#F0E6D0] transition-colors duration-200"
+                  className="text-xs text-[#8493AA] hover:text-[#E7EEF8] transition-colors duration-200"
                 >
                   {link.label}
                 </Link>
                 {i < footerLinks.length - 1 && (
-                  <span className="h-1 w-1 rounded-full bg-[#E8A020]/40" />
+                  <span className="h-1 w-1 rounded-full bg-[#6EE7FF]/40" />
                 )}
               </span>
             ))}
@@ -57,7 +57,7 @@ export function Footer() {
               href="https://github.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#9A7D5A] hover:text-[#F0E6D0] transition-colors duration-200"
+              className="text-[#8493AA] hover:text-[#E7EEF8] transition-colors duration-200"
               aria-label="GitHub"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -68,7 +68,7 @@ export function Footer() {
               href="https://linkedin.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#9A7D5A] hover:text-[#F0E6D0] transition-colors duration-200"
+              className="text-[#8493AA] hover:text-[#E7EEF8] transition-colors duration-200"
               aria-label="LinkedIn"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -79,8 +79,8 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-[#2A1E10] mt-8 pt-6 text-center">
-          <p className="text-[11px] text-[#9A7D5A]/60 tracking-wider font-[family-name:var(--font-mono)]">
+        <div className="border-t border-[#1E2B42] mt-8 pt-6 text-center">
+          <p className="text-[11px] text-[#8493AA]/60 tracking-wider font-[family-name:var(--font-mono)]">
             © {new Date().getFullYear()} Sphynx Security Labs. All rights reserved.
           </p>
         </div>

@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToastStore, type Toast } from '../../store/useToastStore';
 
-const GOLD = '#f5b942';
+const GOLD = '#79E6FF';
 const DISMISS_MS = 4000;
 
 const TYPE_STYLES: Record<
@@ -22,8 +22,8 @@ const TYPE_STYLES: Record<
     glow: '0 0 24px rgba(239, 68, 68, 0.12)',
   },
   info: {
-    accent: 'text-[#f5b942]',
-    border: 'border-[#f5b942]/30',
+    accent: 'text-[#79E6FF]',
+    border: 'border-[#79E6FF]/30',
     glow: '0 0 28px rgba(245, 185, 66, 0.15)',
   },
 };

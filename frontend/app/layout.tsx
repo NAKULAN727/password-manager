@@ -81,7 +81,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className="min-h-full flex flex-col bg-[#0A0806] text-[#F0E6D0] font-[family-name:var(--font-inter)] selection:bg-[#E8A020]/20 selection:text-[#F0E6D0]"
+        className="min-h-full flex flex-col bg-[#070B14] text-[#E7EEF8] font-[family-name:var(--font-inter)] selection:bg-[#6EE7FF]/20 selection:text-[#E7EEF8]"
         suppressHydrationWarning
       >
         <SessionInitializer />

@@ -16,7 +16,7 @@ export default function TechnologyPage() {
     <PageLayout>
       <main className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-24 animate-fade-in">
         {/* Back to Home */}
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#D4AF37] hover:text-white transition-colors mb-12">
+        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#79E6FF] hover:text-white transition-colors mb-12">
           <ArrowLeft size={14} />
           Back to Home
         </Link>
@@ -25,7 +25,7 @@ export default function TechnologyPage() {
         <div className="max-w-3xl mb-20">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
             How Sphynx{' '}
-            <span className="bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">
               Works
             </span>
           </h1>
@@ -37,7 +37,7 @@ export default function TechnologyPage() {
         {/* Wallet Authentication */}
         <section className="mb-20">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-fit rounded-xl bg-[#D4AF37]/10 p-2.5 border border-[#D4AF37]/20 text-[#D4AF37]">
+            <div className="w-fit rounded-xl bg-[#79E6FF]/10 p-2.5 border border-[#79E6FF]/20 text-[#79E6FF]">
               <Shield size={20} />
             </div>
             <h2 className="text-2xl font-bold">Wallet Authentication</h2>
@@ -60,7 +60,7 @@ export default function TechnologyPage() {
               </ol>
             </div>
 
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">
               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">EIP-4361 Message Structure</h4>
               <pre className="text-xs text-slate-300 font-mono leading-relaxed bg-black/30 rounded-xl p-4 overflow-x-auto">
 {`sphynx.app wants you to sign in
@@ -111,27 +111,27 @@ Expiration: 2026-05-30T12:01:30Z`}
               </p>
             </div>
 
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">
               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Encryption Flow</h4>
               <div className="space-y-4 text-xs text-slate-300">
                 <div className="flex items-start gap-3">
-                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-bold text-[10px]">1</span>
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center text-[#79E6FF] font-bold text-[10px]">1</span>
                   <p>Wallet signs a deterministic message → produces a stable signature</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-bold text-[10px]">2</span>
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center text-[#79E6FF] font-bold text-[10px]">2</span>
                   <p>Signature is fed into HKDF to derive the KEK (non-extractable CryptoKey)</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-bold text-[10px]">3</span>
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center text-[#79E6FF] font-bold text-[10px]">3</span>
                   <p>KEK unwraps the encrypted VEK stored on the server</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-bold text-[10px]">4</span>
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center text-[#79E6FF] font-bold text-[10px]">4</span>
                   <p>VEK decrypts individual vault entries using AES-256-GCM</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-bold text-[10px]">5</span>
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center text-[#79E6FF] font-bold text-[10px]">5</span>
                   <p>All decryption happens in-browser — plaintext never touches the network</p>
                 </div>
               </div>
@@ -153,19 +153,19 @@ Expiration: 2026-05-30T12:01:30Z`}
           </p>
 
           <div className="grid gap-6 md:grid-cols-3">
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">
               <h4 className="text-sm font-bold text-white mb-2">Users</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Stores wallet addresses, encrypted VEK blobs, and session metadata. No emails or personal information required.
               </p>
             </Card>
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">
               <h4 className="text-sm font-bold text-white mb-2">Vault Entries</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Each entry contains an encrypted ciphertext blob, IV, label, and metadata. The server cannot distinguish between entries.
               </p>
             </Card>
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5">
               <h4 className="text-sm font-bold text-white mb-2">Guardian Circles</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Recovery relationships, threshold configurations, and encrypted key shares for the social recovery system.
@@ -204,11 +204,11 @@ Expiration: 2026-05-30T12:01:30Z`}
               </ul>
             </div>
 
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6">
               <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Extension Data Flow</h4>
               <div className="space-y-3 text-xs text-slate-300">
                 <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
-                  <span className="text-[#D4AF37] font-semibold">Web App</span> → Session sync → <span className="text-emerald-400 font-semibold">Extension</span>
+                  <span className="text-[#79E6FF] font-semibold">Web App</span> → Session sync → <span className="text-emerald-400 font-semibold">Extension</span>
                 </div>
                 <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
                   <span className="text-emerald-400 font-semibold">Extension</span> → Detects form → <span className="text-blue-400 font-semibold">Content Script</span>

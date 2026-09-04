@@ -29,7 +29,7 @@ export function RecommendationsFeed({ recommendations, totalCount, isAllClear, a
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2 mb-1">
-        <Lightbulb size={15} className="text-[#D4AF37]" />
+        <Lightbulb size={15} className="text-[#79E6FF]" />
         <h3 className="text-sm font-bold text-white">Security Recommendations</h3>
         {totalCount > 0 && (
           <span className="text-[10px] text-white/30 font-mono ml-auto">
@@ -43,10 +43,10 @@ export function RecommendationsFeed({ recommendations, totalCount, isAllClear, a
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="rounded-2xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 p-6 text-center"
+          className="rounded-2xl border border-[#79E6FF]/20 bg-[#79E6FF]/5 p-6 text-center"
         >
-          <Sparkles size={24} className="text-[#D4AF37] mx-auto mb-3" />
-          <p className="text-sm text-[#D4AF37] font-semibold mb-2">Sanctuary Flourishing</p>
+          <Sparkles size={24} className="text-[#79E6FF] mx-auto mb-3" />
+          <p className="text-sm text-[#79E6FF] font-semibold mb-2">Sanctuary Flourishing</p>
           <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
             {allClearMessage}
           </p>
@@ -87,7 +87,7 @@ export function RecommendationsFeed({ recommendations, totalCount, isAllClear, a
                       <p className="text-[10px] text-slate-400 leading-relaxed">
                         {rec.description}
                       </p>
-                      <p className="text-[10px] text-[#D4AF37]/70 font-medium mt-1">
+                      <p className="text-[10px] text-[#79E6FF]/70 font-medium mt-1">
                         → {rec.action}
                       </p>
                     </div>
@@ -101,7 +101,7 @@ export function RecommendationsFeed({ recommendations, totalCount, isAllClear, a
           {hasMore && (
             <button
               onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
-              className="flex items-center justify-center gap-1.5 text-xs text-[#D4AF37]/70 hover:text-[#D4AF37] transition-colors py-2 font-semibold"
+              className="flex items-center justify-center gap-1.5 text-xs text-[#79E6FF]/70 hover:text-[#79E6FF] transition-colors py-2 font-semibold"
             >
               <ChevronDown size={14} />
               Show more suggestions ({totalCount - visibleCount} remaining)

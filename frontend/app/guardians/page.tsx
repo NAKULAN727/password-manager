@@ -104,13 +104,13 @@ export default function GuardiansPage() {
   const circleReady = activeGuardians.length >= (circle?.threshold || 3);
 
   return (
-    <div className="min-h-screen bg-[#090D16] text-slate-100 pb-20 relative">
+    <div className="min-h-screen bg-[#0A1020] text-slate-100 pb-20 relative">
       {/* Ambient glows */}
-      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#D4AF37]/3 blur-[120px] animate-pulse-glow" />
+      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#79E6FF]/3 blur-[120px] animate-pulse-glow" />
       <div className="absolute bottom-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-emerald-500/2 blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
 
       {/* Header */}
-      <header className="border-b border-white/5 bg-[#090D16]/60 backdrop-blur-xl sticky top-0 z-50">
+      <header className="border-b border-white/5 bg-[#0A1020]/60 backdrop-blur-xl sticky top-0 z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
           <div className="flex items-center gap-4">
             <Link href="/dashboard">
@@ -120,13 +120,13 @@ export default function GuardiansPage() {
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              <Users size={18} className="text-[#D4AF37]" />
+              <Users size={18} className="text-[#79E6FF]" />
               <h1 className="text-sm font-bold text-white">Circle of Guardians</h1>
             </div>
           </div>
 
           <div className="flex items-center gap-3.5">
-            <Button variant="outline" onClick={lockVault} className="px-4 py-2 border-[#D4AF37]/25 hover:border-[#D4AF37]/60 text-[#D4AF37] hover:text-white text-xs font-bold gap-1.5">
+            <Button variant="outline" onClick={lockVault} className="px-4 py-2 border-[#79E6FF]/25 hover:border-[#79E6FF]/60 text-[#79E6FF] hover:text-white text-xs font-bold gap-1.5">
               <Lock size={13} />
               Lock
             </Button>
@@ -144,7 +144,7 @@ export default function GuardiansPage() {
         {/* Page Title */}
         <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">
+            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">
               The Circle of Guardians
             </h1>
             <p className="mt-1.5 text-sm text-slate-400">
@@ -162,7 +162,7 @@ export default function GuardiansPage() {
             </button>
             <button
               onClick={() => setShowInviteForm(true)}
-              className="text-xs text-[#D4AF37] hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#D4AF37]/20 bg-[#D4AF37]/5 hover:bg-[#D4AF37]/10 rounded-2xl px-4 py-2.5"
+              className="text-xs text-[#79E6FF] hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#79E6FF]/20 bg-[#79E6FF]/5 hover:bg-[#79E6FF]/10 rounded-2xl px-4 py-2.5"
             >
               <UserPlus size={12} />
               Invite Guardian
@@ -189,14 +189,14 @@ export default function GuardiansPage() {
         <div className="grid gap-8 lg:grid-cols-2">
           
           {/* Left: Guardian Circle Visualization */}
-          <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+          <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
             <h2 className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-6">
               Your Guardian Circle
             </h2>
 
             {isLoadingCircle ? (
               <div className="flex items-center justify-center py-16">
-                <RefreshCw size={20} className="text-[#D4AF37] animate-spin" />
+                <RefreshCw size={20} className="text-[#79E6FF] animate-spin" />
               </div>
             ) : guardians.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -242,7 +242,7 @@ export default function GuardiansPage() {
           {/* Right: Recovery Status / Actions */}
           <div className="flex flex-col gap-6">
             {/* Recovery Status */}
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
               <h2 className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-6">
                 Recovery Status
               </h2>
@@ -269,7 +269,7 @@ export default function GuardiansPage() {
                       variant="outline"
                       onClick={handleCreateRecovery}
                       disabled={isLoadingRecovery}
-                      className="text-xs border-[#D4AF37]/20 text-[#D4AF37] hover:border-[#D4AF37]/50 gap-1.5"
+                      className="text-xs border-[#79E6FF]/20 text-[#79E6FF] hover:border-[#79E6FF]/50 gap-1.5"
                     >
                       <Shield size={12} />
                       Initiate Recovery
@@ -280,8 +280,8 @@ export default function GuardiansPage() {
             </Card>
 
             {/* Security Info */}
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
-              <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-2 mb-3">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+              <h3 className="text-xs font-bold text-[#79E6FF] flex items-center gap-2 mb-3">
                 <Shield size={14} />
                 Recovery Protections
               </h3>
@@ -328,7 +328,7 @@ export default function GuardiansPage() {
                 onClick={(e) => e.stopPropagation()}
                 className="w-full max-w-md"
               >
-                <Card className="border-[#D4AF37]/15 bg-[#090D16]/95 backdrop-blur-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+                <Card className="border-[#79E6FF]/15 bg-[#0A1020]/95 backdrop-blur-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
                   <h3 className="text-lg font-bold text-white mb-1">Invite Guardian</h3>
                   <p className="text-xs text-slate-400 mb-6">
                     Enter the Ethereum address of a trusted wallet to join your recovery circle.
@@ -344,7 +344,7 @@ export default function GuardiansPage() {
                         value={inviteAddress}
                         onChange={(e) => setInviteAddress(e.target.value)}
                         placeholder="0x..."
-                        className="w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#D4AF37]/30"
+                        className="w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#79E6FF]/30"
                       />
                     </div>
 
@@ -358,7 +358,7 @@ export default function GuardiansPage() {
                         max={6}
                         value={threshold}
                         onChange={(e) => setThreshold(Number(e.target.value))}
-                        className="w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]/30"
+                        className="w-full rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white focus:outline-none focus:border-[#79E6FF]/30"
                       />
                       <p className="text-[9px] text-white/30 mt-1">
                         Minimum approvals needed for recovery (2 to total-1)
@@ -398,8 +398,8 @@ export default function GuardiansPage() {
               exit={{ opacity: 0, height: 0 }}
               className="mt-8"
             >
-              <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
-                <h3 className="text-xs font-bold text-[#D4AF37] flex items-center gap-2 mb-4">
+              <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+                <h3 className="text-xs font-bold text-[#79E6FF] flex items-center gap-2 mb-4">
                   <Scroll size={14} />
                   Recovery Audit Trail
                 </h3>
@@ -410,7 +410,7 @@ export default function GuardiansPage() {
                     {auditTrail.map((event) => (
                       <div key={event.id} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.01] px-3 py-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-mono text-[#D4AF37] uppercase">{event.eventType.replace(/_/g, ' ')}</span>
+                          <span className="text-[9px] font-mono text-[#79E6FF] uppercase">{event.eventType.replace(/_/g, ' ')}</span>
                         </div>
                         <span className="text-[9px] text-white/30 font-mono">
                           {new Date(event.timestamp).toLocaleString()}
@@ -429,7 +429,7 @@ export default function GuardiansPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="mt-12 rounded-2xl border border-[#D4AF37]/10 bg-amber-950/5 p-4 text-center"
+          className="mt-12 rounded-2xl border border-[#79E6FF]/10 bg-amber-950/5 p-4 text-center"
         >
           <p className="text-[10px] text-slate-400 leading-relaxed max-w-lg mx-auto">
             🔒 Recovery shares are encrypted client-side before storage. The server never possesses your VEK, 

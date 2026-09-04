@@ -63,7 +63,7 @@ export default function LoginPage() {
       >
         <Link
           href="/"
-          className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#D4AF37] select-none"
+          className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#79E6FF] select-none"
         >
           <ArrowLeft size={14} />
           Back to Landing
@@ -95,7 +95,7 @@ export default function LoginPage() {
             />
           </motion.div>
           
-          <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent font-mono">
+          <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent font-mono">
             Access The Sanctuary
           </h2>
           
@@ -106,7 +106,7 @@ export default function LoginPage() {
 
         {/* Central Glassmorphic Gateway Card with Burnished Gold Border */}
         <motion.div variants={itemVariants}>
-          <Card className="border-[#D4AF37]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+          <Card className="border-[#79E6FF]/15 bg-[#0A1020]/50 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
             <WalletConnectBtn />
           </Card>
         </motion.div>

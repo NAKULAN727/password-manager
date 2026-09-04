@@ -70,7 +70,7 @@ export function TamperAlarm() {
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 90, damping: 16 }}
-              className="w-full max-w-lg rounded-3xl border border-red-500/25 bg-[#090D16]/95 p-8 shadow-[0_0_60px_rgba(239,68,68,0.2)] relative overflow-hidden select-none"
+              className="w-full max-w-lg rounded-3xl border border-red-500/25 bg-[#0A1020]/95 p-8 shadow-[0_0_60px_rgba(239,68,68,0.2)] relative overflow-hidden select-none"
             >
               {/* Subtle warning glow backdrop */}
               <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-red-500/10 blur-[80px]" />
@@ -109,7 +109,7 @@ export function TamperAlarm() {
                   ))}
                 </div>
 
-                <p className="text-xs text-slate-400 border-l-2 border-[#D4AF37]/50 pl-3">
+                <p className="text-xs text-slate-400 border-l-2 border-[#79E6FF]/50 pl-3">
                   <strong className="text-slate-200">What does this mean?</strong> The encrypted payload stored on the backend server does not match the tamper-proof signature derived from your key. The record has been modified, corrupted, or intercepted on the server.
                 </p>
                 

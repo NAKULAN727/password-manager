@@ -5,39 +5,17 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
 }
 
-/**
- * Button component — The Vault theme.
- * Warm amber gradients, deliberate transitions, no cold tones.
- */
-export function Button({
-  children,
-  variant = 'primary',
-  isLoading = false,
-  className = '',
-  disabled,
-  ...props
-}: ButtonProps) {
-  const baseStyle = "relative inline-flex items-center justify-center px-6 py-3 rounded-[10px] font-medium tracking-wide transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] focus:outline-none focus:ring-2 focus:ring-[#E8A020]/50 focus:ring-offset-2 focus:ring-offset-[#0A0806] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden active:scale-[0.97] text-sm select-none hover:-translate-y-0.5 active:translate-y-0";
-
+export function Button({ children, variant = 'primary', isLoading = false, className = '', disabled, ...props }: ButtonProps) {
+  const baseStyle = 'relative inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium tracking-wide transition-[transform,background,border-color,box-shadow,color] duration-160 ease-out focus:outline-none focus:ring-2 focus:ring-[#6EE7FF]/40 focus:ring-offset-2 focus:ring-offset-[#070B14] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[.97] select-none';
   const variants = {
-    primary: "bg-gradient-to-br from-[#E8A020] to-[#B86A1A] text-[#0A0806] font-bold shadow-[0_4px_15px_rgba(232,160,32,0.15)] hover:shadow-[0_8px_25px_rgba(232,160,32,0.3)]",
-    secondary: "bg-[#1E160D] text-[#F0E6D0] border border-[#2A1E10] hover:border-[#E8A020] hover:text-[#F0E6D0]",
-    outline: "bg-transparent border border-[#2A1E10] text-[#9A7D5A] hover:border-[#E8A020] hover:text-[#F0E6D0] hover:shadow-[0_0_15px_rgba(232,160,32,0.1)]",
-    danger: "bg-[#1E160D] border border-[#CC4A3A]/30 text-[#CC4A3A] hover:bg-[#CC4A3A]/10 hover:border-[#CC4A3A]/50 shadow-[0_0_15px_rgba(204,74,58,0.05)] hover:shadow-[0_0_20px_rgba(204,74,58,0.15)]"
+    primary: 'bg-[#6EE7FF] text-[#07101D] font-bold shadow-[0_8px_24px_rgba(110,231,255,.16)] hover:bg-[#B4F4FF] hover:shadow-[0_10px_30px_rgba(110,231,255,.25)]',
+    secondary: 'bg-[#111D31] text-[#E7EEF8] border border-[#1E2B42] hover:border-[#6EE7FF]/40 hover:bg-[#16263E]',
+    outline: 'bg-transparent border border-[#1E2B42] text-[#8493AA] hover:border-[#6EE7FF]/45 hover:text-[#E7EEF8] hover:bg-[#0C1424]',
+    danger: 'bg-[#321622] border border-[#FB7185]/25 text-[#FB7185] hover:bg-[#FB7185]/10 hover:border-[#FB7185]/50',
   };
-
   return (
-    <button
-      disabled={disabled || isLoading}
-      className={`${baseStyle} ${variants[variant]} ${className}`}
-      {...props}
-    >
-      {isLoading && (
-        <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-current" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-        </svg>
-      )}
+    <button disabled={disabled || isLoading} className={`${baseStyle} ${variants[variant]} ${className}`} {...props}>
+      {isLoading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />}
       {children}
     </button>
   );

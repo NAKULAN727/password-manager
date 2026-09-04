@@ -24,7 +24,7 @@ export function AgingPanel({ agingAnalysis }: AgingPanelProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2 mb-1">
-        <Clock size={15} className="text-[#D4AF37]" />
+        <Clock size={15} className="text-[#79E6FF]" />
         <h3 className="text-sm font-bold text-white">Credential Aging</h3>
       </div>
 

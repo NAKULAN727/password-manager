@@ -93,7 +93,7 @@ export function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-[#090D16]/65 backdrop-blur-md"
+            className="absolute inset-0 bg-[#0A1020]/65 backdrop-blur-md"
           />
 
           {/* Modal Card container */}
@@ -102,16 +102,16 @@ export function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.95, y: 15, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-            className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-[#D4AF37]/15 bg-[#090D16]/95 p-8 shadow-[0_0_50px_rgba(212,175,55,0.12)] backdrop-blur-2xl z-10"
+            className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-[#79E6FF]/15 bg-[#0A1020]/95 p-8 shadow-[0_0_50px_rgba(212,175,55,0.12)] backdrop-blur-2xl z-10"
           >
             
             {/* Ambient background accent */}
-            <div className="absolute -right-20 -top-20 -z-10 h-40 w-40 rounded-full bg-[#D4AF37]/5 blur-[60px]" />
+            <div className="absolute -right-20 -top-20 -z-10 h-40 w-40 rounded-full bg-[#79E6FF]/5 blur-[60px]" />
             
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-gradient-to-tr from-amber-600 to-[#D4AF37] p-2 shadow-[0_0_12px_rgba(212,175,55,0.2)] border border-[#D4AF37]/25">
+                <div className="rounded-xl bg-gradient-to-tr from-amber-600 to-[#79E6FF] p-2 shadow-[0_0_12px_rgba(212,175,55,0.2)] border border-[#79E6FF]/25">
                   <Shield className="h-5 w-5 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-[#F8F3E7] font-mono">
@@ -149,7 +149,7 @@ export function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro
                   placeholder="e.g. Google Account, GitHub Token"
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
-                  className="glow-input w-full rounded-xl border border-[#D4AF37]/15 bg-white/[0.015] px-4 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none"
+                  className="glow-input w-full rounded-xl border border-[#79E6FF]/15 bg-white/[0.015] px-4 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none"
                 />
               </div>
 
@@ -162,7 +162,7 @@ export function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro
                   placeholder="e.g. user@gmail.com, admin"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="glow-input w-full rounded-xl border border-[#D4AF37]/15 bg-white/[0.015] px-4 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none"
+                  className="glow-input w-full rounded-xl border border-[#79E6FF]/15 bg-white/[0.015] px-4 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none"
                 />
               </div>
 
@@ -174,7 +174,7 @@ export function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro
                   <button
                     type="button"
                     onClick={handleGeneratePassword}
-                    className="text-[10px] text-[#D4AF37] hover:text-[#e5c158] font-bold flex items-center gap-1 transition-colors select-none font-mono"
+                    className="text-[10px] text-[#79E6FF] hover:text-[#e5c158] font-bold flex items-center gap-1 transition-colors select-none font-mono"
                   >
                     <Sparkles size={11} />
                     Generate Secure
@@ -188,7 +188,7 @@ export function PasswordModal({ isOpen, onClose, entryToEdit }: PasswordModalPro
                     placeholder="Enter confidential credential"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="glow-input w-full rounded-xl border border-[#D4AF37]/15 bg-white/[0.015] pl-4 pr-12 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none font-mono"
+                    className="glow-input w-full rounded-xl border border-[#79E6FF]/15 bg-white/[0.015] pl-4 pr-12 py-3 text-sm text-[#F8F3E7] placeholder-white/20 focus:outline-none font-mono"
                   />
                   <button
                     type="button"

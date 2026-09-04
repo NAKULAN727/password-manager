@@ -69,7 +69,7 @@ export function DecryptedPassword({ password = '', isDecrypted }: DecryptedPassw
             animate={{ filter: 'blur(0px)', opacity: 1 }}
             exit={{ filter: 'blur(2px)', opacity: 0.8 }}
             transition={{ duration: 0.6 }}
-            className="font-mono text-xs font-bold text-[#D4AF37] px-2.5 py-1 rounded bg-[#090D16]/50 border border-[#D4AF37]/20 shadow-[0_0_12px_rgba(212,175,55,0.15)] select-none relative"
+            className="font-mono text-xs font-bold text-[#79E6FF] px-2.5 py-1 rounded bg-[#0A1020]/50 border border-[#79E6FF]/20 shadow-[0_0_12px_rgba(212,175,55,0.15)] select-none relative"
           >
             {mutatedText}
             {/* Shimmer sweep overlay */}
@@ -77,7 +77,7 @@ export function DecryptedPassword({ password = '', isDecrypted }: DecryptedPassw
               initial={{ left: '-100%' }}
               animate={{ left: '100%' }}
               transition={{ duration: 0.75, ease: 'easeInOut' }}
-              className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent pointer-events-none"
+              className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-[#79E6FF]/50 to-transparent pointer-events-none"
             />
           </motion.span>
         ) : (
@@ -87,7 +87,7 @@ export function DecryptedPassword({ password = '', isDecrypted }: DecryptedPassw
             initial={{ opacity: 0, filter: 'blur(3px)', scale: 0.98 }}
             animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="font-mono text-xs font-semibold px-2.5 py-1.5 rounded bg-[#090D16]/80 border border-[#10B981]/25 text-[#10B981] shadow-[0_0_12px_rgba(16,185,129,0.15)] select-all flex items-center gap-1.5 max-w-fit cursor-pointer"
+            className="font-mono text-xs font-semibold px-2.5 py-1.5 rounded bg-[#0A1020]/80 border border-[#10B981]/25 text-[#10B981] shadow-[0_0_12px_rgba(16,185,129,0.15)] select-all flex items-center gap-1.5 max-w-fit cursor-pointer"
           >
             <ShieldCheck size={12.5} className="text-[#10B981] shrink-0 animate-pulse" />
             {password}

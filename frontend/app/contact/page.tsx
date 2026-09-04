@@ -164,7 +164,7 @@ export default function ContactPage() {
     <PageLayout>
       <main className="mx-auto max-w-7xl px-6 py-16 sm:px-8 sm:py-24 animate-fade-in">
         {/* Back to Home */}
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#D4AF37] hover:text-white transition-colors mb-12">
+        <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#79E6FF] hover:text-white transition-colors mb-12">
           <ArrowLeft size={14} />
           Back to Home
         </Link>
@@ -173,7 +173,7 @@ export default function ContactPage() {
         <div className="max-w-3xl mb-16">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
             Get In{' '}
-            <span className="bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">
               Touch
             </span>
           </h1>
@@ -184,12 +184,12 @@ export default function ContactPage() {
 
         <div className="grid gap-10 lg:grid-cols-[1fr_340px]">
           {/* Contact Form */}
-          <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+          <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
               {/* Name */}
               <div>
                 <label htmlFor="contact-name" className="text-[10px] text-white/40 uppercase tracking-wider font-semibold block mb-2">
-                  Full Name <span className="text-[#D4AF37]">*</span>
+                  Full Name <span className="text-[#79E6FF]">*</span>
                 </label>
                 <input
                   id="contact-name"
@@ -200,7 +200,7 @@ export default function ContactPage() {
                   placeholder="What should we call you?"
                   maxLength={100}
                   className={`w-full rounded-xl border bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all duration-200 glow-input ${
-                    touched.name && errors.name ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#D4AF37]/30'
+                    touched.name && errors.name ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#79E6FF]/30'
                   }`}
                 />
                 {touched.name && errors.name && (
@@ -211,7 +211,7 @@ export default function ContactPage() {
               {/* Email */}
               <div>
                 <label htmlFor="contact-email" className="text-[10px] text-white/40 uppercase tracking-wider font-semibold block mb-2">
-                  Email Address <span className="text-[#D4AF37]">*</span>
+                  Email Address <span className="text-[#79E6FF]">*</span>
                 </label>
                 <input
                   id="contact-email"
@@ -222,7 +222,7 @@ export default function ContactPage() {
                   placeholder="your@email.com"
                   maxLength={254}
                   className={`w-full rounded-xl border bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all duration-200 glow-input ${
-                    touched.email && errors.email ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#D4AF37]/30'
+                    touched.email && errors.email ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#79E6FF]/30'
                   }`}
                 />
                 {touched.email && errors.email && (
@@ -233,7 +233,7 @@ export default function ContactPage() {
               {/* Subject */}
               <div>
                 <label htmlFor="contact-subject" className="text-[10px] text-white/40 uppercase tracking-wider font-semibold block mb-2">
-                  Subject <span className="text-[#D4AF37]">*</span>
+                  Subject <span className="text-[#79E6FF]">*</span>
                 </label>
                 <input
                   id="contact-subject"
@@ -244,7 +244,7 @@ export default function ContactPage() {
                   placeholder="What's on your mind?"
                   maxLength={150}
                   className={`w-full rounded-xl border bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all duration-200 glow-input ${
-                    touched.subject && errors.subject ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#D4AF37]/30'
+                    touched.subject && errors.subject ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#79E6FF]/30'
                   }`}
                 />
                 {touched.subject && errors.subject && (
@@ -255,7 +255,7 @@ export default function ContactPage() {
               {/* Message */}
               <div>
                 <label htmlFor="contact-message" className="text-[10px] text-white/40 uppercase tracking-wider font-semibold block mb-2">
-                  Message <span className="text-[#D4AF37]">*</span>
+                  Message <span className="text-[#79E6FF]">*</span>
                 </label>
                 <textarea
                   id="contact-message"
@@ -265,7 +265,7 @@ export default function ContactPage() {
                   placeholder="Tell us more — we're listening"
                   rows={6}
                   className={`w-full rounded-xl border bg-white/[0.02] px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none transition-all duration-200 resize-none glow-input ${
-                    touched.message && errors.message ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#D4AF37]/30'
+                    touched.message && errors.message ? 'border-[#E05C4B]/50' : 'border-white/10 focus:border-[#79E6FF]/30'
                   }`}
                 />
                 <div className="flex items-center justify-between mt-1.5">
@@ -319,7 +319,7 @@ export default function ContactPage() {
           {/* Sidebar: Contact Info */}
           <div className="flex flex-col gap-6">
             {/* Contact Information Card */}
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
               <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-5">
                 Contact Information
               </h3>
@@ -327,10 +327,10 @@ export default function ContactPage() {
               <div className="space-y-4">
                 <a
                   href="mailto:nakulan07022007@gmail.com"
-                  className="flex items-center gap-3 text-sm text-slate-300 hover:text-[#D4AF37] transition-colors group"
+                  className="flex items-center gap-3 text-sm text-slate-300 hover:text-[#79E6FF] transition-colors group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center group-hover:bg-[#D4AF37]/20 transition-colors">
-                    <Mail size={14} className="text-[#D4AF37]" />
+                  <div className="w-8 h-8 rounded-lg bg-[#79E6FF]/10 border border-[#79E6FF]/20 flex items-center justify-center group-hover:bg-[#79E6FF]/20 transition-colors">
+                    <Mail size={14} className="text-[#79E6FF]" />
                   </div>
                   <span className="text-xs font-mono">nakulan07022007@gmail.com</span>
                 </a>
@@ -366,25 +366,25 @@ export default function ContactPage() {
             </Card>
 
             {/* What to reach out about */}
-            <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+            <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
               <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">
                 Reach Out About
               </h3>
               <ul className="space-y-2.5 text-xs text-slate-400">
                 <li className="flex items-center gap-2">
-                  <span className="h-1 w-1 rounded-full bg-[#D4AF37]" />
+                  <span className="h-1 w-1 rounded-full bg-[#79E6FF]" />
                   General questions
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="h-1 w-1 rounded-full bg-[#D4AF37]" />
+                  <span className="h-1 w-1 rounded-full bg-[#79E6FF]" />
                   Feature suggestions
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="h-1 w-1 rounded-full bg-[#D4AF37]" />
+                  <span className="h-1 w-1 rounded-full bg-[#79E6FF]" />
                   Bug reports
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="h-1 w-1 rounded-full bg-[#D4AF37]" />
+                  <span className="h-1 w-1 rounded-full bg-[#79E6FF]" />
                   Feedback &amp; ideas
                 </li>
                 <li className="flex items-center gap-2">
@@ -395,8 +395,8 @@ export default function ContactPage() {
             </Card>
 
             {/* Security Notice */}
-            <div className="rounded-2xl border border-[#D4AF37]/10 bg-amber-950/5 p-4 text-xs leading-relaxed text-slate-400">
-              <div className="font-bold flex items-center gap-1.5 mb-1.5 text-[#D4AF37]">
+            <div className="rounded-2xl border border-[#79E6FF]/10 bg-amber-950/5 p-4 text-xs leading-relaxed text-slate-400">
+              <div className="font-bold flex items-center gap-1.5 mb-1.5 text-[#79E6FF]">
                 <Shield size={12} className="shrink-0" />
                 Security Reports
               </div>

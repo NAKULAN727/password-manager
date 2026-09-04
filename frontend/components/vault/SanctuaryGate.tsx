@@ -173,7 +173,7 @@ function CreateSanctuary() {
             priority
           />
         </motion.div>
-        <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">
+        <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">
           Create Your Sanctuary Phrase
         </h2>
         <p className="mt-2 text-sm text-slate-400 max-w-xs leading-relaxed">
@@ -181,7 +181,7 @@ function CreateSanctuary() {
         </p>
       </div>
 
-      <Card className="border-[#f5b942]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+      <Card className="border-[#79E6FF]/15 bg-[#0A1020]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
           <AnimatePresence>
@@ -197,17 +197,17 @@ function CreateSanctuary() {
             )}
           </AnimatePresence>
 
-          <div className="rounded-xl border border-white/5 bg-[#090D16]/80 p-3.5 text-xs flex flex-col gap-1">
+          <div className="rounded-xl border border-white/5 bg-[#0A1020]/80 p-3.5 text-xs flex flex-col gap-1">
             <span className="text-[10px] text-white/30 uppercase tracking-widest font-semibold">
               Vault Salt (Wallet Address)
             </span>
-            <span className="font-mono text-[#f5b942] break-all text-[11px]">{address}</span>
+            <span className="font-mono text-[#79E6FF] break-all text-[11px]">{address}</span>
           </div>
 
           <button
             type="button"
             onClick={handleGenerate}
-            className="flex items-center gap-2 text-xs text-[#f5b942]/70 hover:text-[#f5b942] transition-colors font-semibold self-start"
+            className="flex items-center gap-2 text-xs text-[#79E6FF]/70 hover:text-[#79E6FF] transition-colors font-semibold self-start"
           >
             <Sparkles size={13} />
             Generate secure phrase suggestion
@@ -313,7 +313,7 @@ function UnlockSanctuary() {
             priority
           />
         </motion.div>
-        <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">
+        <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">
           Unlock Your Sanctuary
         </h2>
         <p className="mt-2 text-sm text-slate-400">
@@ -321,7 +321,7 @@ function UnlockSanctuary() {
         </p>
       </div>
 
-      <Card className="border-[#f5b942]/15 bg-[#090D16]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+      <Card className="border-[#79E6FF]/15 bg-[#0A1020]/50 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
           <AnimatePresence>
@@ -337,11 +337,11 @@ function UnlockSanctuary() {
             )}
           </AnimatePresence>
 
-          <div className="rounded-xl border border-white/5 bg-[#090D16]/80 p-3.5 text-xs flex flex-col gap-1">
+          <div className="rounded-xl border border-white/5 bg-[#0A1020]/80 p-3.5 text-xs flex flex-col gap-1">
             <span className="text-[10px] text-white/30 uppercase tracking-widest font-semibold">
               Vault Salt (Wallet Address)
             </span>
-            <span className="font-mono text-[#f5b942] break-all text-[11px]">{address}</span>
+            <span className="font-mono text-[#79E6FF] break-all text-[11px]">{address}</span>
           </div>
 
           <PhraseInput
@@ -387,9 +387,9 @@ export function SanctuaryGate({ onLogout }: { onLogout: () => void }) {
   }, [sanctuaryStatus, checkSanctuaryStatus]);
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#090D16] px-6 py-12">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#0A1020] px-6 py-12">
       {/* Ambient glow */}
-      <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#D4AF37]/5 blur-[120px] animate-pulse-glow" />
+      <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#79E6FF]/5 blur-[120px] animate-pulse-glow" />
 
       <div className="z-10 w-full flex flex-col items-center">
         <AnimatePresence mode="wait">
@@ -403,12 +403,12 @@ export function SanctuaryGate({ onLogout }: { onLogout: () => void }) {
             >
               <div className="relative flex h-14 w-14 items-center justify-center">
                 <motion.div
-                  className="absolute inset-0 rounded-full border border-[#f5b942]/20"
+                  className="absolute inset-0 rounded-full border border-[#79E6FF]/20"
                   animate={{ scale: [1, 1.12, 1], opacity: [0.35, 0.7, 0.35] }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 />
                 <motion.div
-                  className="h-1.5 w-1.5 rounded-full bg-[#f5b942]"
+                  className="h-1.5 w-1.5 rounded-full bg-[#79E6FF]"
                   style={{ boxShadow: '0 0 12px rgba(245,185,66,0.8)' }}
                   animate={{ opacity: [0.4, 1, 0.4] }}
                   transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -437,7 +437,7 @@ export function SanctuaryGate({ onLogout }: { onLogout: () => void }) {
       <div className="mt-8 text-center">
         <button
           onClick={onLogout}
-          className="text-xs font-semibold text-[#D4AF37]/65 hover:text-[#D4AF37] transition-colors"
+          className="text-xs font-semibold text-[#79E6FF]/65 hover:text-[#79E6FF] transition-colors"
         >
           Sign Out Wallet
         </button>

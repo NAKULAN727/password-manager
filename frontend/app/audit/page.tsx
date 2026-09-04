@@ -83,13 +83,13 @@ export default function AuditPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#090D16] text-slate-100 pb-20 relative">
+    <div className="min-h-screen bg-[#0A1020] text-slate-100 pb-20 relative">
       {/* Ambient glows */}
-      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#D4AF37]/3 blur-[120px] animate-pulse-glow" />
+      <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[#79E6FF]/3 blur-[120px] animate-pulse-glow" />
       <div className="absolute bottom-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-emerald-500/2 blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
 
       {/* Header */}
-      <header className="border-b border-white/5 bg-[#090D16]/60 backdrop-blur-xl sticky top-0 z-50">
+      <header className="border-b border-white/5 bg-[#0A1020]/60 backdrop-blur-xl sticky top-0 z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
           <div className="flex items-center gap-4">
             <Link href="/dashboard">
@@ -99,7 +99,7 @@ export default function AuditPage() {
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              <Flower2 size={18} className="text-[#D4AF37]" />
+              <Flower2 size={18} className="text-[#79E6FF]" />
               <h1 className="text-sm font-bold text-white">Security Garden</h1>
             </div>
           </div>
@@ -108,7 +108,7 @@ export default function AuditPage() {
             <Button
               variant="outline"
               onClick={lockVault}
-              className="px-4 py-2 border-[#D4AF37]/25 hover:border-[#D4AF37]/60 text-[#D4AF37] hover:text-white text-xs font-bold gap-1.5"
+              className="px-4 py-2 border-[#79E6FF]/25 hover:border-[#79E6FF]/60 text-[#79E6FF] hover:text-white text-xs font-bold gap-1.5"
             >
               <Lock size={13} />
               Lock
@@ -131,7 +131,7 @@ export default function AuditPage() {
         {/* Page Title */}
         <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#D4AF37] bg-clip-text text-transparent">
+            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-amber-100 to-[#79E6FF] bg-clip-text text-transparent">
               The Security Garden
             </h1>
             <p className="mt-1.5 text-sm text-slate-400">
@@ -142,7 +142,7 @@ export default function AuditPage() {
           <button
             onClick={runAnalysis}
             disabled={isAnalyzing}
-            className="text-xs text-[#D4AF37]/70 hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#D4AF37]/15 bg-white/[0.01] hover:bg-[#D4AF37]/5 rounded-2xl px-4 py-2.5 disabled:opacity-50"
+            className="text-xs text-[#79E6FF]/70 hover:text-white transition-colors flex items-center gap-1.5 font-semibold border border-[#79E6FF]/15 bg-white/[0.01] hover:bg-[#79E6FF]/5 rounded-2xl px-4 py-2.5 disabled:opacity-50"
           >
             <RefreshCw size={12} className={isAnalyzing ? 'animate-spin' : ''} />
             {isAnalyzing ? 'Analyzing...' : 'Refresh Analysis'}
@@ -156,7 +156,7 @@ export default function AuditPage() {
             animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center py-24"
           >
-            <Loader2 size={32} className="text-[#D4AF37] animate-spin mb-4" />
+            <Loader2 size={32} className="text-[#79E6FF] animate-spin mb-4" />
             <p className="text-sm text-slate-400 font-mono">Analyzing your sanctuary...</p>
             <p className="text-[10px] text-white/30 mt-2">All analysis occurs locally in your browser</p>
           </motion.div>
@@ -180,7 +180,7 @@ export default function AuditPage() {
             {/* Left Column: Health Score + Strength */}
             <div className="lg:col-span-1 flex flex-col gap-6">
               {/* Health Score Card */}
-              <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col items-center">
+              <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col items-center">
                 <h2 className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mb-6 self-start">
                   Sanctuary Health
                 </h2>
@@ -200,7 +200,7 @@ export default function AuditPage() {
 
               {/* Strength Distribution Card */}
               {strengthData.length > 0 && (
-                <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+                <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
                   <StrengthDistribution strengthData={strengthData} />
                 </Card>
               )}
@@ -209,7 +209,7 @@ export default function AuditPage() {
             {/* Right Column: Reuse + Aging + Recommendations */}
             <div className="lg:col-span-2 flex flex-col gap-6">
               {/* Reuse Detection */}
-              <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+              <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
                 <ReusePanel
                   reuseGroups={reuseGroups}
                   totalEntries={vaultEntries.length}
@@ -218,12 +218,12 @@ export default function AuditPage() {
               </Card>
 
               {/* Aging Analysis */}
-              <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+              <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
                 <AgingPanel agingAnalysis={agingAnalysis} />
               </Card>
 
               {/* Recommendations Feed */}
-              <Card className="border-[#D4AF37]/10 bg-[#090D16]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
+              <Card className="border-[#79E6FF]/10 bg-[#0A1020]/50 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.37)]">
                 <RecommendationsFeed
                   recommendations={recommendations}
                   totalCount={totalRecommendations}
@@ -240,7 +240,7 @@ export default function AuditPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="mt-12 rounded-2xl border border-[#D4AF37]/10 bg-amber-950/5 p-4 text-center"
+          className="mt-12 rounded-2xl border border-[#79E6FF]/10 bg-amber-950/5 p-4 text-center"
         >
           <p className="text-[10px] text-slate-400 leading-relaxed max-w-lg mx-auto">
             🔒 All security analysis occurs exclusively in your browser. No passwords, hashes, or analysis results 

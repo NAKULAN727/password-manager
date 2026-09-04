@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check } from 'lucide-react';
 
-const GOLD = '#f5b942';
+const GOLD = '#79E6FF';
 const GOLD_DIM = 'rgba(245, 185, 66, 0.35)';
 const GOLD_GLOW = 'rgba(245, 185, 66, 0.55)';
 const DURATION_MS = 2800;
